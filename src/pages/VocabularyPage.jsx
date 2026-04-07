@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { dictionaryAPI, languagesAPI } from '../services/api';
+import api, { dictionaryAPI, languagesAPI } from '../services/api';
 import { MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import api from '../services/api';
 
 const STATUS_STYLES = {
   PUBLISHED: 'bg-green-100 text-green-700',
