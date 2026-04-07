@@ -56,6 +56,9 @@ export const culturalAPI = {
 
 export const tutorsAPI = {
   getAll: () => api.get('/tutors'),
+  create: (data) => api.post('/tutors', data),
+  update: (id, data) => api.patch(`/tutors/${id}`, data),
+  delete: (id) => api.delete(`/tutors/${id}`),
 };
 
 export const analyticsAPI = {
