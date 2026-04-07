@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "serve -s dist -l ${PORT:-3001}"
+    "start": "node server.js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.19",
@@ -18,7 +18,6 @@
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.22.3",
     "recharts": "^2.12.0",
-    "serve": "^14.2.1",
     "zustand": "^4.5.0"
   },
   "devDependencies": {
