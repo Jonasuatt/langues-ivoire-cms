@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00695C"/><stop offset="100%" stop-color="#00897B"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9B7430"/><stop offset="100%" stop-color="#876528"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- Royal kente attire -->
+  <path d="M50 148 Q70 130 100 134 Q130 130 150 148 L160 200 H40 Z" fill="#FFD700"/>
+  <rect x="55" y="152" width="6" height="48" fill="#00695C" opacity="0.5"/>
+  <rect x="72" y="146" width="6" height="54" fill="#D32F2F" opacity="0.4"/>
+  <rect x="90" y="140" width="6" height="60" fill="#00695C" opacity="0.5"/>
+  <rect x="108" y="140" width="6" height="60" fill="#D32F2F" opacity="0.4"/>
+  <rect x="125" y="146" width="6" height="54" fill="#00695C" opacity="0.5"/>
+  <rect x="140" y="152" width="6" height="48" fill="#D32F2F" opacity="0.4"/>
+  <!-- Neck -->
+  <rect x="86" y="126" width="28" height="16" rx="5" fill="url(#skin)"/>
+  <!-- Gold chain -->
+  <ellipse cx="100" cy="140" rx="18" ry="4" fill="none" stroke="#FFD700" stroke-width="3"/>
+  <!-- Face - regal -->
+  <ellipse cx="100" cy="103" rx="37" ry="41" fill="url(#skin)"/>
+  <!-- Neat short hair -->
+  <ellipse cx="100" cy="76" rx="39" ry="25" fill="#1A1A1A"/>
+  <!-- Small crown/headband -->
+  <rect x="72" y="72" width="56" height="6" rx="2" fill="#FFD700"/>
+  <circle cx="100" cy="72" r="4" fill="#FFD700"/>
+  <circle cx="100" cy="72" r="2" fill="#00695C"/>
+  <!-- Calm wise eyebrows -->
+  <path d="M78 93 Q85 89 92 92" stroke="#3E2B0A" stroke-width="2" fill="none"/>
+  <path d="M108 92 Q115 89 122 93" stroke="#3E2B0A" stroke-width="2" fill="none"/>
+  <!-- Regal eyes -->
+  <ellipse cx="86" cy="99" rx="6" ry="5" fill="white"/>
+  <circle cx="87" cy="99" r="3" fill="#2C1810"/>
+  <circle cx="88" cy="98" r="1" fill="white"/>
+  <ellipse cx="114" cy="99" rx="6" ry="5" fill="white"/>
+  <circle cx="115" cy="99" r="3" fill="#2C1810"/>
+  <circle cx="116" cy="98" r="1" fill="white"/>
+  <!-- Nose -->
+  <path d="M96 105 Q100 112 104 105" stroke="#7A5E18" stroke-width="1.5" fill="none"/>
+  <!-- Composed smile -->
+  <path d="M90 116 Q100 122 110 116" stroke="#5C4010" stroke-width="2" fill="none"/>
+</svg>

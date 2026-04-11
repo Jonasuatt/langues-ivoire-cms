@@ -19,6 +19,7 @@ const PERSONALITIES = [
 const EMPTY_FORM = {
   nomAvatar: '',
   languageId: '',
+  genre: 'M',
   personalite: '',
   voixConfig: { vitesse: 1.0, pitch: 1.0 },
   imageUrl: '',
@@ -63,6 +64,7 @@ export default function TutorsPage() {
     setForm({
       nomAvatar: tutor.nomAvatar || '',
       languageId: tutor.languageId || '',
+      genre: tutor.genre || 'M',
       personalite: tutor.personalite || '',
       voixConfig: tutor.voixConfig || { vitesse: 1.0, pitch: 1.0 },
       imageUrl: tutor.imageUrl || '',
@@ -138,13 +140,21 @@ export default function TutorsPage() {
           {tutors.map((tutor, i) => (
             <div key={tutor.id} className="card hover:shadow-md transition-shadow">
               <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-                  style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
-                  {tutor.nomAvatar[0]}
-                </div>
+                {tutor.imageUrl ? (
+                  <img src={tutor.imageUrl} alt={tutor.nomAvatar}
+                    className="w-14 h-14 rounded-xl flex-shrink-0 object-cover" />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+                    style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
+                    {tutor.nomAvatar[0]}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-bold text-gray-900">{tutor.nomAvatar}</h3>
+                    <span className={`badge ${tutor.genre === 'F' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}`}>
+                      {tutor.genre === 'F' ? '♀' : '♂'}
+                    </span>
                     <span className="badge bg-accent/10 text-accent">{tutor.language?.nom}</span>
                     <button onClick={() => toggleActive(tutor)}
                       className={`badge ml-auto cursor-pointer transition-colors ${tutor.isActive ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
@@ -186,7 +196,7 @@ export default function TutorsPage() {
               {editTutor ? `Modifier — ${editTutor.nomAvatar}` : 'Nouveau Tuteur IA'}
             </h2>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nom d'avatar *</label>
                   <input className="input" value={form.nomAvatar}
@@ -198,9 +208,17 @@ export default function TutorsPage() {
                   <select className="input" value={form.languageId}
                     onChange={e => setForm({...form, languageId: e.target.value})}>
                     <option value="">-- Choisir --</option>
-                    {availableLanguages.map(l => (
+                    {languages.map(l => (
                       <option key={l.id} value={l.id}>{l.nom} ({l.code})</option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
+                  <select className="input" value={form.genre}
+                    onChange={e => setForm({...form, genre: e.target.value})}>
+                    <option value="M">Homme ♂</option>
+                    <option value="F">Femme ♀</option>
                   </select>
                 </div>
               </div>
