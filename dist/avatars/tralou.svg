@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4E342E"/><stop offset="100%" stop-color="#6D4C41"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7B4B2A"/><stop offset="100%" stop-color="#6A4022"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- Earth-toned pagne -->
+  <path d="M45 152 Q70 136 100 140 Q130 136 155 152 L165 200 H35 Z" fill="#BCAAA4"/>
+  <path d="M55 158 Q100 144 145 158" fill="none" stroke="#8D6E63" stroke-width="2"/>
+  <path d="M50 168 Q100 154 150 168" fill="none" stroke="#A1887F" stroke-width="1.5"/>
+  <!-- Neck -->
+  <rect x="87" y="128" width="26" height="16" rx="5" fill="url(#skin)"/>
+  <!-- Seed necklace -->
+  <circle cx="80" cy="143" r="3" fill="#795548"/>
+  <circle cx="88" cy="140" r="3" fill="#A1887F"/>
+  <circle cx="96" cy="139" r="3" fill="#795548"/>
+  <circle cx="104" cy="139" r="3" fill="#A1887F"/>
+  <circle cx="112" cy="140" r="3" fill="#795548"/>
+  <circle cx="120" cy="143" r="3" fill="#A1887F"/>
+  <!-- Face -->
+  <ellipse cx="100" cy="105" rx="35" ry="39" fill="url(#skin)"/>
+  <!-- Traditional headwrap -->
+  <path d="M60 90 Q62 60 100 54 Q138 60 140 90 L138 94 Q100 84 62 94 Z" fill="#8D6E63"/>
+  <path d="M60 88 Q62 62 100 56 Q138 62 140 88" fill="#A1887F"/>
+  <path d="M68 74 L132 74" stroke="#6D4C41" stroke-width="1.5"/>
+  <path d="M66 80 L134 80" stroke="#6D4C41" stroke-width="1.5"/>
+  <!-- Knot on top -->
+  <ellipse cx="130" cy="68" rx="12" ry="10" fill="#8D6E63"/>
+  <path d="M125 62 Q130 55 135 62" stroke="#6D4C41" stroke-width="1"/>
+  <!-- Eyebrows -->
+  <path d="M80 96 Q86 93 92 95" stroke="#3E2B0A" stroke-width="1.5" fill="none"/>
+  <path d="M108 95 Q114 93 120 96" stroke="#3E2B0A" stroke-width="1.5" fill="none"/>
+  <!-- Warm motherly eyes -->
+  <ellipse cx="86" cy="101" rx="6" ry="5" fill="white"/>
+  <circle cx="87" cy="101" r="3" fill="#2C1810"/>
+  <circle cx="88" cy="100" r="1" fill="white"/>
+  <path d="M80 98 L78 96" stroke="#1A1A1A" stroke-width="1"/>
+  <path d="M92 98 L94 96" stroke="#1A1A1A" stroke-width="1"/>
+  <ellipse cx="114" cy="101" rx="6" ry="5" fill="white"/>
+  <circle cx="115" cy="101" r="3" fill="#2C1810"/>
+  <circle cx="116" cy="100" r="1" fill="white"/>
+  <path d="M108 98 L106 96" stroke="#1A1A1A" stroke-width="1"/>
+  <path d="M120 98 L122 96" stroke="#1A1A1A" stroke-width="1"/>
+  <!-- Nose -->
+  <path d="M96 107 Q100 113 104 107" stroke="#5A3A18" stroke-width="1.5" fill="none"/>
+  <!-- Warm generous smile -->
+  <path d="M87 117 Q100 127 113 117" stroke="#4A3018" stroke-width="2" fill="none"/>
+  <path d="M91 119 Q100 124 109 119" fill="white" opacity="0.8"/>
+  <!-- Simple earrings -->
+  <circle cx="63" cy="102" r="3.5" fill="#795548"/>
+  <circle cx="137" cy="102" r="3.5" fill="#795548"/>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6A1B9A"/><stop offset="100%" stop-color="#8E24AA"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6B4226"/><stop offset="100%" stop-color="#5A3720"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- Warrior attire -->
+  <path d="M50 148 Q70 130 100 135 Q130 130 150 148 L160 200 H40 Z" fill="#8D6E63"/>
+  <path d="M65 155 Q100 140 135 155" fill="none" stroke="#FFAB40" stroke-width="2"/>
+  <path d="M60 162 Q100 148 140 162" fill="none" stroke="#FFAB40" stroke-width="1.5"/>
+  <!-- Beaded necklace -->
+  <circle cx="78" cy="144" r="3" fill="#F44336"/>
+  <circle cx="86" cy="141" r="3" fill="#FFD700"/>
+  <circle cx="94" cy="139" r="3" fill="#F44336"/>
+  <circle cx="102" cy="138" r="3" fill="#4CAF50"/>
+  <circle cx="110" cy="139" r="3" fill="#FFD700"/>
+  <circle cx="118" cy="141" r="3" fill="#F44336"/>
+  <circle cx="126" cy="144" r="3" fill="#4CAF50"/>
+  <!-- Neck -->
+  <rect x="85" y="124" width="30" height="18" rx="5" fill="url(#skin)"/>
+  <!-- Face - strong jawline -->
+  <path d="M62 95 Q62 65 100 62 Q138 65 138 95 L135 120 Q130 138 100 140 Q70 138 65 120 Z" fill="url(#skin)"/>
+  <!-- Short hair -->
+  <ellipse cx="100" cy="74" rx="40" ry="24" fill="#1A1A1A"/>
+  <!-- Strong eyebrows -->
+  <path d="M76 90 Q84 85 94 89" stroke="#2C1810" stroke-width="2.5" fill="none"/>
+  <path d="M106 89 Q116 85 124 90" stroke="#2C1810" stroke-width="2.5" fill="none"/>
+  <!-- Determined eyes -->
+  <ellipse cx="86" cy="97" rx="7" ry="5" fill="white"/>
+  <circle cx="87" cy="97" r="3.5" fill="#2C1810"/>
+  <circle cx="88" cy="96" r="1.2" fill="white"/>
+  <ellipse cx="114" cy="97" rx="7" ry="5" fill="white"/>
+  <circle cx="115" cy="97" r="3.5" fill="#2C1810"/>
+  <circle cx="116" cy="96" r="1.2" fill="white"/>
+  <!-- Nose -->
+  <path d="M95 103 Q100 112 105 103" stroke="#4A3018" stroke-width="1.5" fill="none"/>
+  <!-- Dignified expression -->
+  <path d="M90 118 Q100 122 110 118" stroke="#3E2515" stroke-width="2" fill="none"/>
+</svg>

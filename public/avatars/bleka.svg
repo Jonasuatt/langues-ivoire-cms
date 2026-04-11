@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3E2723"/><stop offset="100%" stop-color="#5D4037"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6B4226"/><stop offset="100%" stop-color="#5A3720"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- Forest-inspired dress -->
+  <path d="M45 152 Q70 136 100 140 Q130 136 155 152 L165 200 H35 Z" fill="#6D4C41"/>
+  <path d="M55 158 Q100 144 145 158" fill="none" stroke="#4CAF50" stroke-width="2" opacity="0.6"/>
+  <path d="M50 170 Q100 156 150 170" fill="none" stroke="#4CAF50" stroke-width="1.5" opacity="0.4"/>
+  <!-- Neck -->
+  <rect x="87" y="126" width="26" height="16" rx="5" fill="url(#skin)"/>
+  <!-- Cowrie shell necklace -->
+  <ellipse cx="82" cy="140" rx="4" ry="3" fill="#FFF8E1" stroke="#D7CCC8" stroke-width="0.5"/>
+  <ellipse cx="91" cy="138" rx="4" ry="3" fill="#FFF8E1" stroke="#D7CCC8" stroke-width="0.5"/>
+  <ellipse cx="100" cy="137" rx="4" ry="3" fill="#FFF8E1" stroke="#D7CCC8" stroke-width="0.5"/>
+  <ellipse cx="109" cy="138" rx="4" ry="3" fill="#FFF8E1" stroke="#D7CCC8" stroke-width="0.5"/>
+  <ellipse cx="118" cy="140" rx="4" ry="3" fill="#FFF8E1" stroke="#D7CCC8" stroke-width="0.5"/>
+  <!-- Face -->
+  <ellipse cx="100" cy="104" rx="36" ry="40" fill="url(#skin)"/>
+  <!-- Natural hair with green leaf headband -->
+  <ellipse cx="100" cy="76" rx="40" ry="28" fill="#1A1A1A"/>
+  <path d="M60 86 Q58 100 62 116" stroke="#1A1A1A" stroke-width="6" fill="none"/>
+  <path d="M140 86 Q142 100 138 116" stroke="#1A1A1A" stroke-width="6" fill="none"/>
+  <!-- Green leaf headband -->
+  <path d="M65 82 Q100 72 135 82" fill="none" stroke="#4CAF50" stroke-width="3"/>
+  <path d="M82 76 L86 70 L90 76" fill="#4CAF50"/>
+  <path d="M96 74 L100 68 L104 74" fill="#66BB6A"/>
+  <path d="M110 76 L114 70 L118 76" fill="#4CAF50"/>
+  <!-- Face markings -->
+  <line x1="70" y1="102" x2="75" y2="102" stroke="#8D6E63" stroke-width="1.5"/>
+  <line x1="70" y1="107" x2="75" y2="107" stroke="#8D6E63" stroke-width="1.5"/>
+  <line x1="125" y1="102" x2="130" y2="102" stroke="#8D6E63" stroke-width="1.5"/>
+  <line x1="125" y1="107" x2="130" y2="107" stroke="#8D6E63" stroke-width="1.5"/>
+  <!-- Eyebrows -->
+  <path d="M80 94 Q86 91 92 93" stroke="#3E2510" stroke-width="1.5" fill="none"/>
+  <path d="M108 93 Q114 91 120 94" stroke="#3E2510" stroke-width="1.5" fill="none"/>
+  <!-- Strong eyes with lashes -->
+  <ellipse cx="86" cy="100" rx="6" ry="5" fill="white"/>
+  <circle cx="87" cy="100" r="3" fill="#2C1810"/>
+  <circle cx="88" cy="99" r="1" fill="white"/>
+  <path d="M80 97 L78 95" stroke="#1A1A1A" stroke-width="1"/>
+  <path d="M92 97 L94 95" stroke="#1A1A1A" stroke-width="1"/>
+  <ellipse cx="114" cy="100" rx="6" ry="5" fill="white"/>
+  <circle cx="115" cy="100" r="3" fill="#2C1810"/>
+  <circle cx="116" cy="99" r="1" fill="white"/>
+  <path d="M108 97 L106 95" stroke="#1A1A1A" stroke-width="1"/>
+  <path d="M120 97 L122 95" stroke="#1A1A1A" stroke-width="1"/>
+  <!-- Nose -->
+  <path d="M96 106 Q100 112 104 106" stroke="#4A3018" stroke-width="1.5" fill="none"/>
+  <!-- Brave smile -->
+  <path d="M89 116 Q100 124 111 116" stroke="#3E2515" stroke-width="2" fill="none"/>
+  <ellipse cx="100" cy="118" rx="7" ry="2.5" fill="#8B5E3C" opacity="0.3"/>
+  <!-- Wood earrings -->
+  <rect x="59" y="102" width="5" height="10" rx="2" fill="#5D4037"/>
+  <rect x="136" y="102" width="5" height="10" rx="2" fill="#5D4037"/>
+</svg>
