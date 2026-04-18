@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { culturalAPI } from '../services/api';
+import { culturalAPI, languagesAPI } from '../services/api';
 import api from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -10,7 +10,7 @@ const TYPE_COLORS = { PROVERB:'bg-purple-100 text-purple-700', TRADITION:'bg-gre
   ANECDOTE:'bg-blue-100 text-blue-700', TALE:'bg-orange-100 text-orange-700',
   MUSIC:'bg-pink-100 text-pink-700', DANCE:'bg-teal-100 text-teal-700' };
 
-const EMPTY_FORM = { type: 'PROVERB', contenu: '', traduction: '', sourceEthnique: '' };
+const EMPTY_FORM = { type: 'PROVERB', contenu: '', traduction: '', sourceEthnique: '', titre: '', languageId: '' };
 
 export default function CulturalPage() {
   const [items, setItems] = useState([]);
@@ -20,23 +20,30 @@ export default function CulturalPage() {
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [languages, setLanguages] = useState([]);
+  const [filterLang, setFilterLang] = useState('');
+
+  useEffect(() => {
+    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
+  }, []);
 
   const load = () => {
     setLoading(true);
     const params = { limit: 50 };
     if (filterType) params.type = filterType;
+    if (filterLang) params.langue = filterLang;
     culturalAPI.getAll(params)
       .then(({ data }) => setItems(data.data))
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, [filterType]);
+  useEffect(() => { load(); }, [filterType, filterLang]);
 
   const openAdd = () => { setEditItem(null); setForm(EMPTY_FORM); setShowModal(true); };
   const openEdit = (item) => {
     setEditItem(item);
-    setForm({ type: item.type, contenu: item.contenu || '', traduction: item.traduction || '', sourceEthnique: item.sourceEthnique || '' });
+    setForm({ type: item.type, contenu: item.contenu || '', traduction: item.traduction || '', sourceEthnique: item.sourceEthnique || '', titre: item.titre || '', languageId: item.languageId || '' });
     setShowModal(true);
   };
 
@@ -79,7 +86,7 @@ export default function CulturalPage() {
       </div>
 
       {/* Filtres */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap">
         <button className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${!filterType ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
           onClick={() => setFilterType('')}>Tout</button>
         {TYPES.map(t => (
@@ -88,6 +95,12 @@ export default function CulturalPage() {
               filterType === t ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}>{TYPE_LABELS[t]}</button>
         ))}
+      </div>
+      <div className="flex gap-2 mb-6">
+        <select className="input max-w-[180px]" value={filterLang} onChange={e => setFilterLang(e.target.value)}>
+          <option value="">Toutes les langues</option>
+          {languages.map(l => <option key={l.id} value={l.code}>{l.nom}</option>)}
+        </select>
       </div>
 
       {/* Liste */}
@@ -102,7 +115,8 @@ export default function CulturalPage() {
               <div className="flex items-start gap-3">
                 <span className={`badge flex-shrink-0 mt-0.5 ${TYPE_COLORS[item.type]}`}>{TYPE_LABELS[item.type]}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-gray-900 italic">"{item.contenu}"</p>
+                  {item.titre && <p className="text-sm font-semibold text-gray-900 mb-1">{item.titre}</p>}
+                  <p className="text-gray-700 italic">"{item.contenu}"</p>
                   {item.traduction && <p className="text-sm text-gray-500 mt-1">{item.traduction}</p>}
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -142,6 +156,19 @@ export default function CulturalPage() {
                   <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
                     {TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Langue</label>
+                  <select className="input" value={form.languageId} onChange={e => setForm({...form, languageId: e.target.value})}>
+                    <option value="">-- Choisir --</option>
+                    {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                  <input className="input" value={form.titre} onChange={e => setForm({...form, titre: e.target.value})} placeholder="ex: Le conte de l'araignée" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Source ethnique</label>

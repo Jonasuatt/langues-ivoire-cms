@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { lessonsAPI, languagesAPI } from '../services/api';
 import api from '../services/api';
-import { PlusIcon, AcademicCapIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, AcademicCapIcon, PencilIcon, TrashIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
@@ -11,6 +12,7 @@ const LEVEL_COLORS = { A1: 'bg-green-100 text-green-700', A2: 'bg-teal-100 text-
 const EMPTY_FORM = { titre: '', description: '', niveau: 'A1', ordre: 1, pointsXp: 50, dureeEstimee: 10 };
 
 export default function LessonsPage() {
+  const navigate = useNavigate();
   const [languages, setLanguages] = useState([]);
   const [selectedLang, setSelectedLang] = useState('');
   const [selectedLangId, setSelectedLangId] = useState('');
@@ -153,6 +155,10 @@ export default function LessonsPage() {
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
                         <p className="text-lg font-bold text-accent">{lesson.pointsXp} XP</p>
                         <div className="flex gap-1">
+                          <button onClick={() => navigate(`/lessons/${lesson.id}`)} title="Étapes & Exercices"
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-accent hover:bg-orange-50 transition-colors">
+                            <BookOpenIcon className="w-4 h-4" />
+                          </button>
                           <button onClick={() => openEdit(lesson)}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-primary-50 transition-colors">
                             <PencilIcon className="w-4 h-4" />

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import api, { dictionaryAPI, languagesAPI } from '../services/api';
-import { MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline';
+import api, { dictionaryAPI, languagesAPI, uploadAPI } from '../services/api';
+import { MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, SpeakerXMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 const STATUS_STYLES = {
@@ -17,7 +17,7 @@ const STATUS_LABELS = {
 
 const CATEGORIES = ['salutations','famille','nourriture','nature','habitat','transport','vie_quotidienne','expressions','verbes','spiritualite','vie_sociale','chiffres','couleurs'];
 
-const EMPTY_FORM = { mot: '', traduction: '', transcription: '', categorie: '', exemplePhrase: '', exempleTraduction: '', audioUrl: '' };
+const EMPTY_FORM = { mot: '', traduction: '', transcription: '', categorie: '', exemplePhrase: '', exempleTraduction: '', audioUrl: '', imageUrl: '' };
 
 // Composant lecteur audio inline
 function AudioPlayer({ src }) {
@@ -62,6 +62,10 @@ export default function VocabularyPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const audioFileRef = useRef(null);
+  const imageFileRef = useRef(null);
   const LIMIT = 20;
 
   useEffect(() => {
@@ -105,6 +109,7 @@ export default function VocabularyPage() {
       exemplePhrase: entry.exemplePhrase || '',
       exempleTraduction: entry.exempleTraduction || '',
       audioUrl: entry.audioUrl || '',
+      imageUrl: entry.imageUrl || '',
     });
     setShowModal(true);
   };
@@ -160,6 +165,50 @@ export default function VocabularyPage() {
     }
   };
 
+  // Upload fichier audio
+  const handleAudioFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAudio(true);
+    try {
+      const formData = new FormData();
+      formData.append('audio', file);
+      formData.append('langueCode', selectedLang);
+      if (form.mot) formData.append('mot', form.mot);
+      if (editEntry?.id) formData.append('entryId', editEntry.id);
+      const { data } = await uploadAPI.uploadAudio(formData);
+      setForm(prev => ({ ...prev, audioUrl: data.audioUrl }));
+      toast.success('Audio uploadé !');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur d\'upload audio');
+    } finally {
+      setUploadingAudio(false);
+      e.target.value = '';
+    }
+  };
+
+  // Upload fichier image
+  const handleImageFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('langueCode', selectedLang);
+      if (form.mot) formData.append('mot', form.mot);
+      if (editEntry?.id) formData.append('entryId', editEntry.id);
+      const { data } = await uploadAPI.uploadImage(formData);
+      setForm(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      toast.success('Image uploadée !');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur d\'upload image');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
   // Compteur audio
   const audioCount = entries.filter(e => e.audioUrl).length;
   const totalPages = Math.ceil(total / LIMIT);
@@ -198,16 +247,16 @@ export default function VocabularyPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['', 'Mot', 'Phonétique', 'Traduction', 'Catégorie', 'Statut', 'Actions'].map(h => (
-                  <th key={h || 'audio'} className={`px-4 py-3 text-left font-semibold text-gray-600 ${h === '' ? 'w-10' : ''}`}>{h}</th>
+                {['', 'Image', 'Mot', 'Phonétique', 'Traduction', 'Catégorie', 'Statut', 'Actions'].map(h => (
+                  <th key={h || 'audio'} className={`px-4 py-3 text-left font-semibold text-gray-600 ${h === '' || h === 'Image' ? 'w-10' : ''}`}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400">Chargement...</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-gray-400">Chargement...</td></tr>
               ) : entries.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400">Aucune entrée</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-gray-400">Aucune entrée</td></tr>
               ) : entries.map(entry => (
                 <tr key={entry.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
@@ -217,6 +266,13 @@ export default function VocabularyPage() {
                       <span className="p-1.5 rounded-lg text-gray-200" title="Pas d'audio">
                         <SpeakerXMarkIcon className="w-4 h-4" />
                       </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {entry.imageUrl ? (
+                      <img src={entry.imageUrl} alt={entry.mot} className="w-8 h-8 rounded-lg object-cover" />
+                    ) : (
+                      <span className="text-gray-200"><PhotoIcon className="w-5 h-5" /></span>
                     )}
                   </td>
                   <td className="px-4 py-3 font-semibold text-primary-500">{entry.mot}</td>
@@ -298,6 +354,34 @@ export default function VocabularyPage() {
                 <input className="input" value={form.exempleTraduction} onChange={e => setForm({...form, exempleTraduction: e.target.value})} placeholder="Ex: Bienvenue à Abidjan !" />
               </div>
 
+              {/* Section Image */}
+              <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
+                <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  <PhotoIcon className="w-4 h-4 text-blue-500" />
+                  Image illustration
+                </label>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">URL de l'image (PNG, JPG, WebP)</label>
+                    <input className="input text-sm" value={form.imageUrl}
+                      onChange={e => setForm({...form, imageUrl: e.target.value})}
+                      placeholder="https://... (URL de l'image)" />
+                  </div>
+                  {form.imageUrl && (
+                    <div className="flex items-center gap-3 bg-white rounded-lg p-2 border border-gray-100">
+                      <img src={form.imageUrl} alt="Aperçu" className="w-16 h-16 rounded-lg object-cover" />
+                      <span className="text-xs text-gray-400">Aperçu de l'image</span>
+                    </div>
+                  )}
+                  <input ref={imageFileRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" onChange={handleImageFileUpload} className="hidden" />
+                  <button type="button" onClick={() => imageFileRef.current?.click()} disabled={uploadingImage}
+                    className={`w-full py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors
+                    ${uploadingImage ? 'bg-gray-100 text-gray-400 cursor-wait' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'}`}>
+                    {uploadingImage ? 'Upload en cours...' : '📁 Uploader une image depuis votre PC'}
+                  </button>
+                </div>
+              </div>
+
               {/* Section Audio */}
               <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
                 <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
@@ -311,6 +395,14 @@ export default function VocabularyPage() {
                       onChange={e => setForm({...form, audioUrl: e.target.value})}
                       placeholder="https://... ou data:audio/wav;base64,..." />
                   </div>
+
+                  {/* Upload fichier audio */}
+                  <input ref={audioFileRef} type="file" accept=".mp3,.wav,.ogg,.webm,.m4a" onChange={handleAudioFileUpload} className="hidden" />
+                  <button type="button" onClick={() => audioFileRef.current?.click()} disabled={uploadingAudio}
+                    className={`w-full py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors
+                    ${uploadingAudio ? 'bg-gray-100 text-gray-400 cursor-wait' : 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200'}`}>
+                    {uploadingAudio ? 'Upload en cours...' : '🎙️ Uploader un fichier audio'}
+                  </button>
 
                   {/* Aperçu audio */}
                   {form.audioUrl && (
