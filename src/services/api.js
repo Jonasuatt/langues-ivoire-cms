@@ -45,8 +45,17 @@ export const contributionsAPI = {
 
 export const lessonsAPI = {
   getByLanguage: (langue) => api.get(`/lessons/language/${langue}`),
+  getLesson: (id) => api.get(`/lessons/${id}/steps`),
   create: (data) => api.post('/lessons', data),
   update: (id, data) => api.patch(`/lessons/${id}`, data),
+  // Steps
+  createStep: (lessonId, data) => api.post(`/lessons/${lessonId}/steps`, data),
+  updateStep: (stepId, data) => api.patch(`/lessons/steps/${stepId}`, data),
+  deleteStep: (stepId) => api.delete(`/lessons/steps/${stepId}`),
+  // Exercises
+  createExercise: (stepId, data) => api.post(`/lessons/steps/${stepId}/exercises`, data),
+  updateExercise: (exerciseId, data) => api.patch(`/lessons/exercises/${exerciseId}`, data),
+  deleteExercise: (exerciseId) => api.delete(`/lessons/exercises/${exerciseId}`),
 };
 
 export const culturalAPI = {
@@ -63,6 +72,16 @@ export const tutorsAPI = {
 
 export const analyticsAPI = {
   getDashboard: () => api.get('/analytics'),
+  getDailyActivity: (days) => api.get('/analytics/daily-activity', { params: { days } }),
+  getLanguageStats: () => api.get('/analytics/languages'),
+  getTopUsers: (limit) => api.get('/analytics/top-users', { params: { limit } }),
+};
+
+export const uploadAPI = {
+  uploadAudio: (formData) => api.post('/upload/audio', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadImage: (formData) => api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  bulkUploadAudio: (formData) => api.post('/upload/audio/bulk', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  bulkUploadWithMapping: (formData) => api.post('/upload/audio/bulk-mapping', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 export const adminAPI = {

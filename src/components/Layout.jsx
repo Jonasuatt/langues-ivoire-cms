@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   HomeIcon, BookOpenIcon, ChatBubbleLeftRightIcon, AcademicCapIcon,
   UserGroupIcon, SparklesIcon, GlobeAltIcon, UsersIcon, ArrowRightOnRectangleIcon,
+  MusicalNoteIcon,
 } from '@heroicons/react/24/outline';
 
 const NAV = [
@@ -12,6 +13,7 @@ const NAV = [
   { to: '/lessons', label: 'Leçons', icon: AcademicCapIcon },
   { to: '/tutors', label: 'Tuteurs IA', icon: UserGroupIcon },
   { to: '/cultural', label: 'Culture', icon: SparklesIcon },
+  { to: '/audio-upload', label: 'Import Audio', icon: MusicalNoteIcon },
   { to: '/users', label: 'Utilisateurs', icon: UsersIcon, adminOnly: true },
 ];
 
