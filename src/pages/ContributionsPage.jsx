@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { contributionsAPI } from '../services/api';
 import toast from 'react-hot-toast';
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, XCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 const STATUS_TABS = ['PENDING', 'PUBLISHED', 'REJECTED'];
 const STATUS_LABELS = { PENDING: 'En attente', PUBLISHED: 'Approuvées', REJECTED: 'Rejetées' };
@@ -36,9 +36,18 @@ export default function ContributionsPage() {
 
   return (
     <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Contributions</h1>
-        <p className="text-gray-500 text-sm mt-1">{total} contribution(s)</p>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Contributions de la communauté</h1>
+        <p className="text-gray-500 text-sm mt-1">{total} contribution(s) reçue(s)</p>
+      </div>
+
+      {/* Aide */}
+      <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 flex gap-3">
+        <InformationCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-green-900">
+          <p className="font-semibold mb-1">👥 Qu'est-ce qu'une contribution ?</p>
+          <p>Les utilisateurs de l'application peuvent proposer des <strong>mots, phrases ou photos</strong> dans leur langue. Votre rôle est de <strong>vérifier et approuver</strong> les contributions correctes, ou de rejeter celles qui contiennent des erreurs. Les contributions approuvées enrichissent automatiquement le dictionnaire de l'application.</p>
+        </div>
       </div>
 
       {/* Onglets */}

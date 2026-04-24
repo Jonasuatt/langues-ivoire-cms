@@ -12,6 +12,8 @@ import TutorsPage from './pages/TutorsPage';
 import CulturalPage from './pages/CulturalPage';
 import UsersPage from './pages/UsersPage';
 import AudioUploadPage from './pages/AudioUploadPage';
+import VideosPage from './pages/VideosPage';
+import AudioContributionsPage from './pages/AudioContributionsPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -27,7 +29,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
-        <Route path="/" element={<ProtectedRoute roles={['ADMIN', 'EDITOR', 'CONTRIBUTOR']}><Layout /></ProtectedRoute>}>
+        <Route path="/" element={<ProtectedRoute roles={['ADMIN', 'SUPER_ADMIN', 'EDITOR', 'CONTRIBUTOR']}><Layout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="contributions" element={<ContributionsPage />} />
@@ -36,7 +38,9 @@ export default function App() {
           <Route path="tutors" element={<TutorsPage />} />
           <Route path="cultural" element={<CulturalPage />} />
           <Route path="audio-upload" element={<AudioUploadPage />} />
-          <Route path="users" element={<ProtectedRoute roles={['ADMIN']}><UsersPage /></ProtectedRoute>} />
+          <Route path="videos" element={<VideosPage />} />
+          <Route path="audio-contributions" element={<AudioContributionsPage />} />
+          <Route path="users" element={<ProtectedRoute roles={['ADMIN', 'SUPER_ADMIN']}><UsersPage /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
