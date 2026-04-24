@@ -16,7 +16,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await login(email, password);
-      if (!['ADMIN', 'EDITOR', 'CONTRIBUTOR'].includes(user.role)) {
+      if (!['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR'].includes(user.role)) {
         throw new Error('Accès non autorisé pour ce compte.');
       }
       navigate('/');
