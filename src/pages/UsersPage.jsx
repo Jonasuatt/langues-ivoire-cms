@@ -121,6 +121,7 @@ export default function UsersPage() {
     : ROLES_INFO.filter(r => !r.superOnly);
 
   return (
+    <>
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -362,6 +363,6 @@ export default function UsersPage() {
         </div>
       </div>
     )}
-  </div>
+    </>
   );
 }
