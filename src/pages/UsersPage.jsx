@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { adminAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { MagnifyingGlassIcon, ShieldCheckIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ShieldCheckIcon, InformationCircleIcon, UserPlusIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { ROLE_LABELS, ROLE_COLORS } from '../components/Layout';
 
 // Rôles disponibles avec description claire
@@ -51,6 +51,10 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showRoleGuide, setShowRoleGuide] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ prenom: '', nom: '', email: '', motDePasse: '', role: 'CONTRIBUTOR' });
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -81,6 +85,28 @@ export default function UsersPage() {
     } catch { toast.error('Erreur lors de la mise à jour du rôle'); }
   };
 
+  const handleInvite = async () => {
+    const { prenom, nom, email, motDePasse, role } = inviteForm;
+    if (!prenom || !nom || !email || !motDePasse) {
+      toast.error('Tous les champs sont obligatoires'); return;
+    }
+    if (motDePasse.length < 8) {
+      toast.error('Le mot de passe doit faire au moins 8 caractères'); return;
+    }
+    setInviteLoading(true);
+    try {
+      await adminAPI.createMember({ prenom, nom, email, motDePasse, role });
+      toast.success(`✅ Compte créé pour ${prenom} ${nom} (${ROLE_LABELS[role]})`);
+      setShowInviteModal(false);
+      setInviteForm({ prenom: '', nom: '', email: '', motDePasse: '', role: 'CONTRIBUTOR' });
+      load();
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur lors de la création du compte');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
   const togglePremium = async (id, isPremium) => {
     try {
       await adminAPI.updateUser(id, { isPremium: !isPremium });
@@ -101,13 +127,22 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Utilisateurs</h1>
           <p className="text-gray-500 text-sm mt-1">{total} compte(s) au total</p>
         </div>
-        {/* Bouton guide des rôles */}
-        <button
-          onClick={() => setShowRoleGuide(v => !v)}
-          className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
-          <InformationCircleIcon className="w-4 h-4" />
-          Guide des rôles
-        </button>
+        <div className="flex gap-3">
+          {/* Bouton guide des rôles */}
+          <button
+            onClick={() => setShowRoleGuide(v => !v)}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+            <InformationCircleIcon className="w-4 h-4" />
+            Guide des rôles
+          </button>
+          {/* Bouton inviter un membre */}
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium">
+            <UserPlusIcon className="w-4 h-4" />
+            Inviter un membre
+          </button>
+        </div>
       </div>
 
       {/* Guide des rôles */}
@@ -226,5 +261,107 @@ export default function UsersPage() {
         )}
       </div>
     </div>
+
+    {/* Modal invitation */}
+    {showInviteModal && (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-primary-100 rounded-xl flex items-center justify-center">
+                <UserPlusIcon className="w-5 h-5 text-primary-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Inviter un membre</h2>
+                <p className="text-xs text-gray-400">Crée un accès CMS direct, sans passer par l'app mobile</p>
+              </div>
+            </div>
+            <button onClick={() => setShowInviteModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+              <XMarkIcon className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Prénom *</label>
+                <input type="text" value={inviteForm.prenom}
+                  onChange={e => setInviteForm(f => ({ ...f, prenom: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Ex: Kouadio" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Nom *</label>
+                <input type="text" value={inviteForm.nom}
+                  onChange={e => setInviteForm(f => ({ ...f, nom: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Ex: Yao" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Email *</label>
+              <input type="email" value={inviteForm.email}
+                onChange={e => setInviteForm(f => ({ ...f, email: e.target.value }))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="animateur@languesivoire.ci" />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Mot de passe temporaire *</label>
+              <div className="relative">
+                <input type={showPassword ? 'text' : 'password'} value={inviteForm.motDePasse}
+                  onChange={e => setInviteForm(f => ({ ...f, motDePasse: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Min. 8 caractères" />
+                <button type="button" onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  {showPassword ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Le membre devra le changer à sa première connexion.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Rôle</label>
+              <select value={inviteForm.role}
+                onChange={e => setInviteForm(f => ({ ...f, role: e.target.value }))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                {(isSuperAdmin ? ROLES_INFO : ROLES_INFO.filter(r => !r.superOnly))
+                  .filter(r => r.value !== 'USER')
+                  .map(r => (
+                    <option key={r.value} value={r.value}>{r.label} — {r.description}</option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Résumé du rôle sélectionné */}
+            {inviteForm.role && (
+              <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-600 flex items-start gap-2">
+                <span className={`badge mt-0.5 flex-shrink-0 ${ROLES_INFO.find(r => r.value === inviteForm.role)?.color}`}>
+                  {ROLE_LABELS[inviteForm.role]}
+                </span>
+                <p>{ROLES_INFO.find(r => r.value === inviteForm.role)?.description}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 p-6 border-t border-gray-100">
+            <button onClick={() => setShowInviteModal(false)}
+              className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+              Annuler
+            </button>
+            <button onClick={handleInvite} disabled={inviteLoading}
+              className="flex items-center gap-2 bg-primary-500 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors">
+              {inviteLoading
+                ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                : <UserPlusIcon className="w-4 h-4" />}
+              Créer le compte
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
   );
 }

@@ -104,6 +104,7 @@ export const videosAPI = {
 
 export const adminAPI = {
   getUsers: (params) => api.get('/admin/users', { params }),
+  createMember: (data) => api.post('/admin/users/create', data),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
 };
 
