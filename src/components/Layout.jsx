@@ -2,9 +2,11 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   HomeIcon, BookOpenIcon, ChatBubbleLeftRightIcon, AcademicCapIcon,
-  UserGroupIcon, SparklesIcon, UsersIcon, ArrowRightOnRectangleIcon,
+  UserGroupIcon, UsersIcon, ArrowRightOnRectangleIcon,
   MusicalNoteIcon, VideoCameraIcon, MicrophoneIcon, ShieldCheckIcon,
+  TrophyIcon, BellIcon, GlobeAltIcon, ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import { SparklesIcon } from '@heroicons/react/24/solid';
 
 // Labels en français pour chaque rôle
 export const ROLE_LABELS = {
@@ -49,7 +51,18 @@ const NAV_SECTIONS = [
   {
     title: 'Intelligence Artificielle',
     items: [
-      { to: '/tutors', label: 'Tuteurs IA', icon: UserGroupIcon },
+      { to: '/tutors',           label: 'Tuteurs IA',       icon: UserGroupIcon },
+      { to: '/agents-test',      label: 'Test Agents IA',   icon: SparklesIcon },
+      { to: '/welcome-settings', label: 'Bienvenue & Sons', icon: MusicalNoteIcon },
+    ],
+  },
+  {
+    title: 'Paramètres App',
+    items: [
+      { to: '/langues',      label: 'Langues',          icon: GlobeAltIcon },
+      { to: '/badges',       label: 'Badges & XP',      icon: TrophyIcon },
+      { to: '/sos-phrases',  label: 'Phrases SOS',      icon: ExclamationTriangleIcon },
+      { to: '/notifications',label: 'Notifications',    icon: BellIcon },
     ],
   },
   {

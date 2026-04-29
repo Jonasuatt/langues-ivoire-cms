@@ -14,6 +14,12 @@ import UsersPage from './pages/UsersPage';
 import AudioUploadPage from './pages/AudioUploadPage';
 import VideosPage from './pages/VideosPage';
 import AudioContributionsPage from './pages/AudioContributionsPage';
+import AgentsTestPage from './pages/AgentsTestPage';
+import WelcomeSettingsPage from './pages/WelcomeSettingsPage';
+import BadgesPage from './pages/BadgesPage';
+import NotificationsPage from './pages/NotificationsPage';
+import LanguesPage from './pages/LanguesPage';
+import SOSPhrasesPage from './pages/SOSPhrasesPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -40,6 +46,12 @@ export default function App() {
           <Route path="audio-upload" element={<AudioUploadPage />} />
           <Route path="videos" element={<VideosPage />} />
           <Route path="audio-contributions" element={<AudioContributionsPage />} />
+          <Route path="agents-test" element={<AgentsTestPage />} />
+          <Route path="welcome-settings" element={<WelcomeSettingsPage />} />
+          <Route path="badges" element={<BadgesPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="langues" element={<LanguesPage />} />
+          <Route path="sos-phrases" element={<SOSPhrasesPage />} />
           <Route path="users" element={<ProtectedRoute roles={['ADMIN', 'SUPER_ADMIN']}><UsersPage /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

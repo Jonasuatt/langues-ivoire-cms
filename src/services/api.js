@@ -84,9 +84,51 @@ export const uploadAPI = {
   bulkUploadWithMapping: (formData) => api.post('/upload/audio/bulk-mapping', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
+export const audioContribAPI = {
+  getAll: (params) => api.get('/audio-contributions', { params }),
+  getStats: () => api.get('/audio-contributions/stats'),
+  create: (formData) => api.post('/audio-contributions', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  bulkImport: (formData) => api.post('/audio-contributions/bulk-import', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, data) => api.patch(`/audio-contributions/${id}`, data),
+  validate: (id, data) => api.patch(`/audio-contributions/${id}/validate`, data),
+  delete: (id) => api.delete(`/audio-contributions/${id}`),
+};
+
+export const videosAPI = {
+  getAll: (params) => api.get('/videos', { params }),
+  getCategories: () => api.get('/videos/categories'),
+  create: (data) => api.post('/videos', data),
+  update: (id, data) => api.patch(`/videos/${id}`, data),
+  delete: (id) => api.delete(`/videos/${id}`),
+};
+
 export const adminAPI = {
   getUsers: (params) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
+};
+
+export const badgesAPI = {
+  getAll: () => api.get('/admin/badges'),
+  getOne: (id) => api.get(`/admin/badges/${id}`),
+  create: (data) => api.post('/admin/badges', data),
+  update: (id, data) => api.patch(`/admin/badges/${id}`, data),
+  delete: (id) => api.delete(`/admin/badges/${id}`),
+};
+
+export const adminNotificationsAPI = {
+  send: (data) => api.post('/admin/notifications/send', data),
+  getHistory: (params) => api.get('/admin/notifications/history', { params }),
+};
+
+export const phrasesAdminAPI = {
+  getAll: (params) => api.get('/admin/phrases', { params }),
+  create: (data) => api.post('/admin/phrases', data),
+  update: (id, data) => api.patch(`/admin/phrases/${id}`, data),
+  delete: (id) => api.delete(`/admin/phrases/${id}`),
+};
+
+export const agentChatAPI = {
+  ask: (data) => api.post('/agent-chat', data, { timeout: 20000 }),
 };
 
 export default api;
