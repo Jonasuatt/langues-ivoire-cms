@@ -4,6 +4,7 @@ import {
   StarIcon, XMarkIcon, CheckIcon,
 } from '@heroicons/react/24/outline';
 import { badgesAPI } from '../services/api';
+import ImageUploadInput from '../components/ImageUploadInput';
 
 const CATEGORIES = ['linguistique', 'culturel', 'social', 'progression'];
 
@@ -265,12 +266,13 @@ export default function BadgesPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL de l'image (optionnel)</label>
-                <input type="url" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="https://..." />
-              </div>
+              <ImageUploadInput
+                value={form.imageUrl}
+                onChange={url => setForm(f => ({ ...f, imageUrl: url }))}
+                label="Image du badge (optionnel)"
+                hint="Laissez vide pour utiliser l'icône trophée par défaut."
+                previewClass="w-14 h-14 rounded-xl object-cover border-2 border-primary-200"
+              />
 
               <div>
                 <div className="flex items-center justify-between mb-1">

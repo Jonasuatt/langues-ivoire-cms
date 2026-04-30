@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { tutorsAPI, languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, ChatBubbleLeftRightIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import ImageUploadInput from '../components/ImageUploadInput';
 
 const AVATAR_COLORS = ['#0B3D2E','#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#4E342E','#37474F'];
 
@@ -278,22 +279,13 @@ export default function TutorsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL de la photo de l'avatar</label>
-                <input className="input" value={form.imageUrl}
-                  onChange={e => setForm({...form, imageUrl: e.target.value})}
-                  placeholder="https://exemple.com/photo-koffi.jpg" />
-                <p className="text-xs text-gray-400 mt-1">Collez le lien d'une image en ligne. Laissez vide pour utiliser la lettre initiale comme avatar.</p>
-                {/* Aperçu de l'avatar */}
-                {form.imageUrl && (
-                  <div className="mt-2 flex items-center gap-3">
-                    <img src={form.imageUrl} alt="Aperçu"
-                      className="w-16 h-16 rounded-xl object-cover border-2 border-primary-200"
-                      onError={e => { e.target.style.display = 'none'; }} />
-                    <p className="text-xs text-green-600">✓ Aperçu de l'image</p>
-                  </div>
-                )}
-              </div>
+              <ImageUploadInput
+                value={form.imageUrl}
+                onChange={url => setForm({ ...form, imageUrl: url })}
+                label="Photo de l'avatar"
+                hint="Laissez vide pour utiliser la lettre initiale comme avatar."
+                previewClass="w-16 h-16 rounded-xl object-cover border-2 border-primary-200"
+              />
 
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="isActive" checked={form.isActive}

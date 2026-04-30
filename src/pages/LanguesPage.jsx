@@ -6,6 +6,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { languagesAPI } from '../services/api';
+import ImageUploadInput from '../components/ImageUploadInput';
 
 const REGIONS = ['Lagunes', 'Vallée du Bandama', 'Zanzan', 'Montagnes', 'Savanes', 'Haut-Sassandra', 'Bas-Sassandra', 'Marahoué', 'N\'Zi-Comoé', 'Sud-Bandama', 'Worodougou'];
 const FAMILLES = ['Mandé', 'Kwa', 'Gur', 'Krou', 'Créole urbain'];
@@ -188,10 +189,13 @@ export default function LanguesPage() {
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">URL du drapeau / image</label>
-                  <input type="url" value={createForm.imageDrapeau} onChange={e => setCreateForm(f => ({ ...f, imageDrapeau: e.target.value }))}
-                    placeholder="https://..."
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  <ImageUploadInput
+                    value={createForm.imageDrapeau}
+                    onChange={url => setCreateForm(f => ({ ...f, imageDrapeau: url }))}
+                    label="Drapeau / image de la langue"
+                    hint="Laissez vide pour utiliser l'icône globe par défaut."
+                    previewClass="w-20 h-14 rounded-lg object-cover border-2 border-primary-200"
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
@@ -378,10 +382,13 @@ export default function LanguesPage() {
                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">URL du drapeau</label>
-                        <input type="url" value={form.imageDrapeau} onChange={e => setForm(f => ({ ...f, imageDrapeau: e.target.value }))}
-                          placeholder="https://..."
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                        <ImageUploadInput
+                          value={form.imageDrapeau}
+                          onChange={url => setForm(f => ({ ...f, imageDrapeau: url }))}
+                          label="Drapeau / image de la langue"
+                          hint="Laissez vide pour utiliser l'icône globe par défaut."
+                          previewClass="w-20 h-14 rounded-lg object-cover border-2 border-primary-200"
+                        />
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
