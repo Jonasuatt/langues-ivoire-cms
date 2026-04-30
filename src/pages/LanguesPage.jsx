@@ -2,13 +2,19 @@ import { useState, useEffect } from 'react';
 import {
   GlobeAltIcon, PencilIcon, CheckIcon, XMarkIcon,
   UsersIcon, BookOpenIcon, AcademicCapIcon, StarIcon,
-  EyeIcon, EyeSlashIcon,
+  EyeIcon, EyeSlashIcon, PlusIcon,
 } from '@heroicons/react/24/outline';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { languagesAPI } from '../services/api';
 
 const REGIONS = ['Lagunes', 'Vallée du Bandama', 'Zanzan', 'Montagnes', 'Savanes', 'Haut-Sassandra', 'Bas-Sassandra', 'Marahoué', 'N\'Zi-Comoé', 'Sud-Bandama', 'Worodougou'];
 const FAMILLES = ['Mandé', 'Kwa', 'Gur', 'Krou', 'Créole urbain'];
+
+const EMPTY_FORM = {
+  nom: '', code: '', famille: '', region: '',
+  locuteurs: '', description: '', imageDrapeau: '',
+  ordreAffichage: 0, isActive: true, isInMvp: false,
+};
 
 export default function LanguesPage() {
   const [languages, setLanguages] = useState([]);
@@ -17,6 +23,9 @@ export default function LanguesPage() {
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [createForm, setCreateForm] = useState(EMPTY_FORM);
+  const [creating, setCreating] = useState(false);
 
   const load = async () => {
     try {
@@ -82,6 +91,24 @@ export default function LanguesPage() {
     } catch { alert('Erreur'); }
   };
 
+  const handleCreate = async () => {
+    if (!createForm.nom.trim() || !createForm.code.trim()) {
+      return alert('Le nom et le code sont obligatoires.');
+    }
+    setCreating(true);
+    try {
+      const payload = { ...createForm, ordreAffichage: parseInt(createForm.ordreAffichage) || 0 };
+      await languagesAPI.create(payload);
+      setShowCreate(false);
+      setCreateForm(EMPTY_FORM);
+      await load();
+    } catch (e) {
+      alert(e.response?.data?.error || 'Erreur lors de la création');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const mvpCount = languages.filter(l => l.isInMvp).length;
   const activeCount = languages.filter(l => l.isActive).length;
 
@@ -100,7 +127,106 @@ export default function LanguesPage() {
             </p>
           </div>
         </div>
+        <button
+          onClick={() => { setShowCreate(true); setCreateForm(EMPTY_FORM); }}
+          className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-primary-600 transition-colors shadow-sm"
+        >
+          <PlusIcon className="w-4 h-4" />
+          Ajouter une langue
+        </button>
       </div>
+
+      {/* Modal — Créer une langue */}
+      {showCreate && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900">Ajouter une langue</h2>
+              <button onClick={() => setShowCreate(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                <XMarkIcon className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Nom <span className="text-red-500">*</span></label>
+                  <input value={createForm.nom} onChange={e => setCreateForm(f => ({ ...f, nom: e.target.value }))}
+                    placeholder="Ex: Baoulé"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Code ISO <span className="text-red-500">*</span></label>
+                  <input value={createForm.code} onChange={e => setCreateForm(f => ({ ...f, code: e.target.value.toLowerCase() }))}
+                    placeholder="Ex: bci"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Famille linguistique</label>
+                  <select value={createForm.famille} onChange={e => setCreateForm(f => ({ ...f, famille: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <option value="">— Non renseigné —</option>
+                    {FAMILLES.map(fam => <option key={fam} value={fam}>{fam}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Région</label>
+                  <select value={createForm.region} onChange={e => setCreateForm(f => ({ ...f, region: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <option value="">— Non renseignée —</option>
+                    {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Nombre de locuteurs</label>
+                  <input value={createForm.locuteurs} onChange={e => setCreateForm(f => ({ ...f, locuteurs: e.target.value }))}
+                    placeholder="Ex: 2 000 000"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Ordre d'affichage</label>
+                  <input type="number" value={createForm.ordreAffichage} onChange={e => setCreateForm(f => ({ ...f, ordreAffichage: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">URL du drapeau / image</label>
+                  <input type="url" value={createForm.imageDrapeau} onChange={e => setCreateForm(f => ({ ...f, imageDrapeau: e.target.value }))}
+                    placeholder="https://..."
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                  <textarea value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))}
+                    rows={3} placeholder="Présentation de la langue..."
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+                </div>
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={createForm.isActive} onChange={e => setCreateForm(f => ({ ...f, isActive: e.target.checked }))}
+                      className="w-4 h-4 accent-primary-500" />
+                    <span className="text-sm text-gray-700">Langue active</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={createForm.isInMvp} onChange={e => setCreateForm(f => ({ ...f, isInMvp: e.target.checked }))}
+                      className="w-4 h-4 accent-amber-500" />
+                    <span className="text-sm text-gray-700">Dans le MVP</span>
+                  </label>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                <button onClick={() => setShowCreate(false)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                  Annuler
+                </button>
+                <button onClick={handleCreate} disabled={creating}
+                  className="flex items-center gap-2 bg-primary-500 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors">
+                  {creating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <PlusIcon className="w-4 h-4" />}
+                  Créer la langue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Résumé statistiques */}
       <div className="grid grid-cols-3 gap-4 mb-6">
