@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   HomeIcon, BookOpenIcon, ChatBubbleLeftRightIcon, AcademicCapIcon,
@@ -127,7 +127,7 @@ export default function Layout() {
 
         {/* Utilisateur connecté */}
         <div className="p-4 border-t border-white/10">
-          <div className="flex items-center gap-3 mb-3">
+          <Link to="/profile" className="flex items-center gap-3 mb-3 hover:bg-white/10 rounded-lg p-1 -m-1 transition-colors">
             <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
               {user?.prenom?.[0]}{user?.nom?.[0]}
             </div>
@@ -138,7 +138,7 @@ export default function Layout() {
                 <p className="text-xs text-white/60 truncate">{ROLE_LABELS[user?.role] || user?.role}</p>
               </div>
             </div>
-          </div>
+          </Link>
           <button onClick={handleLogout}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
             <ArrowRightOnRectangleIcon className="w-4 h-4" />

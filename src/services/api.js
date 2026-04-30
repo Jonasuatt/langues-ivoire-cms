@@ -25,6 +25,8 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
+  updateMe: (data) => api.patch('/auth/me', data),
+  changePassword: (data) => api.patch('/auth/change-password', data),
 };
 
 export const languagesAPI = {
