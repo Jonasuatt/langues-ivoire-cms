@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { videosAPI, languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, PlayIcon, LinkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import CategorySelect from '../components/CategorySelect';
 
 const CATEGORIES = ['prononciation', 'culturel', 'tutoriel', 'musique', 'documentaire'];
 const CAT_LABELS = { prononciation: 'Prononciation', culturel: 'Culturel', tutoriel: 'Tutoriel', musique: 'Musique', documentaire: 'Documentaire' };
@@ -115,17 +116,15 @@ export default function VideosPage() {
       </div>
 
       {/* Filtres */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        <button className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${!filterCat ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-          onClick={() => setFilterCat('')}>Tout</button>
-        {CATEGORIES.map(c => (
-          <button key={c} onClick={() => setFilterCat(c === filterCat ? '' : c)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              filterCat === c ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}>{CAT_LABELS[c]}</button>
-        ))}
-      </div>
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 flex-wrap">
+        <CategorySelect
+          value={filterCat}
+          onChange={setFilterCat}
+          options={CATEGORIES.map(c => ({ value: c, label: CAT_LABELS[c] || c }))}
+          storageKey="videos"
+          placeholder="Toutes catégories"
+          className="input max-w-[200px]"
+        />
         <select className="input max-w-[180px]" value={filterLang} onChange={e => setFilterLang(e.target.value)}>
           <option value="">Toutes les langues</option>
           {languages.map(l => <option key={l.id} value={l.code}>{l.nom}</option>)}
@@ -254,9 +253,14 @@ export default function VideosPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                  <select className="input" value={form.categorie} onChange={e => setForm({...form, categorie: e.target.value})}>
-                    {CATEGORIES.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
-                  </select>
+                  <CategorySelect
+                    value={form.categorie}
+                    onChange={v => setForm(f => ({ ...f, categorie: v }))}
+                    options={CATEGORIES.map(c => ({ value: c, label: CAT_LABELS[c] || c }))}
+                    storageKey="videos"
+                    placeholder={null}
+                    className="input"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Langue</label>

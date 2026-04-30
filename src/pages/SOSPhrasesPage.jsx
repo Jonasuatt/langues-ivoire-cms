@@ -4,6 +4,7 @@ import {
   CheckIcon, XMarkIcon, MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { phrasesAdminAPI, languagesAPI } from '../services/api';
+import CategorySelect from '../components/CategorySelect';
 
 const CATEGORIES_SOS = [
   { value: 'urgence', label: '🆘 Urgence / SOS' },
@@ -160,11 +161,14 @@ export default function SOSPhrasesPage() {
           <option value="">Toutes les langues</option>
           {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
         </select>
-        <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-          <option value="">Toutes catégories</option>
-          {CATEGORIES_SOS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-        </select>
+        <CategorySelect
+          value={filterCat}
+          onChange={setFilterCat}
+          options={CATEGORIES_SOS}
+          storageKey="sos"
+          placeholder="Toutes catégories"
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
       </div>
 
       {loading ? (
@@ -250,10 +254,14 @@ export default function SOSPhrasesPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Catégorie</label>
-                  <select value={form.categorie} onChange={e => setForm(f => ({ ...f, categorie: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    {CATEGORIES_SOS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
+                  <CategorySelect
+                    value={form.categorie}
+                    onChange={v => setForm(f => ({ ...f, categorie: v }))}
+                    options={CATEGORIES_SOS}
+                    storageKey="sos"
+                    placeholder={null}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
                 </div>
               </div>
 

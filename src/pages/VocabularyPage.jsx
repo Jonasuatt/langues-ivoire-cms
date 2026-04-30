@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import api, { dictionaryAPI, languagesAPI, uploadAPI } from '../services/api';
+import CategorySelect from '../components/CategorySelect';
 import { MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, SpeakerXMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -337,12 +338,13 @@ export default function VocabularyPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                  <select className="input" value={form.categorie} onChange={e => setForm({...form, categorie: e.target.value})}>
-                    <option value="">-- Choisir --</option>
-                    {CATEGORIES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+                  <CategorySelect
+                    value={form.categorie}
+                    onChange={v => setForm(f => ({ ...f, categorie: v }))}
+                    options={CATEGORIES}
+                    storageKey="vocabulary"
+                    className="input"
+                  />
                 </div>
               </div>
               <div>

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { audioContribAPI, languagesAPI } from '../services/api';
+import CategorySelect from '../components/CategorySelect';
 import {
   CheckIcon, XMarkIcon, TrashIcon, PlayIcon, StopIcon,
   InformationCircleIcon, ArrowUpTrayIcon, PlusIcon, MusicalNoteIcon,
@@ -446,11 +447,13 @@ export default function AudioContributionsPage() {
               {/* Catégorie */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                <select className="input" value={editForm.categorie}
-                  onChange={e => setEditForm(f => ({ ...f, categorie: e.target.value }))}>
-                  <option value="">-- Aucune --</option>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
-                </select>
+                <CategorySelect
+                  value={editForm.categorie}
+                  onChange={v => setEditForm(f => ({ ...f, categorie: v }))}
+                  options={CATEGORIES}
+                  storageKey="audio"
+                  className="input"
+                />
               </div>
 
               {/* Voix officielle */}
@@ -593,10 +596,13 @@ export default function AudioContributionsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                  <select className="input" value={addForm.categorie} onChange={e => setAddForm(f => ({ ...f, categorie: e.target.value }))}>
-                    <option value="">-- Aucune --</option>
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
-                  </select>
+                  <CategorySelect
+                    value={addForm.categorie}
+                    onChange={v => setAddForm(f => ({ ...f, categorie: v }))}
+                    options={CATEGORIES}
+                    storageKey="audio"
+                    className="input"
+                  />
                 </div>
               </div>
 
@@ -706,10 +712,13 @@ export default function AudioContributionsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie (optionnel)</label>
-                <select className="input" value={bulkCategorie} onChange={e => setBulkCategorie(e.target.value)}>
-                  <option value="">-- Aucune --</option>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
-                </select>
+                <CategorySelect
+                  value={bulkCategorie}
+                  onChange={setBulkCategorie}
+                  options={CATEGORIES}
+                  storageKey="audio"
+                  className="input"
+                />
               </div>
             </div>
 
