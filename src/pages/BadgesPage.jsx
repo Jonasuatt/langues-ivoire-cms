@@ -47,8 +47,10 @@ export default function BadgesPage() {
       setLoading(true);
       const res = await badgesAPI.getAll();
       setBadges(res.data);
-    } catch {
-      setError('Impossible de charger les badges.');
+    } catch (err) {
+      const status = err.response?.status;
+      const msg = err.response?.data?.error || err.message || 'Erreur inconnue';
+      setError(`Impossible de charger les badges. (${status ? `HTTP ${status}` : 'Réseau'} — ${msg})`);
     } finally {
       setLoading(false);
     }
