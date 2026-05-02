@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ExclamationTriangleIcon, PlusIcon, PencilIcon, TrashIcon,
   CheckIcon, XMarkIcon, MagnifyingGlassIcon,
+  ArrowUpTrayIcon, SpeakerWaveIcon, StopIcon,
 } from '@heroicons/react/24/outline';
-import { phrasesAdminAPI, languagesAPI } from '../services/api';
+import { phrasesAdminAPI, languagesAPI, uploadAPI } from '../services/api';
 import CategorySelect from '../components/CategorySelect';
 
 const CATEGORIES_SOS = [
@@ -31,6 +32,10 @@ export default function SOSPhrasesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const audioRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [filterLang, setFilterLang] = useState('');
   const [filterCat, setFilterCat] = useState('urgence');
   const [search, setSearch] = useState('');
@@ -56,9 +61,16 @@ export default function SOSPhrasesPage() {
 
   useEffect(() => { load(); }, [filterLang, filterCat]);
 
+  const closeModal = () => {
+    setShowModal(false);
+    setAudioPlaying(false);
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
+  };
+
   const openCreate = () => {
     setForm({ ...EMPTY_FORM, languageId: filterLang || (languages[0]?.id || '') });
     setEditingId(null);
+    setAudioPlaying(false);
     setShowModal(true);
   };
 
@@ -74,7 +86,49 @@ export default function SOSPhrasesPage() {
       status: p.status,
     });
     setEditingId(p.id);
+    setAudioPlaying(false);
     setShowModal(true);
+  };
+
+  const handleAudioUpload = async (file) => {
+    if (!file) return;
+    // Vérification type et taille (max 20 MB)
+    const allowed = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/x-m4a', 'audio/mp4', 'audio/webm'];
+    if (!allowed.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|m4a|mp4|webm)$/i)) {
+      alert('Format non supporté. Utilisez MP3, WAV, OGG, M4A ou WebM.');
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Fichier trop volumineux (max 20 MB).');
+      return;
+    }
+    setUploadingAudio(true);
+    try {
+      const formData = new FormData();
+      formData.append('audio', file);
+      const { data } = await uploadAPI.uploadAudio(formData);
+      const url = data.audioUrl || data.url || data.secure_url;
+      if (!url) throw new Error('URL manquante dans la réponse');
+      setForm(f => ({ ...f, audioUrl: url }));
+    } catch (e) {
+      alert(e.response?.data?.error || 'Erreur lors de l\'upload audio.');
+    } finally {
+      setUploadingAudio(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const togglePreviewAudio = () => {
+    if (!form.audioUrl) return;
+    if (audioPlaying && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setAudioPlaying(false);
+    } else {
+      if (audioRef.current) audioRef.current.src = form.audioUrl;
+      audioRef.current?.play();
+      setAudioPlaying(true);
+    }
   };
 
   const handleSave = async () => {
@@ -86,7 +140,7 @@ export default function SOSPhrasesPage() {
       } else {
         await phrasesAdminAPI.create(form);
       }
-      setShowModal(false);
+      closeModal();
       await load();
     } catch (e) {
       alert(e.response?.data?.error || 'Erreur lors de la sauvegarde');
@@ -237,7 +291,7 @@ export default function SOSPhrasesPage() {
               <h2 className="text-lg font-bold text-gray-900">
                 {editingId ? 'Modifier la phrase' : 'Nouvelle phrase SOS'}
               </h2>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+              <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg">
                 <XMarkIcon className="w-5 h-5 text-gray-500" />
               </button>
             </div>
@@ -286,11 +340,90 @@ export default function SOSPhrasesPage() {
                   placeholder="notation phonétique..." />
               </div>
 
+              {/* ── Audio : upload fichier OU URL manuelle ── */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">URL audio (Cloudinary)</label>
-                <input type="url" value={form.audioUrl} onChange={e => setForm(f => ({ ...f, audioUrl: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="https://..." />
+                <label className="block text-xs font-medium text-gray-600 mb-2">Audio</label>
+
+                {/* Bouton import fichier */}
+                <div className="flex gap-2 mb-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="audio/*"
+                    className="hidden"
+                    onChange={e => handleAudioUpload(e.target.files?.[0])}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAudio}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium border-2 border-dashed border-primary-300 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors disabled:opacity-50 flex-1 justify-center"
+                  >
+                    {uploadingAudio ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-primary-400/40 border-t-primary-600 rounded-full animate-spin" />
+                        Envoi en cours…
+                      </>
+                    ) : (
+                      <>
+                        <ArrowUpTrayIcon className="w-4 h-4" />
+                        Importer depuis l'ordinateur
+                      </>
+                    )}
+                  </button>
+
+                  {/* Bouton lecture si URL présente */}
+                  {form.audioUrl && (
+                    <button
+                      type="button"
+                      onClick={togglePreviewAudio}
+                      className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        audioPlaying
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      }`}
+                    >
+                      {audioPlaying
+                        ? <><StopIcon className="w-4 h-4" /> Stop</>
+                        : <><SpeakerWaveIcon className="w-4 h-4" /> Écouter</>
+                      }
+                    </button>
+                  )}
+                </div>
+
+                {/* Indications format */}
+                <p className="text-xs text-gray-400 mb-2">MP3, WAV, OGG, M4A · max 20 MB</p>
+
+                {/* URL résultante (lecture seule si uploadée, éditable sinon) */}
+                {form.audioUrl ? (
+                  <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                    <SpeakerWaveIcon className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <span className="text-xs text-green-700 truncate flex-1 font-mono">{form.audioUrl}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setForm(f => ({ ...f, audioUrl: '' })); setAudioPlaying(false); }}
+                      className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                      title="Supprimer l'audio"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="url"
+                    value={form.audioUrl}
+                    onChange={e => setForm(f => ({ ...f, audioUrl: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono"
+                    placeholder="Ou collez une URL Cloudinary directement…"
+                  />
+                )}
+
+                {/* Lecteur audio caché */}
+                <audio
+                  ref={audioRef}
+                  onEnded={() => setAudioPlaying(false)}
+                  className="hidden"
+                />
               </div>
 
               <div>
@@ -320,7 +453,7 @@ export default function SOSPhrasesPage() {
             </div>
 
             <div className="flex justify-end gap-3 p-6 border-t border-gray-100">
-              <button onClick={() => setShowModal(false)}
+              <button onClick={closeModal}
                 className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
                 Annuler
               </button>
