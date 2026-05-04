@@ -13,6 +13,10 @@ export default function ContributionsPage() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
 
+  // Modale de rejet
+  const [rejectModal, setRejectModal] = useState(null); // { id } ou null
+  const [rejectCommentaire, setRejectCommentaire] = useState('');
+
   const load = () => {
     setLoading(true);
     contributionsAPI.getAll({ status, page, limit: 15 })
@@ -24,9 +28,9 @@ export default function ContributionsPage() {
   useEffect(() => { setPage(1); }, [status]);
   useEffect(() => { load(); }, [status, page]);
 
-  const moderate = async (id, action) => {
+  const moderate = async (id, action, commentaire) => {
     try {
-      await contributionsAPI.moderate(id, { action });
+      await contributionsAPI.moderate(id, { action, commentaire });
       toast.success(action === 'PUBLISHED' ? 'Contribution approuvée !' : 'Contribution rejetée.');
       load();
     } catch {
@@ -34,8 +38,47 @@ export default function ContributionsPage() {
     }
   };
 
+  const openRejectModal = (id) => {
+    setRejectCommentaire('');
+    setRejectModal({ id });
+  };
+
+  const confirmReject = async () => {
+    if (!rejectModal) return;
+    await moderate(rejectModal.id, 'REJECTED', rejectCommentaire || undefined);
+    setRejectModal(null);
+  };
+
   return (
     <div className="p-8">
+      {/* Modale de rejet */}
+      {rejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Motif du rejet</h2>
+            <p className="text-sm text-gray-500 mb-4">Expliquez au contributeur pourquoi sa contribution a été refusée (optionnel).</p>
+            <textarea
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300"
+              rows={3}
+              placeholder="Ex : La traduction est incorrecte, le mot n'existe pas dans cette langue…"
+              value={rejectCommentaire}
+              onChange={e => setRejectCommentaire(e.target.value)}
+            />
+            <div className="flex gap-3 mt-4 justify-end">
+              <button
+                onClick={() => setRejectModal(null)}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                Annuler
+              </button>
+              <button
+                onClick={confirmReject}
+                className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg text-sm font-medium transition-colors">
+                <XCircleIcon className="w-4 h-4" /> Confirmer le rejet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Contributions de la communauté</h1>
         <p className="text-gray-500 text-sm mt-1">{total} contribution(s) reçue(s)</p>
@@ -109,7 +152,7 @@ export default function ContributionsPage() {
                   className="flex items-center gap-1.5 px-3 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition-colors">
                   <CheckCircleIcon className="w-4 h-4" /> Approuver
                 </button>
-                <button onClick={() => moderate(c.id, 'REJECTED')}
+                <button onClick={() => openRejectModal(c.id)}
                   className="flex items-center gap-1.5 px-3 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors">
                   <XCircleIcon className="w-4 h-4" /> Rejeter
                 </button>

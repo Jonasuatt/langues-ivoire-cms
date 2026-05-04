@@ -123,6 +123,17 @@ export const adminNotificationsAPI = {
   getHistory: (params) => api.get('/admin/notifications/history', { params }),
 };
 
+export const supportAPI = {
+  getAll: (params) => api.get('/support', { params }),
+  reply: (id, data) => api.post(`/support/${id}/reply`, data),
+  updateStatus: (id, data) => api.patch(`/support/${id}/status`, data),
+};
+
+export const certificatesAPI = {
+  getAll: (params) => api.get('/certificates', { params }),
+  issue: (data) => api.post('/certificates', data),
+};
+
 export const phrasesAdminAPI = {
   getAll: (params) => api.get('/admin/phrases', { params }),
   create: (data) => api.post('/admin/phrases', data),

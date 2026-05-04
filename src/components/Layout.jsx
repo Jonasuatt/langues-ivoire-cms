@@ -5,6 +5,7 @@ import {
   UserGroupIcon, UsersIcon, ArrowRightOnRectangleIcon,
   MusicalNoteIcon, VideoCameraIcon, MicrophoneIcon, ShieldCheckIcon,
   TrophyIcon, BellIcon, GlobeAltIcon, ExclamationTriangleIcon,
+  EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 
@@ -44,6 +45,8 @@ const NAV_SECTIONS = [
     title: 'Communauté',
     items: [
       { to: '/contributions', label: 'Contributions', icon: ChatBubbleLeftRightIcon },
+      { to: '/messages', label: 'Messages', icon: EnvelopeIcon },
+      { to: '/certificates', label: 'Certificats', icon: AcademicCapIcon },
       { to: '/audio-contributions', label: 'IA Linguistique', icon: MicrophoneIcon },
       { to: '/audio-upload', label: 'Import Audio', icon: MusicalNoteIcon },
     ],

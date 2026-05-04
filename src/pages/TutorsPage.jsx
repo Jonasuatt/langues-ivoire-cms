@@ -3,6 +3,7 @@ import { tutorsAPI, languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, ChatBubbleLeftRightIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import ImageUploadInput from '../components/ImageUploadInput';
+import { getAvatarPortrait } from '../utils/getAvatar';
 
 const AVATAR_COLORS = ['#0B3D2E','#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#4E342E','#37474F'];
 
@@ -147,10 +148,15 @@ export default function TutorsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {tutors.map((tutor, i) => (
+          {tutors.map((tutor, i) => {
+            const localPortrait = getAvatarPortrait(tutor.nomAvatar);
+            return (
             <div key={tutor.id} className="card hover:shadow-md transition-shadow">
               <div className="flex items-start gap-4">
-                {tutor.imageUrl ? (
+                {localPortrait ? (
+                  <img src={localPortrait} alt={tutor.nomAvatar}
+                    className="w-14 h-14 rounded-xl flex-shrink-0 object-cover" />
+                ) : tutor.imageUrl ? (
                   <img src={tutor.imageUrl} alt={tutor.nomAvatar}
                     className="w-14 h-14 rounded-xl flex-shrink-0 object-cover" />
                 ) : (
@@ -194,7 +200,8 @@ export default function TutorsPage() {
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 

@@ -21,6 +21,8 @@ import NotificationsPage from './pages/NotificationsPage';
 import LanguesPage from './pages/LanguesPage';
 import SOSPhrasesPage from './pages/SOSPhrasesPage';
 import ProfilePage from './pages/ProfilePage';
+import MessagesPage from './pages/MessagesPage';
+import CertificatesPage from './pages/CertificatesPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -54,6 +56,8 @@ export default function App() {
           <Route path="langues" element={<LanguesPage />} />
           <Route path="sos-phrases" element={<SOSPhrasesPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="messages" element={<MessagesPage />} />
+          <Route path="certificates" element={<CertificatesPage />} />
           <Route path="users" element={<ProtectedRoute roles={['ADMIN', 'SUPER_ADMIN']}><UsersPage /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
