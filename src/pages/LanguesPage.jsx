@@ -1,432 +1,129 @@
 import { useState, useEffect } from 'react';
-import {
-  GlobeAltIcon, PencilIcon, CheckIcon, XMarkIcon,
-  UsersIcon, BookOpenIcon, AcademicCapIcon, StarIcon,
-  EyeIcon, EyeSlashIcon, PlusIcon,
-} from '@heroicons/react/24/outline';
-import { SparklesIcon } from '@heroicons/react/24/solid';
+import { GlobeAltIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { languagesAPI } from '../services/api';
-import ImageUploadInput from '../components/ImageUploadInput';
-
-const REGIONS = ['Lagunes', 'Vallée du Bandama', 'Zanzan', 'Montagnes', 'Savanes', 'Haut-Sassandra', 'Bas-Sassandra', 'Marahoué', 'N\'Zi-Comoé', 'Sud-Bandama', 'Worodougou'];
-const FAMILLES = ['Mandé', 'Kwa', 'Gur', 'Krou', 'Créole urbain'];
-
-const EMPTY_FORM = {
-  nom: '', code: '', famille: '', region: '',
-  locuteurs: '', description: '', imageDrapeau: '',
-  ordreAffichage: 0, isActive: true, isInMvp: false,
-};
 
 export default function LanguesPage() {
-  const [languages, setLanguages] = useState([]);
+  const [langues, setLangues] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({});
-  const [saving, setSaving] = useState(false);
-  const [savedId, setSavedId] = useState(null);
-  const [showCreate, setShowCreate] = useState(false);
-  const [createForm, setCreateForm] = useState(EMPTY_FORM);
-  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState(null);
 
-  const load = async () => {
-    try {
-      setLoading(true);
-      // Charger toutes les langues (pas seulement actives)
-      const res = await languagesAPI.getAll();
-      setLanguages(res.data);
-    } catch {
-      // silencieux
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, []);
-
-  const openEdit = (lang) => {
-    setForm({
-      nom: lang.nom,
-      code: lang.code,
-      famille: lang.famille || '',
-      region: lang.region || '',
-      locuteurs: lang.locuteurs || '',
-      description: lang.description || '',
-      imageDrapeau: lang.imageDrapeau || '',
-      ordreAffichage: lang.ordreAffichage ?? 0,
-      isActive: lang.isActive,
-      isInMvp: lang.isInMvp,
-    });
-    setEditingId(lang.id);
-    setSavedId(null);
-  };
-
-  const cancelEdit = () => { setEditingId(null); setForm({}); };
-
-  const handleSave = async (id) => {
-    setSaving(true);
-    try {
-      const payload = { ...form, ordreAffichage: parseInt(form.ordreAffichage) || 0 };
-      await languagesAPI.update(id, payload);
-      setSavedId(id);
-      setTimeout(() => setSavedId(null), 2000);
-      setEditingId(null);
-      await load();
-    } catch (e) {
-      alert(e.response?.data?.error || 'Erreur lors de la sauvegarde');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const toggleActive = async (lang) => {
-    try {
-      await languagesAPI.update(lang.id, { isActive: !lang.isActive });
-      await load();
-    } catch { alert('Erreur'); }
-  };
-
-  const toggleMvp = async (lang) => {
-    try {
-      await languagesAPI.update(lang.id, { isInMvp: !lang.isInMvp });
-      await load();
-    } catch { alert('Erreur'); }
-  };
-
-  const handleCreate = async () => {
-    if (!createForm.nom.trim() || !createForm.code.trim()) {
-      return alert('Le nom et le code sont obligatoires.');
-    }
-    setCreating(true);
-    try {
-      const payload = { ...createForm, ordreAffichage: parseInt(createForm.ordreAffichage) || 0 };
-      await languagesAPI.create(payload);
-      setShowCreate(false);
-      setCreateForm(EMPTY_FORM);
-      await load();
-    } catch (e) {
-      alert(e.response?.data?.error || 'Erreur lors de la création');
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const mvpCount = languages.filter(l => l.isInMvp).length;
-  const activeCount = languages.filter(l => l.isActive).length;
+  useEffect(() => {
+    setLoading(true);
+    languagesAPI
+      .getAll()
+      .then(({ data }) => {
+        // L'API peut retourner un tableau directement ou { data: [...] }
+        const list = Array.isArray(data) ? data : data?.data ?? [];
+        setLangues(list);
+      })
+      .catch(() => setError('Impossible de charger les langues. Vérifiez la connexion à l\'API.'))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+    <div className="p-6 max-w-5xl mx-auto">
+      {/* En-tête */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
             <GlobeAltIcon className="w-6 h-6 text-green-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestion des Langues</h1>
-            <p className="text-sm text-gray-500">
-              {activeCount} langue{activeCount !== 1 ? 's' : ''} active{activeCount !== 1 ? 's' : ''} · {mvpCount} en MVP
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">Langues</h1>
+            <p className="text-sm text-gray-500">Liste des langues ethniques ivoiriennes configurées dans l'application</p>
           </div>
         </div>
-        <button
-          onClick={() => { setShowCreate(true); setCreateForm(EMPTY_FORM); }}
-          className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-primary-600 transition-colors shadow-sm"
-        >
-          <PlusIcon className="w-4 h-4" />
-          Ajouter une langue
-        </button>
       </div>
 
-      {/* Modal — Créer une langue */}
-      {showCreate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">Ajouter une langue</h2>
-              <button onClick={() => setShowCreate(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">
-                <XMarkIcon className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <div className="p-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Nom <span className="text-red-500">*</span></label>
-                  <input value={createForm.nom} onChange={e => setCreateForm(f => ({ ...f, nom: e.target.value }))}
-                    placeholder="Ex: Baoulé"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Code ISO <span className="text-red-500">*</span></label>
-                  <input value={createForm.code} onChange={e => setCreateForm(f => ({ ...f, code: e.target.value.toLowerCase() }))}
-                    placeholder="Ex: bci"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Famille linguistique</label>
-                  <select value={createForm.famille} onChange={e => setCreateForm(f => ({ ...f, famille: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option value="">— Non renseigné —</option>
-                    {FAMILLES.map(fam => <option key={fam} value={fam}>{fam}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Région</label>
-                  <select value={createForm.region} onChange={e => setCreateForm(f => ({ ...f, region: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option value="">— Non renseignée —</option>
-                    {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Nombre de locuteurs</label>
-                  <input value={createForm.locuteurs} onChange={e => setCreateForm(f => ({ ...f, locuteurs: e.target.value }))}
-                    placeholder="Ex: 2 000 000"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Ordre d'affichage</label>
-                  <input type="number" value={createForm.ordreAffichage} onChange={e => setCreateForm(f => ({ ...f, ordreAffichage: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                </div>
-                <div className="md:col-span-2">
-                  <ImageUploadInput
-                    value={createForm.imageDrapeau}
-                    onChange={url => setCreateForm(f => ({ ...f, imageDrapeau: url }))}
-                    label="Drapeau / image de la langue"
-                    hint="Laissez vide pour utiliser l'icône globe par défaut."
-                    previewClass="w-20 h-14 rounded-lg object-cover border-2 border-primary-200"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
-                  <textarea value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))}
-                    rows={3} placeholder="Présentation de la langue..."
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
-                </div>
-                <div className="flex items-center gap-6">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={createForm.isActive} onChange={e => setCreateForm(f => ({ ...f, isActive: e.target.checked }))}
-                      className="w-4 h-4 accent-primary-500" />
-                    <span className="text-sm text-gray-700">Langue active</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={createForm.isInMvp} onChange={e => setCreateForm(f => ({ ...f, isInMvp: e.target.checked }))}
-                      className="w-4 h-4 accent-amber-500" />
-                    <span className="text-sm text-gray-700">Dans le MVP</span>
-                  </label>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-                <button onClick={() => setShowCreate(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
-                  Annuler
-                </button>
-                <button onClick={handleCreate} disabled={creating}
-                  className="flex items-center gap-2 bg-primary-500 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors">
-                  {creating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <PlusIcon className="w-4 h-4" />}
-                  Créer la langue
-                </button>
-              </div>
-            </div>
+      {/* Stats */}
+      {!loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p className="text-2xl font-bold text-gray-700">{langues.length}</p>
+            <p className="text-sm text-gray-500 mt-1">Langues enregistrées</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p className="text-2xl font-bold text-green-600">
+              {langues.filter(l => l.isActive !== false).length}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">Langues actives</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p className="text-2xl font-bold text-gray-400">
+              {langues.filter(l => l.isActive === false).length}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">Langues inactives</p>
           </div>
         </div>
       )}
 
-      {/* Résumé statistiques */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold text-gray-900">{languages.length}</p>
-          <p className="text-xs text-gray-500 mt-1">Langues au total</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold text-green-600">{activeCount}</p>
-          <p className="text-xs text-gray-500 mt-1">Langues actives</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold text-amber-600">{mvpCount}</p>
-          <p className="text-xs text-gray-500 mt-1">Dans le MVP</p>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-16">
+      {/* États */}
+      {loading && (
+        <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
+          <span className="ml-3 text-gray-500 text-sm">Chargement des langues…</span>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {languages
-            .sort((a, b) => a.ordreAffichage - b.ordreAffichage)
-            .map(lang => (
-              <div key={lang.id} className={`bg-white rounded-2xl border shadow-sm transition-all ${editingId === lang.id ? 'border-primary-200 shadow-md' : 'border-gray-100'}`}>
-                {/* Mode affichage */}
-                {editingId !== lang.id && (
-                  <div className="p-5">
-                    <div className="flex items-center gap-4">
-                      {/* Drapeau */}
-                      {lang.imageDrapeau ? (
-                        <img src={lang.imageDrapeau} alt={lang.nom} className="w-14 h-10 object-cover rounded-lg border border-gray-100" />
-                      ) : (
-                        <div className="w-14 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <GlobeAltIcon className="w-6 h-6 text-gray-400" />
-                        </div>
-                      )}
+      )}
 
-                      {/* Infos principales */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-gray-900">{lang.nom}</h3>
-                          <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{lang.code}</span>
-                          {lang.famille && <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded">{lang.famille}</span>}
-                          {lang.region && <span className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded">{lang.region}</span>}
-                        </div>
-                        {lang.locuteurs && (
-                          <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                            <UsersIcon className="w-3 h-3" />
-                            {lang.locuteurs} locuteurs
-                          </p>
-                        )}
-                      </div>
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
-                      {/* Stats contenu */}
-                      <div className="hidden md:flex items-center gap-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <BookOpenIcon className="w-3.5 h-3.5" />
-                          <span>{lang._count?.dictEntries || 0} mots</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <AcademicCapIcon className="w-3.5 h-3.5" />
-                          <span>{lang._count?.lessons || 0} leçons</span>
-                        </div>
-                      </div>
+      {!loading && !error && langues.length === 0 && (
+        <div className="text-center py-16 text-gray-400">
+          <GlobeAltIcon className="w-12 h-12 mx-auto mb-3" />
+          <p className="font-medium">Aucune langue configurée</p>
+          <p className="text-sm mt-1">Les langues seront affichées ici une fois ajoutées via l'API.</p>
+        </div>
+      )}
 
-                      {/* Badges état */}
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => toggleMvp(lang)}
-                          title={lang.isInMvp ? 'Retirer du MVP' : 'Ajouter au MVP'}
-                          className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${lang.isInMvp ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}>
-                          <SparklesIcon className="w-3 h-3" />
-                          MVP
-                        </button>
-                        <button onClick={() => toggleActive(lang)}
-                          title={lang.isActive ? 'Désactiver' : 'Activer'}
-                          className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${lang.isActive ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-500 hover:bg-red-200'}`}>
-                          {lang.isActive ? <EyeIcon className="w-3 h-3" /> : <EyeSlashIcon className="w-3 h-3" />}
-                          {lang.isActive ? 'Active' : 'Inactive'}
-                        </button>
-                        <button onClick={() => openEdit(lang)}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:border-primary-300 hover:text-primary-700 transition-colors">
-                          <PencilIcon className="w-3 h-3" />
-                          Modifier
-                        </button>
-                      </div>
-                    </div>
-
-                    {lang.description && (
-                      <p className="text-sm text-gray-500 mt-3 line-clamp-2">{lang.description}</p>
+      {!loading && !error && langues.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left px-5 py-3 font-semibold text-gray-600">Nom</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-600">Code</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-600">Région</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-600">Mots</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-600">Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {langues.map((lang, idx) => (
+                <tr
+                  key={lang.id ?? idx}
+                  className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors"
+                >
+                  <td className="px-5 py-3 font-medium text-gray-900">{lang.nom}</td>
+                  <td className="px-5 py-3">
+                    <span className="inline-block px-2 py-0.5 rounded bg-gray-100 text-gray-600 font-mono text-xs">
+                      {lang.code ?? '—'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-gray-600">{lang.region ?? '—'}</td>
+                  <td className="px-5 py-3 text-gray-600">
+                    {lang._count?.mots ?? lang.nombreMots ?? '—'}
+                  </td>
+                  <td className="px-5 py-3">
+                    {lang.isActive !== false ? (
+                      <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 border border-green-100 rounded-full px-2.5 py-0.5 text-xs font-medium">
+                        <CheckCircleIcon className="w-3.5 h-3.5" />
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-gray-500 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-0.5 text-xs font-medium">
+                        <XCircleIcon className="w-3.5 h-3.5" />
+                        Inactive
+                      </span>
                     )}
-
-                    {savedId === lang.id && (
-                      <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
-                        <CheckIcon className="w-3 h-3" /> Sauvegardé
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Mode édition */}
-                {editingId === lang.id && (
-                  <div className="p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-bold text-primary-600">Modifier : {lang.nom}</h3>
-                      <button onClick={cancelEdit} className="p-1.5 hover:bg-gray-100 rounded-lg">
-                        <XMarkIcon className="w-4 h-4 text-gray-500" />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Nom</label>
-                        <input value={form.nom} onChange={e => setForm(f => ({ ...f, nom: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Code</label>
-                        <input value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Famille linguistique</label>
-                        <select value={form.famille} onChange={e => setForm(f => ({ ...f, famille: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                          <option value="">— Non renseigné —</option>
-                          {FAMILLES.map(f => <option key={f} value={f}>{f}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Région</label>
-                        <select value={form.region} onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                          <option value="">— Non renseignée —</option>
-                          {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Nombre de locuteurs</label>
-                        <input value={form.locuteurs} onChange={e => setForm(f => ({ ...f, locuteurs: e.target.value }))}
-                          placeholder="Ex: 2 000 000"
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Ordre d'affichage</label>
-                        <input type="number" value={form.ordreAffichage} onChange={e => setForm(f => ({ ...f, ordreAffichage: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-                      </div>
-                      <div className="md:col-span-2">
-                        <ImageUploadInput
-                          value={form.imageDrapeau}
-                          onChange={url => setForm(f => ({ ...f, imageDrapeau: url }))}
-                          label="Drapeau / image de la langue"
-                          hint="Laissez vide pour utiliser l'icône globe par défaut."
-                          previewClass="w-20 h-14 rounded-lg object-cover border-2 border-primary-200"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
-                        <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                          rows={3}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
-                      </div>
-
-                      {/* Toggles */}
-                      <div className="flex items-center gap-6">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
-                            className="w-4 h-4 accent-primary-500" />
-                          <span className="text-sm text-gray-700">Langue active</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={form.isInMvp} onChange={e => setForm(f => ({ ...f, isInMvp: e.target.checked }))}
-                            className="w-4 h-4 accent-amber-500" />
-                          <span className="text-sm text-gray-700">Dans le MVP</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 mt-5">
-                      <button onClick={cancelEdit}
-                        className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
-                        Annuler
-                      </button>
-                      <button onClick={() => handleSave(lang.id)} disabled={saving}
-                        className="flex items-center gap-2 bg-primary-500 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors">
-                        {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckIcon className="w-4 h-4" />}
-                        Enregistrer
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

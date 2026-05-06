@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { tutorsAPI, languagesAPI } from '../services/api';
-import { PlusIcon, PencilIcon, TrashIcon, ChatBubbleLeftRightIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import ImageUploadInput from '../components/ImageUploadInput';
-import { getAvatarPortrait } from '../utils/getAvatar';
 
 const AVATAR_COLORS = ['#0B3D2E','#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#4E342E','#37474F'];
 
@@ -117,23 +115,14 @@ export default function TutorsPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tuteurs IA</h1>
           <p className="text-gray-500 text-sm mt-1">{tutors.length} Tuteur(s) Ethnique(s) Virtuel(s)</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-4 h-4" /> Créer un tuteur
+          <PlusIcon className="w-4 h-4" /> Nouveau tuteur
         </button>
-      </div>
-
-      {/* Aide */}
-      <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6 flex gap-3">
-        <InformationCircleIcon className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-purple-900">
-          <p className="font-semibold mb-1">🤖 À quoi servent les Tuteurs IA ?</p>
-          <p>Les tuteurs sont des <strong>personnages virtuels</strong> avec lesquels les utilisateurs conversent pour pratiquer la langue. Chaque tuteur a une personnalité, une langue et une voix propres. Idéalement, créez <strong>un tuteur par langue</strong> disponible dans l'application.</p>
-        </div>
       </div>
 
       {loading ? (
@@ -148,15 +137,10 @@ export default function TutorsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {tutors.map((tutor, i) => {
-            const localPortrait = getAvatarPortrait(tutor.nomAvatar);
-            return (
+          {tutors.map((tutor, i) => (
             <div key={tutor.id} className="card hover:shadow-md transition-shadow">
               <div className="flex items-start gap-4">
-                {localPortrait ? (
-                  <img src={localPortrait} alt={tutor.nomAvatar}
-                    className="w-14 h-14 rounded-xl flex-shrink-0 object-cover" />
-                ) : tutor.imageUrl ? (
+                {tutor.imageUrl ? (
                   <img src={tutor.imageUrl} alt={tutor.nomAvatar}
                     className="w-14 h-14 rounded-xl flex-shrink-0 object-cover" />
                 ) : (
@@ -200,8 +184,7 @@ export default function TutorsPage() {
                 </div>
               </div>
             </div>
-          );
-          })}
+          ))}
         </div>
       )}
 
@@ -232,11 +215,20 @@ export default function TutorsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
-                  <select className="input" value={form.genre}
-                    onChange={e => setForm({...form, genre: e.target.value})}>
-                    <option value="M">Homme ♂</option>
-                    <option value="F">Femme ♀</option>
-                  </select>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setForm(f => ({...f, genre: 'M'}))}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors ${
+                        form.genre === 'M' ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}>
+                      ♂ Masculin
+                    </button>
+                    <button type="button" onClick={() => setForm(f => ({...f, genre: 'F'}))}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors ${
+                        form.genre === 'F' ? 'bg-pink-500 text-white border-pink-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}>
+                      ♀ Féminin
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -263,36 +255,25 @@ export default function TutorsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Vitesse de la voix — <span className="text-primary-600 font-semibold">{form.voixConfig?.vitesse ?? 1.0}x</span>
-                  </label>
-                  <input type="range" step="0.1" min="0.5" max="2.0" className="w-full accent-primary-500"
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vitesse voix</label>
+                  <input type="number" step="0.1" min="0.5" max="2.0" className="input"
                     value={form.voixConfig?.vitesse ?? 1.0}
                     onChange={e => setForm({...form, voixConfig: {...form.voixConfig, vitesse: parseFloat(e.target.value)}})} />
-                  <div className="flex justify-between text-xs text-gray-400 mt-0.5">
-                    <span>Lent (0.5)</span><span>Normal (1.0)</span><span>Rapide (2.0)</span>
-                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tonalité de la voix — <span className="text-primary-600 font-semibold">{form.voixConfig?.pitch ?? 1.0}</span>
-                  </label>
-                  <input type="range" step="0.1" min="0.5" max="2.0" className="w-full accent-primary-500"
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pitch voix</label>
+                  <input type="number" step="0.1" min="0.5" max="2.0" className="input"
                     value={form.voixConfig?.pitch ?? 1.0}
                     onChange={e => setForm({...form, voixConfig: {...form.voixConfig, pitch: parseFloat(e.target.value)}})} />
-                  <div className="flex justify-between text-xs text-gray-400 mt-0.5">
-                    <span>Grave (0.5)</span><span>Normal (1.0)</span><span>Aigu (2.0)</span>
-                  </div>
                 </div>
               </div>
 
-              <ImageUploadInput
-                value={form.imageUrl}
-                onChange={url => setForm({ ...form, imageUrl: url })}
-                label="Photo de l'avatar"
-                hint="Laissez vide pour utiliser la lettre initiale comme avatar."
-                previewClass="w-16 h-16 rounded-xl object-cover border-2 border-primary-200"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">URL image avatar</label>
+                <input className="input" value={form.imageUrl}
+                  onChange={e => setForm({...form, imageUrl: e.target.value})}
+                  placeholder="https://..." />
+              </div>
 
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="isActive" checked={form.isActive}
