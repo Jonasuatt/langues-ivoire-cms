@@ -1,152 +1,349 @@
-import { useState, useEffect } from 'react';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import api from '../services/api';
+import { useEffect, useState } from 'react';
+import { phrasesAdminAPI, languagesAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { ExclamationTriangleIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
+
+const CATEGORIES = ['urgence', 'sante', 'securite', 'quotidien', 'famille', 'transport', 'corps', 'autre'];
+const CAT_LABELS = {
+  urgence: '🚨 Urgence', sante: '🏥 Santé', securite: '🛡️ Sécurité',
+  quotidien: '🌅 Quotidien', famille: '👨‍👩‍👧 Famille', transport: '🚗 Transport',
+  corps: '💪 Corps', autre: '📌 Autre',
+};
+const CAT_COLORS = {
+  urgence: 'bg-red-100 text-red-700', sante: 'bg-green-100 text-green-700',
+  securite: 'bg-blue-100 text-blue-700', quotidien: 'bg-yellow-100 text-yellow-700',
+  famille: 'bg-pink-100 text-pink-700', transport: 'bg-indigo-100 text-indigo-700',
+  corps: 'bg-orange-100 text-orange-700', autre: 'bg-gray-100 text-gray-600',
+};
+const STATUSES = ['PUBLISHED', 'DRAFT'];
+
+const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'urgence', contexte: '', audioUrl: '', status: 'PUBLISHED' };
 
 export default function PhrasesSOSPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+
   const [phrases, setPhrases] = useState([]);
+  const [languages, setLanguages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [filterLang, setFilterLang] = useState('');
+  const [filterCat, setFilterCat] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
+  const [showModal, setShowModal] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+
+  const LIMIT = 20;
 
   useEffect(() => {
-    setLoading(true);
-    api
-      .get('/phrases', { params: { categorie: 'sos', limit: 200 } })
-      .then(({ data }) => {
-        const list = Array.isArray(data) ? data : data?.data ?? [];
-        setPhrases(list);
-      })
-      .catch(() => {
-        // Fallback sans filtre categorie
-        api
-          .get('/phrases', { params: { limit: 200 } })
-          .then(({ data }) => {
-            const list = Array.isArray(data) ? data : data?.data ?? [];
-            setPhrases(list);
-          })
-          .catch(() => setError('Impossible de charger les phrases SOS. Vérifiez la connexion à l\'API.'))
-          .finally(() => setLoading(false));
-      })
-      .finally(() => setLoading(false));
+    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
   }, []);
 
-  const urgenceColor = (urgence) => {
-    if (!urgence) return 'bg-gray-100 text-gray-600';
-    const lvl = String(urgence).toLowerCase();
-    if (lvl === 'critique' || lvl === 'high' || lvl === '3') return 'bg-red-100 text-red-700';
-    if (lvl === 'moyen' || lvl === 'medium' || lvl === '2') return 'bg-orange-100 text-orange-700';
-    return 'bg-yellow-100 text-yellow-700';
+  const load = () => {
+    setLoading(true);
+    const params = { page, limit: LIMIT };
+    if (filterLang) params.languageId = filterLang;
+    if (filterCat)  params.categorie  = filterCat;
+    if (filterStatus) params.status   = filterStatus;
+
+    phrasesAdminAPI.getAll(params)
+      .then(({ data }) => {
+        setPhrases(data.data || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+      })
+      .catch(() => toast.error('Erreur de chargement', { id: 'phrases-load' }))
+      .finally(() => setLoading(false));
   };
 
+  useEffect(() => { setPage(1); }, [filterLang, filterCat, filterStatus]);
+  useEffect(() => { load(); }, [page, filterLang, filterCat, filterStatus]);
+
+  const openAdd = () => { setEditItem(null); setForm(EMPTY_FORM); setShowModal(true); };
+  const openEdit = (p) => {
+    setEditItem(p);
+    setForm({
+      languageId: p.languageId || '',
+      phrase: p.phrase || '',
+      transcription: p.transcription || '',
+      traduction: p.traduction || '',
+      categorie: p.categorie || 'urgence',
+      contexte: p.contexte || '',
+      audioUrl: p.audioUrl || '',
+      status: p.status || 'PUBLISHED',
+    });
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.languageId || !form.phrase || !form.traduction) {
+      toast.error('Langue, phrase et traduction sont requis');
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      languageId: form.languageId,
+      phrase: form.phrase.trim(),
+      transcription: form.transcription.trim() || null,
+      traduction: form.traduction.trim(),
+      categorie: form.categorie,
+      contexte: form.contexte.trim() || null,
+      audioUrl: form.audioUrl.trim() || null,
+      status: form.status,
+    };
+    try {
+      if (editItem) {
+        await phrasesAdminAPI.update(editItem.id, payload);
+        toast.success('Phrase mise à jour');
+      } else {
+        await phrasesAdminAPI.create(payload);
+        toast.success('Phrase ajoutée');
+      }
+      setShowModal(false);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (p) => {
+    if (!confirm(`Supprimer "${p.phrase}" ?`)) return;
+    try {
+      await phrasesAdminAPI.delete(p.id);
+      toast.success('Phrase supprimée');
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la suppression');
+    }
+  };
+
+  const toggleStatus = async (p) => {
+    const newStatus = p.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+    try {
+      await phrasesAdminAPI.update(p.id, { status: newStatus });
+      setPhrases(prev => prev.map(x => x.id === p.id ? { ...x, status: newStatus } : x));
+      toast.success(newStatus === 'PUBLISHED' ? 'Phrase publiée' : 'Phrase mise en brouillon');
+    } catch {
+      toast.error('Erreur de mise à jour');
+    }
+  };
+
+  const languesCouverts = [...new Set(phrases.map(p => p.languageId).filter(Boolean))].length;
+  const actives = phrases.filter(p => p.status === 'PUBLISHED').length;
+
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      {/* En-tête */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-            <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Phrases SOS</h1>
-            <p className="text-sm text-gray-500">Phrases d'urgence multilingues pour situations critiques</p>
-          </div>
+    <div className="p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <ExclamationTriangleIcon className="w-7 h-7 text-red-500" />
+            Phrases SOS
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">Phrases d'urgence multilingues pour situations critiques</p>
         </div>
+        <button onClick={openAdd} className="btn-primary flex items-center gap-2">
+          <PlusIcon className="w-4 h-4" /> Ajouter une phrase
+        </button>
       </div>
 
       {/* Stats */}
-      {!loading && !error && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-            <p className="text-2xl font-bold text-gray-700">{phrases.length}</p>
-            <p className="text-sm text-gray-500 mt-1">Phrases enregistrées</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-            <p className="text-2xl font-bold text-green-600">
-              {phrases.filter(p => p.isActive !== false).length}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Phrases actives</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-            <p className="text-2xl font-bold text-gray-600">
-              {[...new Set(phrases.map(p => p.languageId ?? p.language?.id).filter(Boolean))].length}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Langues couvertes</p>
-          </div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="card py-3 px-5">
+          <p className="text-2xl font-bold text-gray-800">{total}</p>
+          <p className="text-sm text-gray-500">Phrases enregistrées</p>
         </div>
-      )}
-
-      {/* États */}
-      {loading && (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
-          <span className="ml-3 text-gray-500 text-sm">Chargement des phrases SOS…</span>
+        <div className="card py-3 px-5">
+          <p className="text-2xl font-bold text-green-600">{actives}</p>
+          <p className="text-sm text-gray-500">Phrases actives (page)</p>
         </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-red-700 text-sm">
-          {error}
+        <div className="card py-3 px-5">
+          <p className="text-2xl font-bold text-blue-600">{languesCouverts}</p>
+          <p className="text-sm text-gray-500">Langues (page)</p>
         </div>
-      )}
+      </div>
 
-      {!loading && !error && phrases.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-3" />
-          <p className="font-medium">Aucune phrase SOS disponible</p>
-          <p className="text-sm mt-1">Les phrases seront affichées ici une fois ajoutées via l'API.</p>
+      {/* Filtres */}
+      <div className="flex gap-3 mb-5 flex-wrap">
+        <select value={filterLang} onChange={e => setFilterLang(e.target.value)} className="input w-auto">
+          <option value="">Toutes les langues</option>
+          {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
+        </select>
+        <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="input w-auto">
+          <option value="">Toutes les catégories</option>
+          {CATEGORIES.map(c => <option key={c} value={c}>{CAT_LABELS[c] || c}</option>)}
+        </select>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="input w-auto">
+          <option value="">Tous les statuts</option>
+          <option value="PUBLISHED">Publiées</option>
+          <option value="DRAFT">Brouillons</option>
+        </select>
+        <span className="ml-auto text-sm text-gray-500 self-center">{total} phrase(s)</span>
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <div className="space-y-2 animate-pulse">
+          {[1,2,3,4,5].map(i => <div key={i} className="h-14 bg-gray-100 rounded-xl" />)}
         </div>
-      )}
-
-      {!loading && !error && phrases.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left px-5 py-3 font-semibold text-gray-600">Phrase / Consigne</th>
-                <th className="text-left px-5 py-3 font-semibold text-gray-600">Traduction</th>
-                <th className="text-left px-5 py-3 font-semibold text-gray-600">Langue</th>
-                <th className="text-left px-5 py-3 font-semibold text-gray-600">Urgence</th>
-                <th className="text-left px-5 py-3 font-semibold text-gray-600">Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              {phrases.map((phrase, idx) => (
-                <tr
-                  key={phrase.id ?? idx}
-                  className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors"
-                >
-                  <td className="px-5 py-3 font-medium text-gray-900 max-w-xs">
-                    <span className="line-clamp-2">{phrase.consigne ?? phrase.texte ?? phrase.phrase ?? '—'}</span>
-                  </td>
-                  <td className="px-5 py-3 text-gray-500 italic max-w-xs">
-                    <span className="line-clamp-2">{phrase.traduction ?? '—'}</span>
-                  </td>
-                  <td className="px-5 py-3 text-gray-600">
-                    {phrase.language?.nom ?? phrase.langue ?? '—'}
-                  </td>
-                  <td className="px-5 py-3">
-                    {phrase.urgence || phrase.niveauUrgence ? (
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${urgenceColor(phrase.urgence ?? phrase.niveauUrgence)}`}>
-                        {phrase.urgence ?? phrase.niveauUrgence}
-                      </span>
-                    ) : (
-                      <span className="text-gray-300">—</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-3">
-                    {phrase.isActive !== false ? (
-                      <span className="inline-block px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100 text-xs font-medium">
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-block px-2 py-0.5 rounded-full bg-gray-50 text-gray-500 border border-gray-100 text-xs font-medium">
-                        Inactive
-                      </span>
-                    )}
-                  </td>
+      ) : phrases.length === 0 ? (
+        <div className="card text-center py-16">
+          <ExclamationTriangleIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-400">Aucune phrase pour ces filtres</p>
+          <button onClick={openAdd} className="mt-4 btn-primary text-sm">Ajouter la première phrase</button>
+        </div>
+      ) : (
+        <div className="card overflow-hidden p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  {['Phrase', 'Transcription', 'Traduction', 'Langue', 'Catégorie', 'Statut', 'Actions'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {phrases.map(p => (
+                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-900 max-w-[180px]">
+                      <div className="flex items-center gap-1.5">
+                        {p.audioUrl && <SpeakerWaveIcon className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />}
+                        <span className="line-clamp-2">{p.phrase}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 italic text-xs max-w-[140px]">
+                      <span className="line-clamp-2">{p.transcription || '—'}</span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 max-w-[160px]">
+                      <span className="line-clamp-2">{p.traduction}</span>
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      <span className="badge bg-orange-50 text-orange-700">{p.language?.nom || '—'}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`badge text-xs ${CAT_COLORS[p.categorie] || 'bg-gray-100 text-gray-600'}`}>
+                        {CAT_LABELS[p.categorie] || p.categorie || '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => toggleStatus(p)}
+                        className={`badge cursor-pointer ${p.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                        {p.status === 'PUBLISHED' ? '● Publiée' : '○ Brouillon'}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        <button onClick={() => openEdit(p)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-primary-50 transition-colors">
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        {isAdmin && (
+                          <button onClick={() => handleDelete(p)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <p className="text-sm text-gray-500">Page {page} / {totalPages}</p>
+              <div className="flex gap-2">
+                <button className="btn-secondary text-sm py-1.5 px-3" onClick={() => setPage(p => p - 1)} disabled={page === 1}>← Précédent</button>
+                <button className="btn-secondary text-sm py-1.5 px-3" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>Suivant →</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-bold text-gray-900 mb-5">
+              {editItem ? 'Modifier la phrase' : 'Nouvelle phrase SOS'}
+            </h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Langue *</label>
+                  <select className="input" value={form.languageId}
+                    onChange={e => setForm({ ...form, languageId: e.target.value })}>
+                    <option value="">-- Sélectionner --</option>
+                    {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                  <select className="input" value={form.categorie}
+                    onChange={e => setForm({ ...form, categorie: e.target.value })}>
+                    {CATEGORIES.map(c => <option key={c} value={c}>{CAT_LABELS[c] || c}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phrase (langue locale) *</label>
+                <input className="input" value={form.phrase}
+                  onChange={e => setForm({ ...form, phrase: e.target.value })}
+                  placeholder="ex: M'bi ke kè" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Transcription phonétique</label>
+                <input className="input" value={form.transcription}
+                  onChange={e => setForm({ ...form, transcription: e.target.value })}
+                  placeholder="ex: m-bi kè kè" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Traduction (français) *</label>
+                <input className="input" value={form.traduction}
+                  onChange={e => setForm({ ...form, traduction: e.target.value })}
+                  placeholder="ex: Au secours !" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contexte d'utilisation</label>
+                <input className="input" value={form.contexte}
+                  onChange={e => setForm({ ...form, contexte: e.target.value })}
+                  placeholder="ex: Situation d'urgence médicale" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL Audio (optionnel)</label>
+                  <input className="input" value={form.audioUrl}
+                    onChange={e => setForm({ ...form, audioUrl: e.target.value })}
+                    placeholder="https://..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                  <select className="input" value={form.status}
+                    onChange={e => setForm({ ...form, status: e.target.value })}>
+                    <option value="PUBLISHED">Publiée</option>
+                    <option value="DRAFT">Brouillon</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">Annuler</button>
+              <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 justify-center">
+                {saving ? 'Sauvegarde...' : editItem ? 'Mettre à jour' : 'Ajouter'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

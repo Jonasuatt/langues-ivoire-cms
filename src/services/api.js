@@ -102,6 +102,27 @@ export const uploadAPI = {
   uploadImage: (formData) => api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
+export const badgesAPI = {
+  getAll: () => api.get('/admin/badges'),
+  getOne: (id) => api.get(`/admin/badges/${id}`),
+  create: (data) => api.post('/admin/badges', data),
+  update: (id, data) => api.patch(`/admin/badges/${id}`, data),
+  delete: (id) => api.delete(`/admin/badges/${id}`),
+};
+
+export const phrasesAdminAPI = {
+  getAll: (params) => api.get('/admin/phrases', { params }),
+  create: (data) => api.post('/admin/phrases', data),
+  update: (id, data) => api.patch(`/admin/phrases/${id}`, data),
+  delete: (id) => api.delete(`/admin/phrases/${id}`),
+};
+
+export const notificationsAdminAPI = {
+  send: (data) => api.post('/admin/notifications/send', data),
+  getHistory: (params) => api.get('/admin/notifications/history', { params }),
+  getUserCount: () => api.get('/admin/users', { params: { limit: 1 } }),
+};
+
 export const premierSecoursAPI = {
   getAll: (params) => api.get('/premiers-secours', { params }),
   create: (data) => api.post('/premiers-secours', data),
