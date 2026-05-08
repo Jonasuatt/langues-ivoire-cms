@@ -16,6 +16,7 @@ const NAV_SECTIONS = [
       { to: '/vocabulary', label: 'Vocabulaire', icon: BookOpenIcon },
       { to: '/lessons', label: 'Leçons', icon: AcademicCapIcon },
       { to: '/cultural', label: 'Culture & Traditions', icon: SparklesIcon },
+      { to: '/textes-recits', label: 'Textes & Récits', icon: BookOpenIcon },
       { to: '/videos', label: 'Vidéos', icon: VideoCameraIcon },
     ],
   },

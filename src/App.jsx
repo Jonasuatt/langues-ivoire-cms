@@ -21,6 +21,7 @@ import BadgesPage from './pages/BadgesPage';
 import PhrasesSOSPage from './pages/PhrasesSOSPage';
 import PhrasesUtilesPage from './pages/PhrasesUtilesPage';
 import NotificationsPage from './pages/NotificationsPage';
+import TextContentPage from './pages/TextContentPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="lessons" element={<LessonsPage />} />
           <Route path="tutors" element={<TutorsPage />} />
           <Route path="cultural" element={<CulturalPage />} />
+          <Route path="textes-recits" element={<TextContentPage />} />
           <Route path="voix-audio" element={<VoixAudioPage />} />
           <Route path="premiers-secours" element={<PremierSecoursPage />} />
           <Route path="civisme" element={<CivismePage />} />
