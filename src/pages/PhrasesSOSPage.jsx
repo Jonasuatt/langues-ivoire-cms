@@ -1,24 +1,39 @@
 import { useEffect, useState } from 'react';
 import { phrasesAdminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { ExclamationTriangleIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
-const CATEGORIES = ['urgence', 'sante', 'securite', 'quotidien', 'famille', 'transport', 'corps', 'autre'];
+// Catégories réelles de la base de données
+const CATEGORIES = [
+  'expressions', 'salutations', 'nourriture', 'vie_quotidienne',
+  'vie_sociale', 'corps', 'lieux', 'urgence', 'autre',
+];
 const CAT_LABELS = {
-  urgence: '🚨 Urgence', sante: '🏥 Santé', securite: '🛡️ Sécurité',
-  quotidien: '🌅 Quotidien', famille: '👨‍👩‍👧 Famille', transport: '🚗 Transport',
-  corps: '💪 Corps', autre: '📌 Autre',
+  expressions:    '💬 Expressions',
+  salutations:    '👋 Salutations',
+  nourriture:     '🍽️ Nourriture',
+  vie_quotidienne:'🌅 Vie quotidienne',
+  vie_sociale:    '🤝 Vie sociale',
+  corps:          '💪 Corps',
+  lieux:          '📍 Lieux',
+  urgence:        '🚨 Urgence',
+  autre:          '📌 Autre',
 };
 const CAT_COLORS = {
-  urgence: 'bg-red-100 text-red-700', sante: 'bg-green-100 text-green-700',
-  securite: 'bg-blue-100 text-blue-700', quotidien: 'bg-yellow-100 text-yellow-700',
-  famille: 'bg-pink-100 text-pink-700', transport: 'bg-indigo-100 text-indigo-700',
-  corps: 'bg-orange-100 text-orange-700', autre: 'bg-gray-100 text-gray-600',
+  expressions:    'bg-purple-100 text-purple-700',
+  salutations:    'bg-green-100 text-green-700',
+  nourriture:     'bg-yellow-100 text-yellow-700',
+  vie_quotidienne:'bg-blue-100 text-blue-700',
+  vie_sociale:    'bg-pink-100 text-pink-700',
+  corps:          'bg-orange-100 text-orange-700',
+  lieux:          'bg-indigo-100 text-indigo-700',
+  urgence:        'bg-red-100 text-red-700',
+  autre:          'bg-gray-100 text-gray-600',
 };
 const STATUSES = ['PUBLISHED', 'DRAFT'];
 
-const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'urgence', contexte: '', audioUrl: '', status: 'PUBLISHED' };
+const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'expressions', contexte: '', audioUrl: '', status: 'PUBLISHED' };
 
 export default function PhrasesSOSPage() {
   const { user } = useAuth();
@@ -145,13 +160,13 @@ export default function PhrasesSOSPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <ExclamationTriangleIcon className="w-7 h-7 text-red-500" />
-            Phrases SOS
+            <ChatBubbleLeftRightIcon className="w-7 h-7 text-purple-500" />
+            Phrases Utiles
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Phrases d'urgence multilingues pour situations critiques</p>
+          <p className="text-gray-500 text-sm mt-1">Phrasebook multilingue — expressions, salutations, vie quotidienne</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-4 h-4" /> Ajouter une phrase
+          <PlusIcon className="w-4 h-4" /> Ajouter une phrase utile
         </button>
       </div>
 
@@ -196,7 +211,7 @@ export default function PhrasesSOSPage() {
         </div>
       ) : phrases.length === 0 ? (
         <div className="card text-center py-16">
-          <ExclamationTriangleIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <ChatBubbleLeftRightIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-400">Aucune phrase pour ces filtres</p>
           <button onClick={openAdd} className="mt-4 btn-primary text-sm">Ajouter la première phrase</button>
         </div>
@@ -276,7 +291,7 @@ export default function PhrasesSOSPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-bold text-gray-900 mb-5">
-              {editItem ? 'Modifier la phrase' : 'Nouvelle phrase SOS'}
+              {editItem ? 'Modifier la phrase' : 'Nouvelle phrase utile'}
             </h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
