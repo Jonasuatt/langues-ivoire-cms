@@ -61,7 +61,7 @@ export default function Layout() {
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">

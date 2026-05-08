@@ -34,7 +34,7 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<ProtectedRoute roles={['ADMIN', 'EDITOR', 'CONTRIBUTOR']}><Layout /></ProtectedRoute>}>
+        <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR']}><Layout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="contributions" element={<ContributionsPage />} />
@@ -54,7 +54,7 @@ export default function App() {
           <Route path="phrases-sos" element={<PhrasesSOSPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           {/* Admin only */}
-          <Route path="users" element={<ProtectedRoute roles={['ADMIN']}><UsersPage /></ProtectedRoute>} />
+          <Route path="users" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><UsersPage /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

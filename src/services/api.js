@@ -68,6 +68,7 @@ export const analyticsAPI = {
 export const adminAPI = {
   getUsers: (params) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
+  createMember: (data) => api.post('/admin/users/create', data),
 };
 
 export const voixAudioAPI = {
