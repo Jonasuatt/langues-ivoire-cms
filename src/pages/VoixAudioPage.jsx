@@ -56,23 +56,6 @@ export default function VoixAudioPage() {
 
   const LIMIT = 20;
 
-  const load = () => {
-    setLoading(true);
-    const params = { page, limit: LIMIT };
-    if (filterLang) params.langue = filterLang;
-    if (filterGenre) params.genreVoix = filterGenre;
-    if (filterValidated !== '') params.validated = filterValidated;
-
-    api.get('/audio-contributions', { params })
-      .then(({ data }) => {
-        setContributions(data.data || []);
-        setTotal(data.total || 0);
-        setTotalPages(data.totalPages || 1);
-      })
-      .catch(() => toast.error('Erreur de chargement'))
-      .finally(() => setLoading(false));
-  };
-
   const loadStats = () => {
     api.get('/audio-contributions', { params: { limit: 500 } })
       .then(({ data }) => {
@@ -91,7 +74,44 @@ export default function VoixAudioPage() {
     loadStats();
   }, []);
 
-  useEffect(() => { load(); }, [page, filterLang, filterGenre, filterValidated]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = { page, limit: LIMIT };
+    if (filterLang) params.langue = filterLang;
+    if (filterGenre) params.genreVoix = filterGenre;
+    if (filterValidated !== '') params.validated = filterValidated;
+
+    setLoading(true);
+    api.get('/audio-contributions', { params, signal: controller.signal })
+      .then(({ data }) => {
+        setContributions(data.data || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+      })
+      .catch((err) => {
+        if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
+          toast.error('Erreur de chargement', { id: 'voix-audio-load-error' });
+        }
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+
+    return () => controller.abort();
+  }, [page, filterLang, filterGenre, filterValidated]);
+
+  // kept for external calls (e.g. after genre/validate updates)
+  const load = () => {
+    const params = { page, limit: LIMIT };
+    if (filterLang) params.langue = filterLang;
+    if (filterGenre) params.genreVoix = filterGenre;
+    if (filterValidated !== '') params.validated = filterValidated;
+    api.get('/audio-contributions', { params })
+      .then(({ data }) => {
+        setContributions(data.data || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+      })
+      .catch(() => {});
+  };
 
   const handleUpdateGenre = async (contrib, genre) => {
     try {

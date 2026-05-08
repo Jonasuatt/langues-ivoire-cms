@@ -75,6 +75,32 @@ export const voixAudioAPI = {
   update: (id, data) => api.patch(`/audio-contributions/${id}`, data),
 };
 
+export const audioContribAPI = {
+  getAll: (params) => api.get('/audio-contributions', { params }),
+  getStats: () => api.get('/audio-contributions/stats'),
+  create: (formData) => api.post('/audio-contributions', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  bulkImport: (formData) => api.post('/audio-contributions/bulk-import', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, data) => api.patch(`/audio-contributions/${id}`, data),
+  validate: (id, data) => api.patch(`/audio-contributions/${id}/validate`, data),
+  delete: (id) => api.delete(`/audio-contributions/${id}`),
+};
+
+export const agentChatAPI = {
+  ask: (data) => api.post('/agent-chat', data, { timeout: 20000 }),
+};
+
+export const videosAPI = {
+  getAll: (params) => api.get('/videos', { params }),
+  create: (data) => api.post('/videos', data),
+  update: (id, data) => api.patch(`/videos/${id}`, data),
+  delete: (id) => api.delete(`/videos/${id}`),
+};
+
+export const uploadAPI = {
+  uploadAudio: (formData) => api.post('/upload/audio', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadImage: (formData) => api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+};
+
 export const premierSecoursAPI = {
   getAll: (params) => api.get('/premiers-secours', { params }),
   create: (data) => api.post('/premiers-secours', data),
