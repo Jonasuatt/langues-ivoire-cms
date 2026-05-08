@@ -19,6 +19,7 @@ import BienvenueEtSonsPage from './pages/BienvenueEtSonsPage';
 import LanguesPage from './pages/LanguesPage';
 import BadgesPage from './pages/BadgesPage';
 import PhrasesSOSPage from './pages/PhrasesSOSPage';
+import PhrasesUtilesPage from './pages/PhrasesUtilesPage';
 import NotificationsPage from './pages/NotificationsPage';
 
 function ProtectedRoute({ children, roles }) {
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="langues" element={<LanguesPage />} />
           <Route path="badges" element={<BadgesPage />} />
           <Route path="phrases-sos" element={<PhrasesSOSPage />} />
+          <Route path="phrases-utiles" element={<PhrasesUtilesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           {/* Admin only */}
           <Route path="users" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><UsersPage /></ProtectedRoute>} />
