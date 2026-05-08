@@ -6,7 +6,7 @@ import {
   UserGroupIcon, BeakerIcon, MusicalNoteIcon,
   GlobeAltIcon, TrophyIcon, BellIcon,
   HeartIcon, BuildingLibraryIcon, UsersIcon,
-  ArrowRightOnRectangleIcon,
+  ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 const NAV_SECTIONS = [
@@ -40,7 +40,8 @@ const NAV_SECTIONS = [
     items: [
       { to: '/langues', label: 'Langues', icon: GlobeAltIcon },
       { to: '/badges', label: 'Badges & XP', icon: TrophyIcon },
-      { to: '/phrases-sos', label: 'Phrases Utiles', icon: ChatBubbleLeftRightIcon },
+      { to: '/phrases-sos', label: 'Phrases SOS', icon: ExclamationTriangleIcon },
+      { to: '/phrases-utiles', label: 'Phrases Utiles', icon: ChatBubbleLeftRightIcon },
       { to: '/notifications', label: 'Notifications', icon: BellIcon },
       { to: '/premiers-secours', label: 'Premiers Secours', icon: HeartIcon },
       { to: '/civisme', label: 'Civisme', icon: BuildingLibraryIcon },
