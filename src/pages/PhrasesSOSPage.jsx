@@ -67,8 +67,35 @@ const BODY_PARTS = [
   { id: 'pied',     label: 'Pied',     emoji: '🦶', fr: "J'ai mal au pied." },
 ];
 
-const EMPTY_URGENCE_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', contexte: '🆘', audioUrl: '', status: 'PUBLISHED' };
-const EMPTY_CORPS_FORM   = { languageId: '', bodyPartId: 'tete', phrase: '', transcription: '', audioUrl: '', status: 'PUBLISHED' };
+const EMPTY_URGENCE_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', contexte: '🆘', audioUrl: '', genreLocuteur: '', status: 'PUBLISHED' };
+const EMPTY_CORPS_FORM   = { languageId: '', bodyPartId: 'tete', phrase: '', transcription: '', audioUrl: '', genreLocuteur: '', status: 'PUBLISHED' };
+
+// ─── Composant sélecteur de genre locuteur ────────────────────────────────────
+function GenrePicker({ value, onChange }) {
+  const options = [
+    { key: '',  label: 'Non renseigné', icon: '—',   color: 'border-gray-200 text-gray-400 bg-white' },
+    { key: 'M', label: 'Homme',         icon: '👨',   color: 'border-blue-300 text-blue-700 bg-blue-50' },
+    { key: 'F', label: 'Femme',         icon: '👩',   color: 'border-pink-300 text-pink-700 bg-pink-50' },
+  ];
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">Genre du locuteur (audio)</label>
+      <div className="flex gap-2">
+        {options.map(opt => (
+          <button key={opt.key} type="button" onClick={() => onChange(opt.key)}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 font-medium text-sm transition-colors ${
+              value === opt.key
+                ? opt.color + ' ring-2 ring-offset-1 ' + (opt.key === 'M' ? 'ring-blue-400' : opt.key === 'F' ? 'ring-pink-400' : 'ring-gray-300')
+                : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
+            }`}>
+            <span className="text-lg">{opt.icon}</span>
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ─── Composant sélecteur d'emoji ─────────────────────────────────────────────
 function EmojiPicker({ value, onChange }) {
@@ -253,6 +280,7 @@ export default function PhrasesSOSPage() {
       traduction: p.traduction || '',
       contexte: p.contexte || '🆘',
       audioUrl: p.audioUrl || '',
+      genreLocuteur: p.genreLocuteur || '',
       status: p.status || 'PUBLISHED',
     });
     setSelectedLangUrgence(SOS_LANGUAGES.find(l => l.code === p.language?.code));
@@ -272,6 +300,7 @@ export default function PhrasesSOSPage() {
       categorie: 'urgence',
       contexte: urgenceForm.contexte || '🆘',
       audioUrl: urgenceForm.audioUrl.trim() || null,
+      genreLocuteur: urgenceForm.genreLocuteur || null,
       status: urgenceForm.status,
     };
     try {
@@ -307,6 +336,7 @@ export default function PhrasesSOSPage() {
       phrase: p.phrase || '',
       transcription: p.transcription || '',
       audioUrl: p.audioUrl || '',
+      genreLocuteur: p.genreLocuteur || '',
       status: p.status || 'PUBLISHED',
     });
     setSelectedBodyPart(bodyPart);
@@ -326,6 +356,7 @@ export default function PhrasesSOSPage() {
       categorie: 'corps',
       contexte: corpsForm.bodyPartId,
       audioUrl: corpsForm.audioUrl.trim() || null,
+      genreLocuteur: corpsForm.genreLocuteur || null,
       status: corpsForm.status,
     };
     try {
@@ -431,6 +462,10 @@ export default function PhrasesSOSPage() {
                             <div key={p.id} className="flex items-center gap-1.5 text-xs group">
                               <span>{p.contexte || '🆘'}</span>
                               <span className="flex-1 text-gray-600 truncate">{p.traduction}</span>
+                              {p.genreLocuteur && (
+                                <span title={p.genreLocuteur === 'M' ? 'Locuteur masculin' : 'Locutrice féminine'}
+                                  className="text-[10px]">{p.genreLocuteur === 'M' ? '👨' : '👩'}</span>
+                              )}
                               <div className="flex gap-0.5 opacity-0 group-hover:opacity-100">
                                 <button onClick={()=>openEditUrgence(p)} className="p-0.5 text-gray-400 hover:text-primary-500"><PencilIcon className="w-3 h-3"/></button>
                                 {isAdmin && <button onClick={()=>handleDeleteUrgence(p)} className="p-0.5 text-gray-400 hover:text-red-500"><TrashIcon className="w-3 h-3"/></button>}
@@ -496,7 +531,14 @@ export default function PhrasesSOSPage() {
                                     <button onClick={()=>openEditCorps(existing)} className="p-1 text-gray-400 hover:text-primary-500 hover:bg-primary-50 rounded transition-colors" title="Modifier"><PencilIcon className="w-3.5 h-3.5"/></button>
                                     {isAdmin && <button onClick={()=>handleDeleteCorps(existing)} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors" title="Supprimer"><TrashIcon className="w-3.5 h-3.5"/></button>}
                                   </div>
-                                  {existing.audioUrl && <span className="text-xs text-green-500">🎵</span>}
+                                  <div className="flex gap-1 items-center">
+                                    {existing.audioUrl && <span className="text-xs text-green-500" title="Audio disponible">🎵</span>}
+                                    {existing.genreLocuteur && (
+                                      <span className="text-xs" title={existing.genreLocuteur === 'M' ? 'Locuteur masculin' : 'Locutrice féminine'}>
+                                        {existing.genreLocuteur === 'M' ? '👨' : '👩'}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               ) : (
                                 <button onClick={()=>openAddCorps(lang.code, bp)} disabled={!langMap[lang.code]}
@@ -595,6 +637,12 @@ export default function PhrasesSOSPage() {
                 onChange={url=>setUrgenceForm({...urgenceForm,audioUrl:url})}
               />
 
+              {/* Genre du locuteur */}
+              <GenrePicker
+                value={urgenceForm.genreLocuteur}
+                onChange={v=>setUrgenceForm({...urgenceForm,genreLocuteur:v})}
+              />
+
               {/* Statut */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
@@ -689,6 +737,12 @@ export default function PhrasesSOSPage() {
                 label="Fichier audio"
                 value={corpsForm.audioUrl}
                 onChange={url=>setCorpsForm({...corpsForm,audioUrl:url})}
+              />
+
+              {/* Genre du locuteur */}
+              <GenrePicker
+                value={corpsForm.genreLocuteur}
+                onChange={v=>setCorpsForm({...corpsForm,genreLocuteur:v})}
               />
 
               {/* Statut */}
