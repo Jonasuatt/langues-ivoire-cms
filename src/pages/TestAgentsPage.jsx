@@ -40,7 +40,7 @@ const AGENTS = [
     bg: 'bg-pink-50',
     border: 'border-pink-200',
     badge: 'bg-pink-100 text-pink-800',
-    image: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&h=80&fit=crop&crop=face&auto=format&q=80',
+    image: '/agents/zele.png',
     desc: 'Douce et patiente · voix féminine',
   },
   {
@@ -51,7 +51,7 @@ const AGENTS = [
     bg: 'bg-blue-50',
     border: 'border-blue-200',
     badge: 'bg-blue-100 text-blue-800',
-    image: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=80&h=80&fit=crop&crop=face&auto=format&q=80',
+    image: '/agents/kouadio.png',
     desc: 'Dynamique et encourageant · voix masculine',
   },
 ];

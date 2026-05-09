@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { tutorsAPI, languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { getAvatarPortrait } from '../utils/getAvatar';
 
 const AVATAR_COLORS = ['#0B3D2E','#1565C0','#6A1B9A','#E65100','#00695C','#AD1457','#4E342E','#37474F'];
 
@@ -140,15 +141,19 @@ export default function TutorsPage() {
           {tutors.map((tutor, i) => (
             <div key={tutor.id} className="card hover:shadow-md transition-shadow">
               <div className="flex items-start gap-4">
-                {tutor.imageUrl ? (
-                  <img src={tutor.imageUrl} alt={tutor.nomAvatar}
-                    className="w-14 h-14 rounded-xl flex-shrink-0 object-cover" />
-                ) : (
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-                    style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
-                    {tutor.nomAvatar[0]}
-                  </div>
-                )}
+                {(() => {
+                  const portrait = getAvatarPortrait(tutor.nomAvatar);
+                  const src = portrait || tutor.imageUrl;
+                  return src ? (
+                    <img src={src} alt={tutor.nomAvatar}
+                      className="w-14 h-14 rounded-xl flex-shrink-0 object-cover" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+                      style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
+                      {tutor.nomAvatar[0]}
+                    </div>
+                  );
+                })()}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-bold text-gray-900">{tutor.nomAvatar}</h3>
