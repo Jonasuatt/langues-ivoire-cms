@@ -22,6 +22,11 @@ import PhrasesSOSPage from './pages/PhrasesSOSPage';
 import PhrasesUtilesPage from './pages/PhrasesUtilesPage';
 import NotificationsPage from './pages/NotificationsPage';
 import TextContentPage from './pages/TextContentPage';
+import DictionaryPage from './pages/DictionaryPage';
+import ConjugationPage from './pages/ConjugationPage';
+import ImageGalleryPage from './pages/ImageGalleryPage';
+import MessagesPage from './pages/MessagesPage';
+import CertificatesPage from './pages/CertificatesPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -38,8 +43,13 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR']}><Layout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
+          <Route path="dictionary" element={<DictionaryPage />} />
+          <Route path="conjugation" element={<ConjugationPage />} />
+          <Route path="image-galleries" element={<ImageGalleryPage />} />
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="contributions" element={<ContributionsPage />} />
+          <Route path="messages" element={<MessagesPage />} />
+          <Route path="certificates" element={<CertificatesPage />} />
           <Route path="lessons" element={<LessonsPage />} />
           <Route path="tutors" element={<TutorsPage />} />
           <Route path="cultural" element={<CulturalPage />} />

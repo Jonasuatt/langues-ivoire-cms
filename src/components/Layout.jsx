@@ -7,16 +7,20 @@ import {
   GlobeAltIcon, TrophyIcon, BellIcon,
   HeartIcon, BuildingLibraryIcon, UsersIcon,
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
+  LanguageIcon, PhotoIcon, EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 
 const NAV_SECTIONS = [
   {
     items: [
       { to: '/', label: 'Tableau de bord', icon: HomeIcon, exact: true },
+      { to: '/dictionary', label: 'Dictionnaire', icon: LanguageIcon },
+      { to: '/conjugation', label: 'Conjugaison', icon: BookOpenIcon },
       { to: '/vocabulary', label: 'Vocabulaire', icon: BookOpenIcon },
       { to: '/lessons', label: 'Leçons', icon: AcademicCapIcon },
       { to: '/cultural', label: 'Culture & Traditions', icon: SparklesIcon },
       { to: '/textes-recits', label: 'Textes & Récits', icon: BookOpenIcon },
+      { to: '/image-galleries', label: "Galeries d'Images", icon: PhotoIcon },
       { to: '/videos', label: 'Vidéos', icon: VideoCameraIcon },
     ],
   },
@@ -24,6 +28,8 @@ const NAV_SECTIONS = [
     group: 'COMMUNAUTÉ',
     items: [
       { to: '/contributions', label: 'Contributions', icon: ChatBubbleLeftRightIcon },
+      { to: '/messages', label: 'Messages', icon: EnvelopeIcon },
+      { to: '/certificates', label: 'Certificats', icon: AcademicCapIcon },
       { to: '/ia-linguistique', label: 'IA Linguistique', icon: CpuChipIcon },
       { to: '/voix-audio', label: 'Import Audio', icon: MicrophoneIcon },
     ],

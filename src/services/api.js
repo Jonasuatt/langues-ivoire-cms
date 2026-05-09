@@ -137,4 +137,32 @@ export const civismeAPI = {
   delete: (id) => api.delete(`/civisme/${id}`),
 };
 
+export const supportAPI = {
+  getAll: (params) => api.get('/support', { params }),
+  reply: (id, data) => api.post(`/support/${id}/reply`, data),
+  updateStatus: (id, data) => api.patch(`/support/${id}/status`, data),
+};
+
+export const certificatesAPI = {
+  getAll: (params) => api.get('/certificates', { params }),
+  issue: (data) => api.post('/certificates', data),
+};
+
+export const textContentAPI = {
+  list: (params) => api.get('/text-contents/admin/list', { params }),
+  create: (data) => api.post('/text-contents/admin', data),
+  update: (id, data) => api.patch(`/text-contents/admin/${id}`, data),
+  delete: (id) => api.delete(`/text-contents/admin/${id}`),
+};
+
+export const imageGalleryAPI = {
+  getAll: (params) => api.get('/image-galleries', { params }),
+  getById: (id) => api.get(`/image-galleries/${id}`),
+  create: (data) => api.post('/image-galleries', data),
+  update: (id, data) => api.patch(`/image-galleries/${id}`, data),
+  delete: (id) => api.delete(`/image-galleries/${id}`),
+  addImage: (galleryId, data) => api.post(`/image-galleries/${galleryId}/images`, data),
+  deleteImage: (galleryId, imageId) => api.delete(`/image-galleries/${galleryId}/images/${imageId}`),
+};
+
 export default api;
