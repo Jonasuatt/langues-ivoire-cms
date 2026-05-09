@@ -10,6 +10,22 @@ import {
   LanguageIcon, PhotoIcon, EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 
+export const ROLE_LABELS = {
+  USER: 'Utilisateur',
+  CONTRIBUTOR: 'Contributeur',
+  EDITOR: 'Éditeur',
+  ADMIN: 'Administrateur',
+  SUPER_ADMIN: 'Super-Administrateur',
+};
+
+export const ROLE_COLORS = {
+  USER: 'bg-gray-100 text-gray-600',
+  CONTRIBUTOR: 'bg-blue-100 text-blue-700',
+  EDITOR: 'bg-purple-100 text-purple-700',
+  ADMIN: 'bg-red-100 text-red-700',
+  SUPER_ADMIN: 'bg-amber-100 text-amber-800',
+};
+
 const NAV_SECTIONS = [
   {
     items: [
