@@ -27,6 +27,9 @@ import ConjugationPage from './pages/ConjugationPage';
 import ImageGalleryPage from './pages/ImageGalleryPage';
 import MessagesPage from './pages/MessagesPage';
 import CertificatesPage from './pages/CertificatesPage';
+import LessonEditorPage from './pages/LessonEditorPage';
+import ProfilePage from './pages/ProfilePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -41,6 +44,7 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR']}><Layout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="dictionary" element={<DictionaryPage />} />
@@ -51,6 +55,8 @@ export default function App() {
           <Route path="messages" element={<MessagesPage />} />
           <Route path="certificates" element={<CertificatesPage />} />
           <Route path="lessons" element={<LessonsPage />} />
+          <Route path="lessons/:lessonId" element={<LessonEditorPage />} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route path="tutors" element={<TutorsPage />} />
           <Route path="cultural" element={<CulturalPage />} />
           <Route path="textes-recits" element={<TextContentPage />} />
