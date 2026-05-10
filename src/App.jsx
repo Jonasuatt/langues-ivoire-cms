@@ -30,6 +30,7 @@ import CertificatesPage from './pages/CertificatesPage';
 import LessonEditorPage from './pages/LessonEditorPage';
 import ProfilePage from './pages/ProfilePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import UserGuidePage from './pages/UserGuidePage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="phrases-sos" element={<PhrasesSOSPage />} />
           <Route path="phrases-utiles" element={<PhrasesUtilesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="guide" element={<UserGuidePage />} />
           {/* Admin only */}
           <Route path="users" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><UsersPage /></ProtectedRoute>} />
         </Route>

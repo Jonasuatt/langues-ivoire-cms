@@ -7,7 +7,7 @@ import {
   GlobeAltIcon, TrophyIcon, BellIcon,
   HeartIcon, BuildingLibraryIcon, UsersIcon,
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
-  LanguageIcon, PhotoIcon, EnvelopeIcon,
+  LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
 
 export const ROLE_LABELS = {
@@ -75,6 +75,12 @@ const NAV_SECTIONS = [
     adminOnly: true,
     items: [
       { to: '/users', label: 'Utilisateurs', icon: UsersIcon, adminOnly: true },
+    ],
+  },
+  {
+    group: 'AIDE',
+    items: [
+      { to: '/guide', label: 'Guide d\'utilisation', icon: QuestionMarkCircleIcon },
     ],
   },
 ];
