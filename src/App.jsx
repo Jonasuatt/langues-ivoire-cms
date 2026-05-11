@@ -31,6 +31,9 @@ import LessonEditorPage from './pages/LessonEditorPage';
 import ProfilePage from './pages/ProfilePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import UserGuidePage from './pages/UserGuidePage';
+import MuseeTresorsPage from './pages/MuseeTresorsPage';
+import ArbreVocabulairePage from './pages/ArbreVocabulairePage';
+import MarcheDialoguesPage from './pages/MarcheDialoguesPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -74,6 +77,9 @@ export default function App() {
           <Route path="phrases-sos" element={<PhrasesSOSPage />} />
           <Route path="phrases-utiles" element={<PhrasesUtilesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="musee-tresors" element={<MuseeTresorsPage />} />
+          <Route path="arbre-vocabulaire" element={<ArbreVocabulairePage />} />
+          <Route path="marche-dialogues" element={<MarcheDialoguesPage />} />
           <Route path="guide" element={<UserGuidePage />} />
           {/* Admin only */}
           <Route path="users" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><UsersPage /></ProtectedRoute>} />

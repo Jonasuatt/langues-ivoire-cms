@@ -68,6 +68,9 @@ const NAV_SECTIONS = [
       { to: '/notifications', label: 'Notifications', icon: BellIcon },
       { to: '/premiers-secours', label: 'Premiers Secours', icon: HeartIcon },
       { to: '/civisme', label: 'Civisme', icon: BuildingLibraryIcon },
+      { to: '/musee-tresors', label: 'Musée des Trésors', icon: SparklesIcon },
+      { to: '/arbre-vocabulaire', label: 'Arbre à Palabres', icon: UserGroupIcon },
+      { to: '/marche-dialogues', label: 'Au Marché', icon: ChatBubbleLeftRightIcon },
     ],
   },
   {
