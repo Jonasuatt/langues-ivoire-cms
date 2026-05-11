@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import api, { uploadAPI } from '../services/api';
+import FileUploadField from '../components/FileUploadField';
 import {
   PhotoIcon,
   PlusIcon,
@@ -546,44 +547,13 @@ export default function ImageGalleryPage() {
                 />
               </div>
 
-              {/* Cover URL + upload + preview */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL de couverture</label>
-                <div className="flex gap-2">
-                  <input
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    placeholder="https://... ou uploader ci-contre"
-                    value={galleryForm.coverUrl}
-                    onChange={(e) => setGalleryForm((f) => ({ ...f, coverUrl: e.target.value }))}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => coverFileRef.current?.click()}
-                    className="flex items-center gap-1 px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-200 transition-colors whitespace-nowrap"
-                  >
-                    <ArrowUpTrayIcon className="w-3.5 h-3.5" />
-                    {uploadingCover ? 'Upload...' : 'Parcourir'}
-                  </button>
-                  <input
-                    ref={coverFileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleCoverUpload}
-                  />
-                </div>
-                {galleryForm.coverUrl && (
-                  <div className="mt-2 flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-2">
-                    <img
-                      src={galleryForm.coverUrl}
-                      alt="Aperçu couverture"
-                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                      onError={(e) => { e.currentTarget.src = ''; e.currentTarget.style.display = 'none'; }}
-                    />
-                    <span className="text-xs text-gray-400">Aperçu de la couverture</span>
-                  </div>
-                )}
-              </div>
+              {/* Cover image */}
+              <FileUploadField
+                type="image"
+                label="Image de couverture"
+                value={galleryForm.coverUrl}
+                onChange={url => setGalleryForm(f => ({ ...f, coverUrl: url }))}
+              />
 
               {/* Ordre + Statut */}
               <div className="grid grid-cols-2 gap-4">
@@ -658,43 +628,12 @@ export default function ImageGalleryPage() {
 
                 <div className="space-y-3">
                   {/* Image URL + upload */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">URL de l'image *</label>
-                    <div className="flex gap-2">
-                      <input
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                        placeholder="https://... ou uploader ci-contre"
-                        value={imageForm.imageUrl}
-                        onChange={(e) => setImageForm((f) => ({ ...f, imageUrl: e.target.value }))}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => galleryImageFileRef.current?.click()}
-                        className="flex items-center gap-1 px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-200 transition-colors whitespace-nowrap"
-                      >
-                        <ArrowUpTrayIcon className="w-3.5 h-3.5" />
-                        {uploadingGalleryImage ? 'Upload...' : 'Parcourir'}
-                      </button>
-                      <input
-                        ref={galleryImageFileRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleGalleryImageUpload}
-                      />
-                    </div>
-                    {imageForm.imageUrl && (
-                      <div className="mt-1.5 flex items-center gap-2 bg-white border border-gray-100 rounded-lg p-1.5">
-                        <img
-                          src={imageForm.imageUrl}
-                          alt="Aperçu"
-                          className="w-10 h-10 rounded-md object-cover flex-shrink-0"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                        <span className="text-xs text-gray-400">Aperçu</span>
-                      </div>
-                    )}
-                  </div>
+                  <FileUploadField
+                    type="image"
+                    label="Image *"
+                    value={imageForm.imageUrl}
+                    onChange={url => setImageForm(f => ({ ...f, imageUrl: url }))}
+                  />
 
                   {/* Légende */}
                   <div>
