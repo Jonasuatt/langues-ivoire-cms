@@ -11,7 +11,8 @@ import FileUploadField from '../components/FileUploadField';
 
 const EMPTY_REPLIQUE = {
   vendeurDit: '',
-  motJuste: { mot: '', sens: '', effet: -500 },
+  vendeurDitFr: '',
+  motJuste: { mot: '', sens: '', effet: -500, audioUrl: '', audioUrlFr: '' },
   leurres: ['', '', ''],
   conseil: '',
 };
@@ -60,8 +61,15 @@ export default function MarcheDialoguesPage() {
     setEditItem(item);
     const repliques = Array.isArray(item.repliques) && item.repliques.length > 0
       ? item.repliques.map(r => ({
-          vendeurDit: r.vendeurDit || '',
-          motJuste: { mot: r.motJuste?.mot || '', sens: r.motJuste?.sens || '', effet: r.motJuste?.effet ?? -500 },
+          vendeurDit:   r.vendeurDit   || '',
+          vendeurDitFr: r.vendeurDitFr || '',
+          motJuste: {
+            mot:        r.motJuste?.mot        || '',
+            sens:       r.motJuste?.sens       || '',
+            effet:      r.motJuste?.effet      ?? -500,
+            audioUrl:   r.motJuste?.audioUrl   || '',
+            audioUrlFr: r.motJuste?.audioUrlFr || '',
+          },
           leurres: (r.leurres || ['', '', '']).concat(['', '', '']).slice(0, 3),
           conseil: r.conseil || '',
         }))
@@ -88,10 +96,17 @@ export default function MarcheDialoguesPage() {
       const repliques = form.repliques
         .filter(r => r.vendeurDit.trim() || r.motJuste.mot.trim())
         .map(r => ({
-          vendeurDit: r.vendeurDit.trim(),
-          motJuste:   { mot: r.motJuste.mot.trim(), sens: r.motJuste.sens.trim(), effet: parseInt(r.motJuste.effet) || -500 },
-          leurres:    r.leurres.filter(l => l.trim()),
-          conseil:    r.conseil.trim(),
+          vendeurDit:   r.vendeurDit.trim(),
+          vendeurDitFr: r.vendeurDitFr?.trim() || '',
+          motJuste: {
+            mot:        r.motJuste.mot.trim(),
+            sens:       r.motJuste.sens.trim(),
+            effet:      parseInt(r.motJuste.effet) || -500,
+            audioUrl:   r.motJuste.audioUrl?.trim()   || '',
+            audioUrlFr: r.motJuste.audioUrlFr?.trim() || '',
+          },
+          leurres: r.leurres.filter(l => l.trim()),
+          conseil: r.conseil.trim(),
         }));
 
       const payload = {
@@ -340,15 +355,27 @@ export default function MarcheDialoguesPage() {
                       {expandedReplique === idx && (
                         <div className="p-4 space-y-3">
                           {/* Ce que dit le vendeur */}
-                          <div>
-                            <label className="label text-xs">Ce que dit le vendeur</label>
-                            <textarea
-                              className="input resize-none text-sm"
-                              rows={2}
-                              value={r.vendeurDit}
-                              onChange={e => setReplique(idx, 'vendeurDit', e.target.value)}
-                              placeholder="ex: Mɔgɔ diya ! Jɔli bɛ se ? (Bonjour ! Combien tu offres ?)"
-                            />
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="label text-xs">🌍 Ce que dit le vendeur (langue locale)</label>
+                              <textarea
+                                className="input resize-none text-sm"
+                                rows={2}
+                                value={r.vendeurDit}
+                                onChange={e => setReplique(idx, 'vendeurDit', e.target.value)}
+                                placeholder="ex: Mɔgɔ diya ! Jɔli bɛ se ?"
+                              />
+                            </div>
+                            <div>
+                              <label className="label text-xs">🇫🇷 Traduction française</label>
+                              <textarea
+                                className="input resize-none text-sm"
+                                rows={2}
+                                value={r.vendeurDitFr || ''}
+                                onChange={e => setReplique(idx, 'vendeurDitFr', e.target.value)}
+                                placeholder="ex: Bonjour ! Combien tu offres ?"
+                              />
+                            </div>
                           </div>
 
                           {/* Mot juste */}
@@ -367,6 +394,20 @@ export default function MarcheDialoguesPage() {
                                 <label className="label text-xs">Effet sur le prix (FCFA)</label>
                                 <input type="number" className="input text-sm" value={r.motJuste.effet} onChange={e => setMotJuste(idx, 'effet', e.target.value)} placeholder="-600" />
                               </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                              <FileUploadField
+                                type="audio"
+                                label="🌍 Audio langue locale"
+                                value={r.motJuste.audioUrl || ''}
+                                onChange={url => setMotJuste(idx, 'audioUrl', url)}
+                              />
+                              <FileUploadField
+                                type="audio"
+                                label="🇫🇷 Audio français"
+                                value={r.motJuste.audioUrlFr || ''}
+                                onChange={url => setMotJuste(idx, 'audioUrlFr', url)}
+                              />
                             </div>
                           </div>
 

@@ -21,9 +21,9 @@ const ETHNIES = [
 ];
 
 const EMPTY_FORM = {
-  titre: '', contenu: '', sourceEthnique: 'baoule',
+  titre: '', contenu: '', traduction: '', sourceEthnique: 'baoule',
   seuilXp: 0, matiere: '', typeObjet: '', emoji: '🏺',
-  imageUrl: '', audioUrl: '', isActive: true,
+  imageUrl: '', audioUrl: '', audioUrlFr: '', isActive: true,
 };
 
 const TIER_INFO = [
@@ -80,6 +80,7 @@ export default function MuseeTresorsPage() {
     setForm({
       titre:          item.titre || '',
       contenu:        item.contenu || '',
+      traduction:     item.traduction || '',
       sourceEthnique: item.sourceEthnique || 'baoule',
       seuilXp:        item.seuilXp ?? 0,
       matiere:        item.matiere || '',
@@ -87,6 +88,7 @@ export default function MuseeTresorsPage() {
       emoji:          item.emoji || '🏺',
       imageUrl:       item.imageUrl || '',
       audioUrl:       item.audioUrl || '',
+      audioUrlFr:     item.audioUrlFr || '',
       isActive:       item.isActive !== false,
     });
     setShowModal(true);
@@ -101,6 +103,7 @@ export default function MuseeTresorsPage() {
         type: 'TRESOR',
         titre:          form.titre.trim(),
         contenu:        form.contenu.trim(),
+        traduction:     form.traduction.trim() || null,
         sourceEthnique: form.sourceEthnique,
         seuilXp:        parseInt(form.seuilXp) || 0,
         matiere:        form.matiere.trim() || null,
@@ -108,6 +111,7 @@ export default function MuseeTresorsPage() {
         emoji:          form.emoji.trim() || null,
         imageUrl:       form.imageUrl.trim() || null,
         audioUrl:       form.audioUrl.trim() || null,
+        audioUrlFr:     form.audioUrlFr.trim() || null,
         isActive:       form.isActive,
       };
       if (editItem) {
@@ -317,15 +321,27 @@ export default function MuseeTresorsPage() {
                 <input type="number" className="input mt-2" value={form.seuilXp} onChange={e => f('seuilXp', e.target.value)} placeholder="Ou saisissez un seuil personnalisé" />
               </div>
 
-              {/* Histoire */}
+              {/* Histoire en langue locale */}
               <div>
-                <label className="label">Histoire & signification *</label>
+                <label className="label">Histoire & signification en langue locale *</label>
                 <textarea
                   className="input resize-none"
                   rows={4}
                   value={form.contenu}
                   onChange={e => f('contenu', e.target.value)}
-                  placeholder="Racontez l'histoire et la signification culturelle de cet objet…"
+                  placeholder="Racontez l'histoire et la signification culturelle de cet objet en langue locale…"
+                />
+              </div>
+
+              {/* Traduction française */}
+              <div>
+                <label className="label">🇫🇷 Traduction française de l'histoire</label>
+                <textarea
+                  className="input resize-none"
+                  rows={4}
+                  value={form.traduction}
+                  onChange={e => f('traduction', e.target.value)}
+                  placeholder="Traduction complète de l'histoire en français…"
                 />
               </div>
 
@@ -337,13 +353,21 @@ export default function MuseeTresorsPage() {
                 onChange={url => f('imageUrl', url)}
               />
 
-              {/* Audio (histoire narrée) */}
-              <FileUploadField
-                type="audio"
-                label="Audio — histoire narrée (optionnel)"
-                value={form.audioUrl}
-                onChange={url => f('audioUrl', url)}
-              />
+              {/* Audios */}
+              <div className="grid grid-cols-2 gap-4">
+                <FileUploadField
+                  type="audio"
+                  label="🌍 Audio langue locale"
+                  value={form.audioUrl}
+                  onChange={url => f('audioUrl', url)}
+                />
+                <FileUploadField
+                  type="audio"
+                  label="🇫🇷 Audio français"
+                  value={form.audioUrlFr}
+                  onChange={url => f('audioUrlFr', url)}
+                />
+              </div>
 
               {/* Actif */}
               <label className="flex items-center gap-2 cursor-pointer">
