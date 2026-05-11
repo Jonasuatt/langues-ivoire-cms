@@ -127,6 +127,8 @@ function MessageBubble({ msg, agent, onPlayAudio, onSpeak }) {
 
 export default function TestAgentsPage() {
   const [languages, setLanguages] = useState([]);
+  const [languesActives, setLanguesActives] = useState([]);
+  const [languesFutures, setLanguesFutures] = useState([]);
   const [selectedLang, setSelectedLang] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState(AGENTS[0]);
   const [chatHistory, setChatHistory] = useState([]);
@@ -142,7 +144,11 @@ export default function TestAgentsPage() {
     languagesAPI.getAll().then(({ data }) => {
       const langs = Array.isArray(data) ? data : data.languages || [];
       setLanguages(langs);
-      if (langs.length > 0) setSelectedLang(langs[0]);
+      const actives = langs.filter(l => l.isActive !== false);
+      const futures = langs.filter(l => l.isActive === false);
+      setLanguesActives(actives);
+      setLanguesFutures(futures);
+      if (actives.length > 0) setSelectedLang(actives[0]);
     }).catch(() => {});
   }, []);
 
@@ -271,25 +277,67 @@ export default function TestAgentsPage() {
       <div className="flex flex-1 overflow-hidden">
         <div className="w-72 flex-shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col overflow-y-auto">
           <div className="p-4 space-y-5">
+            {/* ── Langues disponibles ── */}
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Langue</label>
-              <div className="space-y-1.5">
-                {languages.map(lang => (
-                  <button key={lang.id}
-                    onClick={() => { setSelectedLang(lang); clearChat(); }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      selectedLang?.id === lang.id
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                    }`}>
-                    {lang.nom}
-                    {selectedLang?.id === lang.id && (
-                      <span className="float-right text-xs opacity-70">sélectionnée</span>
-                    )}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2 mb-2">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Langues disponibles
+                </label>
+                <span className="ml-auto text-xs font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">
+                  {languesActives.length}
+                </span>
               </div>
+              {languesActives.length === 0 ? (
+                <p className="text-xs text-gray-400 italic px-2">Aucune langue active</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {languesActives.map(lang => (
+                    <button key={lang.id}
+                      onClick={() => { setSelectedLang(lang); clearChat(); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                        selectedLang?.id === lang.id
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}>
+                      {lang.emoji && <span className="text-base leading-none">{lang.emoji}</span>}
+                      <span className="flex-1">{lang.nom}</span>
+                      {selectedLang?.id === lang.id && (
+                        <span className="text-xs opacity-70">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {/* ── Langues à venir ── */}
+            {languesFutures.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Langues à venir
+                  </label>
+                  <span className="ml-auto text-xs font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">
+                    {languesFutures.length}
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {languesFutures.map(lang => (
+                    <div key={lang.id}
+                      className="w-full px-3 py-2 rounded-lg text-sm border border-dashed border-gray-200 bg-gray-50 flex items-center gap-2 opacity-70 cursor-not-allowed">
+                      {lang.emoji && <span className="text-base leading-none grayscale">{lang.emoji}</span>}
+                      <span className="flex-1 text-gray-500">{lang.nom}</span>
+                      <span className="text-xs font-semibold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full shrink-0">
+                        Bientôt
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-2 italic px-1">
+                  Ces langues seront disponibles prochainement dans les agents IA.
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Agent</label>
