@@ -5,6 +5,7 @@ import {
   XMarkIcon, SpeakerWaveIcon, MusicalNoteIcon,
   ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
+import FileUploadField from '../components/FileUploadField';
 import toast from 'react-hot-toast';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ const EMPTY_FORM = {
   transcription: '',
   resume: '',
   audioUrl: '',
+  audioUrlFr: '',
   imageUrl: '',
   niveau: 'A1',
   auteur: '',
@@ -286,6 +288,7 @@ export default function TextContentPage() {
       transcription: item.transcription ?? '',
       resume: item.resume ?? '',
       audioUrl: item.audioUrl ?? '',
+      audioUrlFr: item.audioUrlFr ?? '',
       imageUrl: item.imageUrl ?? '',
       niveau: item.niveau ?? 'A1',
       auteur: item.auteur ?? '',
@@ -810,74 +813,30 @@ export default function TextContentPage() {
                   />
                 </div>
 
-                {/* Image URL + upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="url"
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-violet-300 focus:border-violet-400 outline-none transition-all flex-1"
-                      value={form.imageUrl}
-                      onChange={e => setForm({ ...form, imageUrl: e.target.value })}
-                      placeholder="https://… ou uploader ci-contre"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => imageFileRef.current?.click()}
-                      className="flex items-center gap-1 px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-200 transition-colors whitespace-nowrap"
-                    >
-                      <ArrowUpTrayIcon className="w-3.5 h-3.5" />
-                      {uploadingImage ? 'Upload...' : 'Parcourir'}
-                    </button>
-                    <input
-                      ref={imageFileRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                  </div>
-                  {form.imageUrl && (
-                    <img
-                      src={form.imageUrl}
-                      alt="Aperçu"
-                      className="mt-2 rounded-xl w-full h-32 object-cover border border-gray-100"
-                      onError={e => { e.target.style.display = 'none'; }}
-                    />
-                  )}
-                </div>
+                {/* Image */}
+                <FileUploadField
+                  type="image"
+                  label="Image illustrative"
+                  value={form.imageUrl}
+                  onChange={url => setForm({ ...form, imageUrl: url })}
+                />
 
-                {/* Audio URL + upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    <MusicalNoteIcon className="w-4 h-4 text-violet-500" />
-                    Audio URL
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="url"
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-violet-300 focus:border-violet-400 outline-none transition-all flex-1"
-                      value={form.audioUrl}
-                      onChange={e => setForm({ ...form, audioUrl: e.target.value })}
-                      placeholder="https://… ou uploader ci-contre"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => audioFileRef.current?.click()}
-                      className="flex items-center gap-1 px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-200 transition-colors whitespace-nowrap"
-                    >
-                      <ArrowUpTrayIcon className="w-3.5 h-3.5" />
-                      {uploadingAudio ? 'Upload...' : 'Parcourir'}
-                    </button>
-                    <input
-                      ref={audioFileRef}
-                      type="file"
-                      accept="audio/*"
-                      className="hidden"
-                      onChange={handleAudioUpload}
-                    />
-                  </div>
-                </div>
+                {/* Audio langue locale */}
+                <FileUploadField
+                  type="audio"
+                  label="🌍 Audio langue locale"
+                  value={form.audioUrl}
+                  onChange={url => setForm({ ...form, audioUrl: url })}
+                />
+
+                {/* Audio français */}
+                <FileUploadField
+                  type="audio"
+                  label="🇫🇷 Audio français (traduction)"
+                  value={form.audioUrlFr}
+                  onChange={url => setForm({ ...form, audioUrlFr: url })}
+                />
+
 
                 {/* Statut */}
                 <div>

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import api, { dictionaryAPI, languagesAPI, uploadAPI } from '../services/api';
 import CategorySelect from '../components/CategorySelect';
+import FileUploadField from '../components/FileUploadField';
 import {
   MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon,
   SpeakerWaveIcon, SpeakerXMarkIcon, PhotoIcon,
@@ -487,55 +488,28 @@ export default function DictionaryPage() {
               </div>
 
               {/* Image */}
-              <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
-                <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <PhotoIcon className="w-4 h-4 text-blue-500" /> Image illustration
-                </label>
-                <input className="input text-sm mb-2" value={wordForm.imageUrl}
-                  onChange={e => setWordForm(f => ({...f, imageUrl: e.target.value}))}
-                  placeholder="https://... (URL de l'image)" />
-                {wordForm.imageUrl && (
-                  <div className="flex items-center gap-3 bg-white rounded-lg p-2 border border-gray-100 mb-2">
-                    <img src={wordForm.imageUrl} alt="Aperçu" className="w-16 h-16 rounded-lg object-cover" />
-                    <span className="text-xs text-gray-400">Aperçu</span>
-                  </div>
-                )}
-                <input ref={imageFileRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                <button type="button" onClick={() => imageFileRef.current?.click()} disabled={uploadingImage}
-                  className="w-full py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2
-                  bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 disabled:opacity-50">
-                  {uploadingImage ? 'Upload…' : '📁 Uploader une image'}
-                </button>
-              </div>
+              <FileUploadField
+                type="image"
+                label="Image illustration"
+                value={wordForm.imageUrl}
+                onChange={url => setWordForm(f => ({...f, imageUrl: url}))}
+              />
 
               {/* Audio */}
-              <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
-                <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <SpeakerWaveIcon className="w-4 h-4 text-accent" /> Audio de prononciation
-                </label>
-                <input className="input text-sm mb-2" value={wordForm.audioUrl}
-                  onChange={e => setWordForm(f => ({...f, audioUrl: e.target.value}))}
-                  placeholder="https://... ou data:audio/wav;base64,..." />
-                {wordForm.audioUrl && (
-                  <div className="flex items-center gap-3 bg-white rounded-lg p-2 border border-gray-100 mb-2">
-                    <audio controls className="h-8 flex-1" src={wordForm.audioUrl} preload="metadata" />
-                  </div>
-                )}
-                <input ref={audioFileRef} type="file" accept=".mp3,.wav,.ogg,.webm,.m4a" onChange={handleAudioUpload} className="hidden" />
-                <div className="space-y-2">
-                  <button type="button" onClick={() => audioFileRef.current?.click()} disabled={uploadingAudio}
-                    className="w-full py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2
-                    bg-green-50 text-green-600 hover:bg-green-100 border border-green-200 disabled:opacity-50">
-                    {uploadingAudio ? 'Upload…' : '🎙️ Uploader un fichier audio'}
-                  </button>
-                  <button type="button" onClick={handleGenerateAudio} disabled={generating || !wordForm.mot}
-                    className="w-full py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2
-                    bg-accent/10 text-accent hover:bg-accent/20 border border-accent/30 disabled:opacity-50">
-                    {generating ? (
-                      <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Génération…</>
-                    ) : <><SpeakerWaveIcon className="w-4 h-4" />Générer via IA (TTS)</>}
-                  </button>
-                </div>
+              <div>
+                <FileUploadField
+                  type="audio"
+                  label="Audio de prononciation"
+                  value={wordForm.audioUrl}
+                  onChange={url => setWordForm(f => ({...f, audioUrl: url}))}
+                />
+                <button type="button" onClick={handleGenerateAudio} disabled={generating || !wordForm.mot}
+                  className="mt-2 w-full py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2
+                  bg-accent/10 text-accent hover:bg-accent/20 border border-accent/30 disabled:opacity-50">
+                  {generating ? (
+                    <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Génération…</>
+                  ) : <><SpeakerWaveIcon className="w-4 h-4" />Générer via IA (TTS)</>}
+                </button>
               </div>
             </div>
             <div className="flex gap-3 mt-6">

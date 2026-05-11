@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { badgesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import FileUploadField from '../components/FileUploadField';
 import { TrophyIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -273,12 +274,12 @@ export default function BadgesPage() {
                     placeholder="Nombre requis" min="1" />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL de l'image (optionnel)</label>
-                <input className="input" value={form.imageUrl}
-                  onChange={e => setForm({ ...form, imageUrl: e.target.value })}
-                  placeholder="https://..." />
-              </div>
+              <FileUploadField
+                type="image"
+                label="Image du badge (optionnel)"
+                value={form.imageUrl}
+                onChange={url => setForm({ ...form, imageUrl: url })}
+              />
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">Annuler</button>

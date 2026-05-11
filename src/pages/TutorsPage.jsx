@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { tutorsAPI, languagesAPI } from '../services/api';
+import FileUploadField from '../components/FileUploadField';
 import { PlusIcon, PencilIcon, TrashIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { getAvatarPortrait } from '../utils/getAvatar';
@@ -273,12 +274,12 @@ export default function TutorsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL image avatar</label>
-                <input className="input" value={form.imageUrl}
-                  onChange={e => setForm({...form, imageUrl: e.target.value})}
-                  placeholder="https://..." />
-              </div>
+              <FileUploadField
+                type="image"
+                label="Image avatar du tuteur"
+                value={form.imageUrl}
+                onChange={url => setForm({...form, imageUrl: url})}
+              />
 
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="isActive" checked={form.isActive}

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import api, { dictionaryAPI, languagesAPI } from '../services/api';
+import FileUploadField from '../components/FileUploadField';
 import { MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -301,27 +302,13 @@ export default function VocabularyPage() {
 
               {/* Section Audio */}
               <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
-                <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <SpeakerWaveIcon className="w-4 h-4 text-accent" />
-                  Audio de prononciation
-                </label>
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">URL audio (MP3, WAV, OGG)</label>
-                    <input className="input text-sm" value={form.audioUrl}
-                      onChange={e => setForm({...form, audioUrl: e.target.value})}
-                      placeholder="https://... ou data:audio/wav;base64,..." />
-                  </div>
-
-                  {/* Aperçu audio */}
-                  {form.audioUrl && (
-                    <div className="flex items-center gap-3 bg-white rounded-lg p-2 border border-gray-100">
-                      <SpeakerWaveIcon className="w-5 h-5 text-accent flex-shrink-0" />
-                      <audio controls className="h-8 flex-1" src={form.audioUrl} preload="metadata">
-                        Votre navigateur ne supporte pas l'audio.
-                      </audio>
-                    </div>
-                  )}
+                  <FileUploadField
+                    type="audio"
+                    label="Audio de prononciation"
+                    value={form.audioUrl}
+                    onChange={url => setForm({...form, audioUrl: url})}
+                  />
 
                   {/* Bouton génération IA */}
                   <button type="button" onClick={handleGenerateAudio} disabled={generating || !form.mot}

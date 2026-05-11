@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { phrasesAdminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatBubbleLeftRightIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import FileUploadField from '../components/FileUploadField';
 import toast from 'react-hot-toast';
 
 const CATEGORIES = ['expressions', 'salutations', 'nourriture', 'vie_quotidienne', 'vie_sociale', 'corps', 'lieux', 'autre'];
@@ -16,7 +17,7 @@ const CAT_COLORS = {
   vie_sociale: 'bg-pink-100 text-pink-700', corps: 'bg-orange-100 text-orange-700',
   lieux: 'bg-indigo-100 text-indigo-700', autre: 'bg-gray-100 text-gray-600',
 };
-const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'expressions', contexte: '', audioUrl: '', status: 'PUBLISHED' };
+const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'expressions', contexte: '', audioUrl: '', audioUrlFr: '', status: 'PUBLISHED' };
 
 export default function PhrasesUtilesPage() {
   const { user } = useAuth();
@@ -63,7 +64,7 @@ export default function PhrasesUtilesPage() {
     setEditItem(p);
     setForm({ languageId: p.languageId || '', phrase: p.phrase || '', transcription: p.transcription || '',
       traduction: p.traduction || '', categorie: p.categorie || 'expressions',
-      contexte: p.contexte || '', audioUrl: p.audioUrl || '', status: p.status || 'PUBLISHED' });
+      contexte: p.contexte || '', audioUrl: p.audioUrl || '', audioUrlFr: p.audioUrlFr || '', status: p.status || 'PUBLISHED' });
     setShowModal(true);
   };
 
@@ -73,7 +74,7 @@ export default function PhrasesUtilesPage() {
     const payload = { languageId: form.languageId, phrase: form.phrase.trim(),
       transcription: form.transcription.trim() || null, traduction: form.traduction.trim(),
       categorie: form.categorie, contexte: form.contexte.trim() || null,
-      audioUrl: form.audioUrl.trim() || null, status: form.status };
+      audioUrl: form.audioUrl.trim() || null, audioUrlFr: form.audioUrlFr.trim() || null, status: form.status };
     try {
       if (editItem) { await phrasesAdminAPI.update(editItem.id, payload); toast.success('Phrase mise à jour'); }
       else { await phrasesAdminAPI.create(payload); toast.success('Phrase ajoutée'); }
@@ -211,11 +212,26 @@ export default function PhrasesUtilesPage() {
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Transcription phonétique</label><input className="input" value={form.transcription} onChange={e => setForm({ ...form, transcription: e.target.value })} /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Traduction (français) *</label><input className="input" value={form.traduction} onChange={e => setForm({ ...form, traduction: e.target.value })} placeholder="ex: Comment ça va l'ami ?" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Contexte</label><input className="input" value={form.contexte} onChange={e => setForm({ ...form, contexte: e.target.value })} /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">URL Audio</label><input className="input" value={form.audioUrl} onChange={e => setForm({ ...form, audioUrl: e.target.value })} placeholder="https://..." /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                  <select className="input" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="PUBLISHED">Publiée</option><option value="DRAFT">Brouillon</option></select>
-                </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FileUploadField
+                  type="audio"
+                  label="🌍 Audio langue locale"
+                  value={form.audioUrl}
+                  onChange={url => setForm({ ...form, audioUrl: url })}
+                />
+                <FileUploadField
+                  type="audio"
+                  label="🇫🇷 Audio français"
+                  value={form.audioUrlFr}
+                  onChange={url => setForm({ ...form, audioUrlFr: url })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <select className="input" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+                  <option value="PUBLISHED">Publiée</option>
+                  <option value="DRAFT">Brouillon</option>
+                </select>
               </div>
             </div>
             <div className="flex gap-3 mt-6">
