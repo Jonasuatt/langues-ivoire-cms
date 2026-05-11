@@ -31,6 +31,7 @@ export const languagesAPI = {
   getAll: () => api.get('/languages'),
   create: (data) => api.post('/languages', data),
   update: (id, data) => api.patch(`/languages/${id}`, data),
+  delete: (id) => api.delete(`/languages/${id}`),
 };
 
 export const dictionaryAPI = {
