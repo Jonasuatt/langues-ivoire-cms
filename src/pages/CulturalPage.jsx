@@ -6,6 +6,7 @@ import {
   SparklesIcon, Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import FileUploadField from '../components/FileUploadField';
 
 // ── Rubriques par défaut ────────────────────────────────────────────────────
 const DEFAULT_RUBRIQUES = [
@@ -157,12 +158,13 @@ function ModalRubrique({ initial, rubriques, onSave, onClose }) {
 // ── Modal Contenu ────────────────────────────────────────────────────────────
 function ModalContenu({ initial, rubriques, languages, onSave, onClose }) {
   const [form, setForm] = useState({
-    type:          initial?.type          || rubriques[0]?.cle || '',
-    contenu:       initial?.contenu       || '',
-    traduction:    initial?.traduction    || '',
-    sourceEthnique:initial?.sourceEthnique|| '',
-    langueCode:    initial?.language?.code|| '',
-    audioUrl:      initial?.audioUrl      || '',
+    type:           initial?.type           || rubriques[0]?.cle || '',
+    contenu:        initial?.contenu        || '',
+    traduction:     initial?.traduction     || '',
+    sourceEthnique: initial?.sourceEthnique || '',
+    langueCode:     initial?.language?.code || '',
+    audioUrl:       initial?.audioUrl       || '',
+    audioUrlFr:     initial?.audioUrlFr     || '',
   });
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -174,10 +176,11 @@ function ModalContenu({ initial, rubriques, languages, onSave, onClose }) {
       const payload = {
         type:           form.type,
         contenu:        form.contenu.trim(),
-        traduction:     form.traduction.trim() || null,
+        traduction:     form.traduction.trim()     || null,
         sourceEthnique: form.sourceEthnique.trim() || null,
-        langueCode:     form.langueCode || null,
-        audioUrl:       form.audioUrl.trim() || null,
+        langueCode:     form.langueCode            || null,
+        audioUrl:       form.audioUrl              || null,
+        audioUrlFr:     form.audioUrlFr            || null,
         isActive:       true,
       };
       await onSave(payload);
@@ -196,7 +199,8 @@ function ModalContenu({ initial, rubriques, languages, onSave, onClose }) {
           <button onClick={onClose}><XMarkIcon className="w-5 h-5 text-gray-400" /></button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-5">
+
           {/* Rubrique + Langue */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -263,17 +267,30 @@ function ModalContenu({ initial, rubriques, languages, onSave, onClose }) {
             />
           </div>
 
-          {/* Audio URL */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              URL Audio <span className="text-gray-400 font-normal">(Cloudinary)</span>
-            </label>
-            <input
-              type="url" value={form.audioUrl} onChange={e => set('audioUrl', e.target.value)}
-              placeholder="https://res.cloudinary.com/…"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          {/* ── Audio ── */}
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-4">
+            <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              🎵 Fichiers audio
+              <span className="text-xs font-normal text-gray-400">MP3, WAV, M4A — max 20 MB</span>
+            </p>
+
+            {/* Audio langue locale */}
+            <FileUploadField
+              type="audio"
+              label="🌍 Audio langue locale"
+              value={form.audioUrl}
+              onChange={url => set('audioUrl', url)}
+            />
+
+            {/* Audio français */}
+            <FileUploadField
+              type="audio"
+              label="🇫🇷 Audio français (narration)"
+              value={form.audioUrlFr}
+              onChange={url => set('audioUrlFr', url)}
             />
           </div>
+
         </div>
 
         <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
@@ -580,7 +597,10 @@ export default function CulturalPage() {
                         </span>
                       )}
                       {item.audioUrl && (
-                        <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">🎵 Audio</span>
+                        <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">🌍 Audio</span>
+                      )}
+                      {item.audioUrlFr && (
+                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">🇫🇷 Audio</span>
                       )}
                     </div>
                   </div>
