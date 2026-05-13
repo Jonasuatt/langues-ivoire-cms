@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ChatBubbleLeftRightIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import FileUploadField from '../components/FileUploadField';
 import toast from 'react-hot-toast';
+import LanguageSelect from '../components/LanguageSelect';
 
 const CATEGORIES = ['expressions', 'salutations', 'nourriture', 'vie_quotidienne', 'vie_sociale', 'corps', 'lieux', 'autre'];
 const CAT_LABELS = {
@@ -116,10 +117,7 @@ export default function PhrasesUtilesPage() {
         <div className="card py-3 px-5"><p className="text-2xl font-bold text-blue-600">{[...new Set(phrases.map(p => p.languageId).filter(Boolean))].length}</p><p className="text-sm text-gray-500">Langues (page)</p></div>
       </div>
       <div className="flex gap-3 mb-5 flex-wrap">
-        <select value={filterLang} onChange={e => setFilterLang(e.target.value)} className="input w-auto">
-          <option value="">Toutes les langues</option>
-          {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect languages={languages} value={filterLang} onChange={setFilterLang} className="w-48" />
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="input w-auto">
           <option value="">Toutes les catégories</option>
           {CATEGORIES.map(c => <option key={c} value={c}>{CAT_LABELS[c] || c}</option>)}
@@ -196,10 +194,14 @@ export default function PhrasesUtilesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Langue *</label>
-                  <select className="input" value={form.languageId} onChange={e => setForm({ ...form, languageId: e.target.value })}>
-                    <option value="">-- Sélectionner --</option>
-                    {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-                  </select>
+                  <LanguageSelect
+                    languages={languages}
+                    value={form.languageId || ''}
+                    onChange={v => setForm({ ...form, languageId: v })}
+                    allLabel="-- Sélectionner --"
+                    showAll={false}
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>

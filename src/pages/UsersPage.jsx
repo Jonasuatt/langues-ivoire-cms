@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { adminAPI } from '../services/api';
+import { adminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import {
   MagnifyingGlassIcon, KeyIcon, PlusIcon,
   Squares2X2Icon, XMarkIcon, CheckIcon, UserCircleIcon,
 } from '@heroicons/react/24/outline';
+import LanguageSelect from '../components/LanguageSelect';
 
 // ── Rôles ──────────────────────────────────────────────────────────────
 const ALL_ROLES = ['USER', 'CONTRIBUTOR', 'EDITOR', 'ADMIN', 'SUPER_ADMIN'];
@@ -147,6 +148,9 @@ export default function UsersPage() {
   const [page, setPage]         = useState(1);
   const [loading, setLoading]   = useState(false);
 
+  // Langues disponibles
+  const [languages, setLanguages] = useState([]);
+
   // Reset password
   const [resetTarget, setResetTarget] = useState(null);
   const [newPassword, setNewPassword] = useState('');
@@ -155,11 +159,11 @@ export default function UsersPage() {
   // Créer un compte
   const defaultRole = canCreate[0] || 'CONTRIBUTOR';
   const [showCreate, setShowCreate]   = useState(false);
-  const [form, setForm]               = useState({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, modules: [] });
+  const [form, setForm]               = useState({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, modules: [], langues: [] });
   const [creating, setCreating]       = useState(false);
 
   // Édition des modules d'un utilisateur existant
-  const [modTarget, setModTarget]   = useState(null); // { user, modules }
+  const [modTarget, setModTarget]   = useState(null); // { user, modules, langues }
   const [savingMods, setSavingMods] = useState(false);
 
   const load = () => {
@@ -169,6 +173,10 @@ export default function UsersPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   };
+
+  useEffect(() => {
+    languagesAPI.getAll().then(({ data }) => setLanguages(Array.isArray(data) ? data : [])).catch(() => {});
+  }, []);
 
   useEffect(() => { setPage(1); }, [search, roleFilter]);
   useEffect(() => { load(); }, [page, search, roleFilter]);
@@ -207,10 +215,11 @@ export default function UsersPage() {
         nom: form.nom, prenom: form.prenom, email: form.email,
         motDePasse: form.motDePasse, role: form.role,
         modules: needsModules(form.role) ? form.modules : [],
+        langues: needsModules(form.role) ? form.langues : [],
       });
       toast.success('Compte créé avec succès');
       setShowCreate(false);
-      setForm({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, modules: [] });
+      setForm({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, modules: [], langues: [] });
       load();
     } catch (err) { toast.error(err.response?.data?.error || 'Erreur lors de la création'); }
     finally { setCreating(false); }
@@ -219,8 +228,8 @@ export default function UsersPage() {
   const handleSaveMods = async () => {
     setSavingMods(true);
     try {
-      await adminAPI.updateUser(modTarget.user.id, { modules: modTarget.modules });
-      toast.success('Modules mis à jour');
+      await adminAPI.updateUser(modTarget.user.id, { modules: modTarget.modules, langues: modTarget.langues ?? [] });
+      toast.success('Modules et langues mis à jour');
       setModTarget(null); load();
     } catch { toast.error('Erreur'); }
     finally { setSavingMods(false); }
@@ -320,7 +329,7 @@ export default function UsersPage() {
                     {/* Modules */}
                     <td className="px-4 py-3">
                       {hasMods ? (
-                        <button onClick={() => setModTarget({ user: u, modules: userMods })}
+                        <button onClick={() => setModTarget({ user: u, modules: userMods, langues: u.langues ?? [] })}
                           className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium border transition-colors ${
                             userMods.length > 0
                               ? 'bg-primary-50 border-primary-200 text-primary-700 hover:bg-primary-100'
@@ -492,6 +501,28 @@ export default function UsersPage() {
                     selected={form.modules}
                     onChange={mods => setForm(f => ({ ...f, modules: mods }))}
                   />
+
+                  {/* Langues */}
+                  <div className="mt-5 pt-5 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Langues accessibles</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {form.langues.length === 0
+                            ? 'Toutes les langues (aucune restriction)'
+                            : `${form.langues.length} langue${form.langues.length > 1 ? 's' : ''} sélectionnée${form.langues.length > 1 ? 's' : ''}`}
+                        </p>
+                      </div>
+                    </div>
+                    <LanguageSelect
+                      languages={languages}
+                      value={form.langues}
+                      onChange={langs => setForm(f => ({ ...f, langues: langs }))}
+                      multiple
+                      allLabel="Toutes les langues (pas de restriction)"
+                      className="w-full"
+                    />
+                  </div>
                 </section>
               )}
             </div>
@@ -547,12 +578,34 @@ export default function UsersPage() {
                 selected={modTarget.modules}
                 onChange={mods => setModTarget(t => ({ ...t, modules: mods }))}
               />
+
+              {/* Langues accessibles */}
+              <div className="mt-6 pt-5 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Langues accessibles</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {(modTarget.langues ?? []).length === 0
+                        ? 'Toutes les langues (aucune restriction)'
+                        : `${modTarget.langues.length} langue${modTarget.langues.length > 1 ? 's' : ''} assignée${modTarget.langues.length > 1 ? 's' : ''}`}
+                    </p>
+                  </div>
+                </div>
+                <LanguageSelect
+                  languages={languages}
+                  value={modTarget.langues ?? []}
+                  onChange={langs => setModTarget(t => ({ ...t, langues: langs }))}
+                  multiple
+                  allLabel="Toutes les langues (pas de restriction)"
+                  className="w-full"
+                />
+              </div>
             </div>
 
             <div className="flex gap-3 p-6 border-t border-gray-100 flex-shrink-0">
               <button onClick={() => setModTarget(null)} className="btn-secondary flex-1">Annuler</button>
               <button onClick={handleSaveMods} disabled={savingMods} className="btn-primary flex-1 justify-center">
-                {savingMods ? 'Sauvegarde…' : 'Enregistrer les modules'}
+                {savingMods ? 'Sauvegarde…' : 'Enregistrer'}
               </button>
             </div>
           </div>

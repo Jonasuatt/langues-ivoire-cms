@@ -8,6 +8,7 @@
  */
 import { useEffect, useState, useRef } from 'react';
 import { contributionsAPI, languagesAPI } from '../services/api';
+import LanguageSelect from '../components/LanguageSelect';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -448,10 +449,7 @@ export default function ContributionsPage() {
             placeholder="Rechercher un mot, une phrase…"
             className="input pl-9 w-56"/>
         </div>
-        <select value={filterLang} onChange={e => setFilterLang(e.target.value)} className="input w-auto">
-          <option value="">Toutes les langues</option>
-          {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect languages={languages} value={filterLang} onChange={setFilterLang} className="w-48" />
         <select value={filterType} onChange={e => setFilterType(e.target.value)} className="input w-auto">
           <option value="">Tous les types</option>
           <option value="WORD">Mots</option>

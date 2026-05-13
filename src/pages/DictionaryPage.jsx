@@ -8,6 +8,7 @@ import {
   BookOpenIcon, ChatBubbleLeftEllipsisIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import LanguageSelect from '../components/LanguageSelect';
 
 const CATEGORIES = [
   'salutations','famille','nourriture','nature','habitat','transport',
@@ -270,10 +271,15 @@ export default function DictionaryPage() {
 
       {/* Filtres */}
       <div className="flex flex-wrap gap-3 mb-5">
-        <select className="input max-w-[180px]" value={selectedLang}
-          onChange={e => resetLang(e.target.value)}>
-          {languages.map(l => <option key={l.id} value={l.code}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect
+          languages={languages}
+          value={selectedLang}
+          onChange={resetLang}
+          valueKey="code"
+          showAll={false}
+          allLabel="Sélectionner une langue"
+          className="w-48"
+        />
         <div className="relative flex-1 max-w-sm">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input className="input pl-9" placeholder="Rechercher..."

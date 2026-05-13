@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import api, { languagesAPI, uploadAPI } from '../services/api';
+import LanguageSelect from '../components/LanguageSelect';
 import FileUploadField from '../components/FileUploadField';
 import {
   SpeakerWaveIcon, SpeakerXMarkIcon, MicrophoneIcon,
@@ -248,10 +249,15 @@ function ModalAjouter({ languages, onClose, onCreated }) {
         {/* Langue */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">Langue *</label>
-          <select className="input w-full" value={form.langue} onChange={e => set('langue', e.target.value)}>
-            <option value="">— Sélectionner une langue —</option>
-            {languages.map(l => <option key={l.id} value={l.code}>{l.emoji || ''} {l.nom}</option>)}
-          </select>
+          <LanguageSelect
+            languages={languages}
+            value={form.langue || ''}
+            onChange={v => set('langue', v)}
+            valueKey="code"
+            allLabel="— Sélectionner une langue —"
+            showAll={false}
+            className="w-full"
+          />
         </div>
 
         {/* Mot / Phrase */}
@@ -773,10 +779,7 @@ export default function VoixAudioPage() {
             onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <select value={filterLang} onChange={e => { setFilterLang(e.target.value); setPage(1); }} className="input w-auto">
-          <option value="">Toutes les langues</option>
-          {languages.map(l => <option key={l.id} value={l.code}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect languages={languages} value={filterLang} onChange={v => { setFilterLang(v); setPage(1); }} valueKey="code" className="w-48" />
         {activeKey === 'contributions' && (
           <>
             <select value={filterGenre} onChange={e => { setFilterGenre(e.target.value); setPage(1); }} className="input w-auto">

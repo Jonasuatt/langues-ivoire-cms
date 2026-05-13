@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { certificatesAPI, languagesAPI, adminAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import LanguageSelect from '../components/LanguageSelect';
 import {
   AcademicCapIcon, PlusIcon, MagnifyingGlassIcon,
   InformationCircleIcon, XMarkIcon, StarIcon,
@@ -194,13 +195,14 @@ function ModalCertificat({ languages, onSave, onClose }) {
           {/* Langue */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Langue *</label>
-            <select
-              value={langId} onChange={e => setLangId(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-            >
-              <option value="">— Choisir —</option>
-              {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-            </select>
+            <LanguageSelect
+              languages={languages}
+              value={langId || ''}
+              onChange={setLangId}
+              allLabel="— Choisir —"
+              showAll={false}
+              className="w-full"
+            />
           </div>
 
           {/* Niveau */}
@@ -351,13 +353,14 @@ function ModalDiplome({ languages, onSave, onClose }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Langue concernée *
               </label>
-              <select
-                value={langId} onChange={e => setLangId(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-              >
-                <option value="">— Choisir une langue —</option>
-                {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-              </select>
+              <LanguageSelect
+                languages={languages}
+                value={langId || ''}
+                onChange={setLangId}
+                allLabel="— Choisir une langue —"
+                showAll={false}
+                className="w-full"
+              />
               {typeKey === 'MAITRISE' && (
                 <p className="text-xs text-amber-600 mt-1">
                   ⚠️ Le Diplôme de Maîtrise est normalement attribué automatiquement quand tous les niveaux A1→C1 sont validés.
@@ -565,13 +568,12 @@ export default function CertificatesPage() {
 
           {/* Filtres */}
           <div className="flex gap-3 mb-5 flex-wrap">
-            <select
-              value={filterLanguage} onChange={e => setFilterLanguage(e.target.value)}
-              className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-            >
-              <option value="">Toutes les langues</option>
-              {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-            </select>
+            <LanguageSelect
+              languages={languages}
+              value={filterLanguage}
+              onChange={setFilterLanguage}
+              className="w-48"
+            />
             <select
               value={filterNiveau} onChange={e => setFilterNiveau(e.target.value)}
               className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"

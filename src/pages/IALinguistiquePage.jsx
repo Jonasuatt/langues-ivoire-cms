@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { audioContribAPI, languagesAPI } from '../services/api';
+import LanguageSelect from '../components/LanguageSelect';
 import CategorySelect from '../components/CategorySelect';
 import {
   CheckIcon, XMarkIcon, TrashIcon, PlayIcon, StopIcon,
@@ -293,10 +294,7 @@ export default function IALinguistiquePage() {
         ))}
       </div>
       <div className="flex gap-2 mb-6">
-        <select className="input max-w-[180px]" value={filterLang} onChange={e => setFilterLang(e.target.value)}>
-          <option value="">Toutes les langues</option>
-          {languages.map(l => <option key={l.id} value={l.code}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect languages={languages} value={filterLang} onChange={setFilterLang} valueKey="code" className="w-48" />
       </div>
 
       {loading ? (
@@ -552,9 +550,14 @@ export default function IALinguistiquePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Langue *</label>
-                  <select className="input" value={addForm.languageId} onChange={e => setAddForm(f => ({ ...f, languageId: e.target.value }))}>
-                    {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-                  </select>
+                  <LanguageSelect
+                    languages={languages}
+                    value={addForm.languageId || ''}
+                    onChange={v => setAddForm(f => ({ ...f, languageId: v }))}
+                    allLabel="-- Sélectionner --"
+                    showAll={false}
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
@@ -654,10 +657,14 @@ export default function IALinguistiquePage() {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Langue *</label>
-                <select className="input" value={bulkLang} onChange={e => setBulkLang(e.target.value)}>
-                  <option value="">-- Choisir --</option>
-                  {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-                </select>
+                <LanguageSelect
+                  languages={languages}
+                  value={bulkLang || ''}
+                  onChange={v => setBulkLang(v)}
+                  allLabel="-- Choisir --"
+                  showAll={false}
+                  className="w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie (optionnel)</label>

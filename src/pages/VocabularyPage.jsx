@@ -3,6 +3,7 @@ import api, { dictionaryAPI, languagesAPI } from '../services/api';
 import FileUploadField from '../components/FileUploadField';
 import { MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import LanguageSelect from '../components/LanguageSelect';
 
 const STATUS_STYLES = {
   PUBLISHED: 'bg-green-100 text-green-700',
@@ -183,10 +184,15 @@ export default function VocabularyPage() {
 
       {/* Filtres */}
       <div className="flex gap-4 mb-6">
-        <select className="input max-w-[180px]" value={selectedLang}
-          onChange={e => { setSelectedLang(e.target.value); setPage(1); }}>
-          {languages.map(l => <option key={l.id} value={l.code}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect
+          languages={languages}
+          value={selectedLang}
+          onChange={v => { setSelectedLang(v); setPage(1); }}
+          valueKey="code"
+          showAll={false}
+          allLabel="Sélectionner une langue"
+          className="w-48"
+        />
         <div className="relative flex-1 max-w-sm">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input className="input pl-9" placeholder="Rechercher un mot..."

@@ -3,6 +3,7 @@ import api, { languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import FileUploadField from '../components/FileUploadField';
+import LanguageSelect from '../components/LanguageSelect';
 
 const TYPES_CIVISME = [
   { value: 'proverbe_civique', label: '💬 Proverbe civique', color: 'bg-purple-100 text-purple-700' },
@@ -126,10 +127,7 @@ export default function CivismePage() {
           <option value="">Tous les types</option>
           {TYPES_CIVISME.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
-        <select value={filterLang} onChange={e => setFilterLang(e.target.value)} className="input w-auto">
-          <option value="">Toutes les langues</option>
-          {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect languages={languages} value={filterLang} onChange={setFilterLang} className="w-48" />
         <span className="ml-auto text-sm text-gray-500 self-center">{items.length} contenu(s)</span>
       </div>
 
@@ -234,12 +232,13 @@ export default function CivismePage() {
               {/* Langue */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Langue</label>
-                <select value={form.languageId}
-                  onChange={e => setForm(f => ({...f, languageId: e.target.value}))}
-                  className="input w-full">
-                  <option value="">Toutes langues / Français</option>
-                  {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-                </select>
+                <LanguageSelect
+                  languages={languages}
+                  value={form.languageId || ''}
+                  onChange={v => setForm(f => ({...f, languageId: v}))}
+                  allLabel="Toutes langues / Français"
+                  className="w-full"
+                />
               </div>
 
               {/* Valeur civique */}

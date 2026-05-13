@@ -3,6 +3,7 @@ import api, { languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import FileUploadField from '../components/FileUploadField';
+import LanguageSelect from '../components/LanguageSelect';
 
 const SITUATIONS = [
   { value: 'appel_secours', label: '📞 Appeler les secours', priorite: 2 },
@@ -129,10 +130,7 @@ export default function PremierSecoursPage() {
           <option value="">Toutes les situations</option>
           {SITUATIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
-        <select value={filterLang} onChange={e => setFilterLang(e.target.value)} className="input w-auto">
-          <option value="">Toutes les langues</option>
-          {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect languages={languages} value={filterLang} onChange={setFilterLang} className="w-48" />
       </div>
 
       {/* Grille de fiches */}
@@ -226,12 +224,12 @@ export default function PremierSecoursPage() {
               {/* Langue */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Langue</label>
-                <select value={form.languageId}
-                  onChange={e => setForm(f => ({...f, languageId: e.target.value}))}
-                  className="input w-full">
-                  <option value="">Toutes les langues</option>
-                  {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-                </select>
+                <LanguageSelect
+                  languages={languages}
+                  value={form.languageId || ''}
+                  onChange={v => setForm(f => ({...f, languageId: v}))}
+                  className="w-full"
+                />
               </div>
 
               {/* Priorité */}

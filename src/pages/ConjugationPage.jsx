@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import api, { languagesAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import LanguageSelect from '../components/LanguageSelect';
 import {
   CheckIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon,
   BookOpenIcon,
@@ -457,13 +458,15 @@ export default function ConjugationPage() {
 
         {/* Sélecteur de langue */}
         <div className="px-4 py-3 border-b border-gray-100">
-          <select
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+          <LanguageSelect
+            languages={languages}
             value={selectedLang}
-            onChange={e => { setSelectedLang(e.target.value); setSelectedVerbe(null); }}
-          >
-            {languages.map(l => <option key={l.id} value={l.code}>{l.nom}</option>)}
-          </select>
+            onChange={v => { setSelectedLang(v); setSelectedVerbe(null); }}
+            valueKey="code"
+            showAll={false}
+            allLabel="Sélectionner une langue"
+            className="w-full"
+          />
         </div>
 
         {/* Recherche */}

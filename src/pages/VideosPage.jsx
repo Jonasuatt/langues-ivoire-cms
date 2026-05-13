@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { videosAPI, languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, PlayIcon, LinkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import LanguageSelect from '../components/LanguageSelect';
 
 const CATEGORIES = ['prononciation', 'culturel', 'tutoriel', 'musique', 'documentaire'];
 const CAT_LABELS = { prononciation: 'Prononciation', culturel: 'Culturel', tutoriel: 'Tutoriel', musique: 'Musique', documentaire: 'Documentaire' };
@@ -125,10 +126,7 @@ export default function VideosPage() {
         ))}
       </div>
       <div className="flex gap-2 mb-6">
-        <select className="input max-w-[180px]" value={filterLang} onChange={e => setFilterLang(e.target.value)}>
-          <option value="">Toutes les langues</option>
-          {languages.map(l => <option key={l.id} value={l.code}>{l.nom}</option>)}
-        </select>
+        <LanguageSelect languages={languages} value={filterLang} onChange={setFilterLang} valueKey="code" className="w-48" />
       </div>
 
       {loading ? (
@@ -253,10 +251,13 @@ export default function VideosPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Langue</label>
-                  <select className="input" value={form.languageId} onChange={e => setForm({...form, languageId: e.target.value})}>
-                    <option value="">-- Toutes --</option>
-                    {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-                  </select>
+                  <LanguageSelect
+                    languages={languages}
+                    value={form.languageId || ''}
+                    onChange={v => setForm({...form, languageId: v})}
+                    allLabel="-- Toutes --"
+                    className="w-full"
+                  />
                 </div>
               </div>
               <div>

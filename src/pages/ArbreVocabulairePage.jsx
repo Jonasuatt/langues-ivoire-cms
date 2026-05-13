@@ -8,6 +8,7 @@ import api, { languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import FileUploadField from '../components/FileUploadField';
+import LanguageSelect from '../components/LanguageSelect';
 
 // Les 8 membres de l'arbre — correspond aux IDs dans ArbresScreen.js
 const MEMBRES = [
@@ -160,10 +161,7 @@ export default function ArbreVocabulairePage() {
       <div className="flex flex-wrap gap-3">
         <div>
           <label className="text-xs font-medium text-gray-500 block mb-1">Langue</label>
-          <select className="input py-1.5" value={filterLang} onChange={e => setFilterLang(e.target.value)}>
-            <option value="">Toutes les langues</option>
-            {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-          </select>
+          <LanguageSelect languages={languages} value={filterLang} onChange={setFilterLang} className="w-48" />
         </div>
         <div>
           <label className="text-xs font-medium text-gray-500 block mb-1">Membre</label>
@@ -300,10 +298,14 @@ export default function ArbreVocabulairePage() {
               {/* Langue */}
               <div>
                 <label className="label">Langue *</label>
-                <select className="input" value={form.languageId} onChange={e => f('languageId', e.target.value)}>
-                  <option value="">— Sélectionner —</option>
-                  {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
-                </select>
+                <LanguageSelect
+                  languages={languages}
+                  value={form.languageId || ''}
+                  onChange={v => f('languageId', v)}
+                  allLabel="— Sélectionner —"
+                  showAll={false}
+                  className="w-full"
+                />
               </div>
 
               {/* Membre de la famille */}
