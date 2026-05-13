@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   GlobeAltIcon, CheckCircleIcon, XCircleIcon,
   MapPinIcon, PlusIcon, PencilIcon, BookOpenIcon,
-  MagnifyingGlassIcon, FunnelIcon,
+  MagnifyingGlassIcon, FunnelIcon, ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { languagesAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -372,6 +372,7 @@ export default function LanguesPage() {
   const [showCatalogue, setShowCatalogue] = useState(false);
   const [filterStatut, setFilterStatut]  = useState('all');
   const [search, setSearch]              = useState('');
+  const [syncing, setSyncing]            = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -463,6 +464,48 @@ export default function LanguesPage() {
     }
   }
 
+  // ── Synchronisation coordonnées depuis le catalogue ──
+  async function handleSyncCoords() {
+    const sansCoords = langues.filter(l => !l.lat || !l.lng);
+    const aSync = sansCoords.filter(l =>
+      CATALOGUE_CI.some(c => c.code.toLowerCase() === l.code?.toLowerCase() && c.lat && c.lng)
+    );
+
+    if (aSync.length === 0) {
+      toast('Toutes les langues ont déjà des coordonnées ou ne figurent pas dans le catalogue.');
+      return;
+    }
+
+    if (!confirm(
+      `Synchroniser automatiquement les positions de ${aSync.length} langue${aSync.length > 1 ? 's' : ''} depuis le catalogue ?\n\n` +
+      aSync.map(l => `• ${l.nom} (${l.code})`).join('\n')
+    )) return;
+
+    setSyncing(true);
+    let updated = 0;
+    let failed = 0;
+
+    for (const lang of aSync) {
+      const cat = CATALOGUE_CI.find(c => c.code.toLowerCase() === lang.code?.toLowerCase());
+      try {
+        const payload = { lat: cat.lat, lng: cat.lng };
+        // Enrichir aussi couleur / emoji / région si absents
+        if (!lang.couleur || lang.couleur === '#0B7A52') payload.couleur = cat.couleur;
+        if (!lang.emoji) payload.emoji = cat.emoji;
+        if (!lang.region) payload.region = cat.region;
+        await languagesAPI.update(lang.id, payload);
+        updated++;
+      } catch {
+        failed++;
+      }
+    }
+
+    setSyncing(false);
+    if (updated > 0) toast.success(`📍 ${updated} langue${updated > 1 ? 's' : ''} positionnée${updated > 1 ? 's' : ''} sur la carte !`);
+    if (failed > 0) toast.error(`${failed} mise${failed > 1 ? 's' : ''} à jour échouée${failed > 1 ? 's' : ''}`);
+    load();
+  }
+
   // ── Filtres liste ──
   const languesFiltrees = langues.filter(l => {
     const matchSearch = search.trim() === '' ||
@@ -481,6 +524,8 @@ export default function LanguesPage() {
   const languesFutures      = langues.filter(l => l.isActive === false).length;
   const dejaAjoutees        = new Set(langues.map(l => l.code?.toLowerCase()));
   const restantCatalogue    = CATALOGUE_CI.filter(l => !dejaAjoutees.has(l.code.toLowerCase())).length;
+  const aSynchroniser       = langues.filter(l => (!l.lat || !l.lng) &&
+    CATALOGUE_CI.some(c => c.code.toLowerCase() === l.code?.toLowerCase() && c.lat && c.lng));
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -497,6 +542,16 @@ export default function LanguesPage() {
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
+          {aSynchroniser.length > 0 && (
+            <button
+              onClick={handleSyncCoords}
+              disabled={syncing}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 text-sm font-semibold transition-colors shadow-sm disabled:opacity-60"
+            >
+              <MapPinIcon className="w-4 h-4" />
+              {syncing ? 'Synchronisation…' : `📍 Sync positions (${aSynchroniser.length})`}
+            </button>
+          )}
           <button
             onClick={() => setShowCatalogue(true)}
             className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-green-500 text-green-700 rounded-xl hover:bg-green-50 text-sm font-semibold transition-colors shadow-sm"
@@ -539,6 +594,29 @@ export default function LanguesPage() {
             <p className="text-2xl font-bold text-blue-600">{languesAvecCoords.length}</p>
             <p className="text-xs text-gray-500 mt-1">📍 Sur la carte</p>
           </div>
+        </div>
+      )}
+
+      {/* ── Bannière sync coordonnées ── */}
+      {aSynchroniser.length > 0 && !loading && (
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-4 flex items-center gap-3">
+          <span className="text-2xl flex-shrink-0">📍</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-800">
+              {aSynchroniser.length} langue{aSynchroniser.length > 1 ? 's' : ''} sans coordonnées géographiques
+            </p>
+            <p className="text-xs text-amber-600 mt-0.5">
+              {aSynchroniser.map(l => l.nom).join(', ')} — leurs positions dans le catalogue CI peuvent être synchronisées automatiquement.
+            </p>
+          </div>
+          <button
+            onClick={handleSyncCoords}
+            disabled={syncing}
+            className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 disabled:opacity-60 transition-colors"
+          >
+            <ArrowPathIcon className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Synchronisation…' : 'Synchroniser'}
+          </button>
         </div>
       )}
 
@@ -753,9 +831,18 @@ export default function LanguesPage() {
 
             {langues.filter(l => !l.lat || !l.lng).length > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                <p className="text-xs font-semibold text-yellow-800 mb-2">
-                  ⚠️ Non positionnées ({langues.filter(l => !l.lat || !l.lng).length})
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-yellow-800">
+                    ⚠️ Non positionnées ({langues.filter(l => !l.lat || !l.lng).length})
+                  </p>
+                  {aSynchroniser.length > 0 && (
+                    <button onClick={handleSyncCoords} disabled={syncing}
+                      className="flex items-center gap-1 text-xs text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg px-2 py-1 font-semibold transition-colors disabled:opacity-60">
+                      <ArrowPathIcon className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
+                      {syncing ? '…' : `Auto (${aSynchroniser.length})`}
+                    </button>
+                  )}
+                </div>
                 {langues.filter(l => !l.lat || !l.lng).map(lang => (
                   <div key={lang.id} className="flex items-center justify-between py-1.5 border-b border-yellow-100 last:border-0">
                     <span className="text-sm text-gray-700">{lang.emoji} {lang.nom}</span>
