@@ -641,6 +641,7 @@ export default function VoixAudioPage() {
 
   // ── Chargement des items ──
   const loadItems = useCallback(() => {
+    let cancelled = false;
     const params = { page, limit: LIMIT };
     if (search.trim()) params.q = search.trim();
     if (filterLang) params.langue = filterLang;
@@ -649,25 +650,31 @@ export default function VoixAudioPage() {
       if (filterValidated !== '') params.validated = filterValidated;
     }
 
-    const controller = new AbortController();
     setLoading(true);
 
     source.getItems(params)
       .then(({ data }) => {
-        const raw = Array.isArray(data) ? data : (data.data || []);
+        if (cancelled) return;
+        const raw = Array.isArray(data) ? data : (data?.data || []);
         setItems(raw.map(source.getNorm));
-        setTotal(data.total || raw.length);
-        setTotalPages(data.totalPages || 1);
+        setTotal(data?.total ?? raw.length);
+        setTotalPages(data?.totalPages || 1);
         setLoading(false);
       })
       .catch((err) => {
-        if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
+        if (cancelled) return;
+        if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+        const status = err.response?.status;
+        // 400/404 = source ne supporte pas ce filtre ou endpoint absent → état vide silencieux
+        if (status !== 400 && status !== 404) {
           toast.error('Erreur de chargement', { id: 'vaload' });
-          setLoading(false);
         }
+        setItems([]);
+        setTotal(0);
+        setLoading(false);
       });
 
-    return () => controller.abort();
+    return () => { cancelled = true; };
   }, [activeKey, page, search, filterLang, filterGenre, filterValidated]);
 
   useEffect(() => {
@@ -708,6 +715,8 @@ export default function VoixAudioPage() {
     setActiveKey(key);
     resetFilters();
     setItems([]);
+    setTotal(0);
+    setTotalPages(1);
   };
 
   const updateLocal = (updated) => {
