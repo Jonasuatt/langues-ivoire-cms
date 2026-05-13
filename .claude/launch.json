@@ -1,0 +1,39 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "API (Node.js/Express)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "cwd": "langues-ivoire/api"
+    },
+    {
+      "name": "CMS (Vite/React)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3001,
+      "cwd": "langues-ivoire/cms"
+    },
+    {
+      "name": "Mobile (Expo)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start"],
+      "port": 8081,
+      "cwd": "langues-ivoire/mobile"
+    },
+    {
+      "name": "AI Service (FastAPI)",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"],
+      "port": 8000,
+      "cwd": "langues-ivoire/ai"
+    },
+    {
+      "name": "Dossier financeurs",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "langues-ivoire/dossier-financeurs", "-l", "4500"],
+      "port": 4500
+    }
+  ]
+}

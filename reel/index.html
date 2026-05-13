@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root { --orange:#F47920; --green:#0B3D2E; --cream:#FFF8F0; --white:#FFFFFF; --gold:#FFD166; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { width:1080px; height:1920px; background:var(--green); overflow:hidden; font-family:'Inter',sans-serif; }
+
+    .clip { position:absolute; inset:0; opacity:0; pointer-events:none; }
+
+    /* SCENE 1 */
+    #s1 { background:radial-gradient(ellipse at 50% 30%, #1a5c42 0%, var(--green) 60%); }
+    #s1 .kente { position:absolute; bottom:0; left:0; right:0; height:120px; background:repeating-linear-gradient(90deg,var(--orange) 0,var(--orange) 60px,var(--gold) 60px,var(--gold) 90px,var(--green) 90px,var(--green) 120px,var(--gold) 120px,var(--gold) 150px); }
+    #logo-ring { position:absolute; top:680px; left:50%; transform:translateX(-50%); width:280px; height:280px; border:12px solid var(--orange); border-radius:50%; display:flex; align-items:center; justify-content:center; opacity:0; }
+    .logo-letter { font-family:'Playfair Display',serif; font-size:140px; color:var(--orange); font-weight:700; }
+    #brand-name { position:absolute; top:1020px; left:0; right:0; text-align:center; opacity:0; }
+    #brand-name .l1 { display:block; font-size:88px; font-weight:900; color:var(--white); letter-spacing:-2px; }
+    #brand-name .l2 { display:block; font-size:88px; font-weight:900; color:var(--orange); letter-spacing:-2px; }
+    #tagline { position:absolute; top:1230px; left:0; right:0; text-align:center; font-size:36px; color:var(--cream); letter-spacing:8px; text-transform:uppercase; opacity:0; }
+
+    /* SCENE 2 */
+    #s2 { background:var(--orange); }
+    #big-num { position:absolute; top:540px; left:0; right:0; text-align:center; font-size:280px; font-weight:900; color:var(--green); line-height:1; opacity:0; }
+    #big-lbl { position:absolute; top:840px; left:0; right:0; text-align:center; font-size:60px; font-weight:700; color:var(--green); letter-spacing:4px; text-transform:uppercase; opacity:0; }
+    #lang-grid { position:absolute; top:980px; left:80px; right:80px; display:grid; grid-template-columns:1fr 1fr; gap:20px; opacity:0; }
+    .li { background:var(--green); border-radius:24px; padding:24px 28px; display:flex; align-items:center; gap:16px; }
+    .ld { width:18px; height:18px; border-radius:50%; background:var(--orange); flex-shrink:0; }
+    .lt { font-size:34px; font-weight:700; color:var(--white); }
+    .ltu { font-size:24px; color:var(--gold); }
+    #dline { position:absolute; top:470px; left:80px; right:80px; height:6px; background:var(--green); border-radius:3px; opacity:0; }
+
+    /* SCENE 3 */
+    #s3 { background:var(--cream); }
+    #av-bg { position:absolute; top:380px; left:50%; transform:translateX(-50%); width:380px; height:380px; background:var(--green); border-radius:50%; opacity:0; }
+    #av-em { position:absolute; top:420px; left:50%; transform:translateX(-50%); font-size:220px; line-height:1; opacity:0; }
+    #tname { position:absolute; top:870px; left:0; right:0; text-align:center; font-size:72px; font-weight:900; color:var(--green); opacity:0; }
+    #tlang { position:absolute; top:960px; left:0; right:0; text-align:center; font-size:44px; font-weight:700; color:var(--orange); opacity:0; }
+    #bubble { position:absolute; top:1080px; left:80px; right:80px; background:var(--green); border-radius:32px; padding:48px 56px; opacity:0; }
+    .gr { font-size:54px; color:var(--gold); font-weight:700; line-height:1.3; }
+    .grs { font-size:34px; color:var(--cream); margin-top:12px; opacity:0.8; }
+    #mic { position:absolute; top:1410px; left:50%; transform:translateX(-50%); background:var(--orange); border-radius:60px; padding:20px 56px; font-size:36px; font-weight:700; color:var(--white); white-space:nowrap; opacity:0; }
+
+    /* SCENE 4 */
+    #s4 { background:var(--green); }
+    #plbl { position:absolute; top:520px; left:0; right:0; text-align:center; font-size:44px; color:var(--gold); letter-spacing:6px; text-transform:uppercase; opacity:0; }
+    #phero { position:absolute; top:600px; left:0; right:0; text-align:center; opacity:0; }
+    .pamt { font-size:200px; font-weight:900; color:var(--orange); line-height:1; }
+    .punit { font-size:60px; font-weight:700; color:var(--white); }
+    #pcards { position:absolute; top:1020px; left:60px; right:60px; display:flex; flex-direction:column; gap:28px; opacity:0; }
+    .pc { background:rgba(255,255,255,.08); border:2px solid rgba(244,121,32,.4); border-radius:28px; padding:36px 48px; display:flex; justify-content:space-between; align-items:center; }
+    .pc.hi { background:var(--orange); border-color:var(--orange); }
+    .pcl { font-size:40px; font-weight:700; color:var(--white); }
+    .pcv { font-size:48px; font-weight:900; color:var(--gold); }
+    .pc.hi .pcl,.pc.hi .pcv { color:var(--green); }
+    #sbadge { position:absolute; top:1440px; left:50%; transform:translateX(-50%); background:var(--gold); border-radius:50px; padding:18px 52px; font-size:34px; font-weight:700; color:var(--green); white-space:nowrap; opacity:0; }
+
+    /* SCENE 5 */
+    #s5 { background:var(--orange); }
+    .circ { position:absolute; border-radius:50%; border:3px solid rgba(255,255,255,.15); }
+    .c1 { width:800px; height:800px; top:200px; left:-200px; }
+    .c2 { width:600px; height:600px; top:900px; right:-150px; }
+    .c3 { width:300px; height:300px; top:1400px; left:100px; }
+    #cey { position:absolute; top:560px; left:0; right:0; text-align:center; font-size:38px; color:var(--green); letter-spacing:8px; text-transform:uppercase; font-weight:700; opacity:0; }
+    #ctit { position:absolute; top:640px; left:60px; right:60px; text-align:center; font-size:120px; font-weight:900; color:var(--white); line-height:1; letter-spacing:-4px; opacity:0; }
+    #csub { position:absolute; top:1010px; left:60px; right:60px; text-align:center; font-size:44px; color:var(--green); font-weight:700; opacity:0; line-height:1.4; }
+    #sbtns { position:absolute; top:1200px; left:0; right:0; display:flex; justify-content:center; gap:40px; opacity:0; }
+    .sbtn { background:var(--green); border-radius:32px; padding:36px 56px; display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .si { font-size:56px; }
+    .sl { font-size:28px; font-weight:700; color:var(--white); }
+    #ubar { position:absolute; top:1520px; left:80px; right:80px; background:rgba(11,61,46,.2); border-radius:24px; padding:28px 48px; text-align:center; font-size:38px; font-weight:700; color:var(--green); letter-spacing:2px; opacity:0; }
+    #kfoot { position:absolute; bottom:0; left:0; right:0; height:80px; background:repeating-linear-gradient(90deg,var(--green) 0,var(--green) 40px,var(--gold) 40px,var(--gold) 60px,var(--green) 60px,var(--green) 80px,var(--gold) 80px,var(--gold) 100px); opacity:0; }
+  </style>
+</head>
+<body data-duration="20" data-fps="30">
+  <div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" style="position:relative;width:1080px;height:1920px;overflow:hidden;">
+
+  <div class="clip" id="s1" data-track-index="0" data-start="0" data-duration="4">
+    <div class="kente"></div>
+    <div id="logo-ring"><span class="logo-letter">L</span></div>
+    <div id="brand-name"><span class="l1">LANGUES</span><span class="l2">IVOIRE</span></div>
+    <div id="tagline">Apprends ta langue</div>
+  </div>
+
+  <div class="clip" id="s2" data-track-index="0" data-start="4" data-duration="4">
+    <div id="dline"></div>
+    <div id="big-num">8</div>
+    <div id="big-lbl">Langues ivoiriennes</div>
+    <div id="lang-grid">
+      <div class="li"><div class="ld"></div><div><div class="lt">Baoulé</div><div class="ltu">Koffi</div></div></div>
+      <div class="li"><div class="ld"></div><div><div class="lt">Dioula</div><div class="ltu">Amara</div></div></div>
+      <div class="li"><div class="ld"></div><div><div class="lt">Bété</div><div class="ltu">Yoro</div></div></div>
+      <div class="li"><div class="ld"></div><div><div class="lt">Sénoufo</div><div class="ltu">Tialagnon</div></div></div>
+      <div class="li"><div class="ld"></div><div><div class="lt">Agni</div><div class="ltu">Tehia</div></div></div>
+      <div class="li"><div class="ld"></div><div><div class="lt">Gouro</div><div class="ltu">Zan Bi</div></div></div>
+      <div class="li"><div class="ld"></div><div><div class="lt">Guéré</div><div class="ltu">Oulahi</div></div></div>
+      <div class="li"><div class="ld"></div><div><div class="lt">Nouchi</div><div class="ltu">Pololo</div></div></div>
+    </div>
+  </div>
+
+  <div class="clip" id="s3" data-track-index="0" data-start="8" data-duration="5">
+    <div id="av-bg"></div>
+    <div id="av-em">🧑🏿‍🏫</div>
+    <div id="tname">Koffi</div>
+    <div id="tlang">Tuteur Baoulé • IA</div>
+    <div id="bubble"><div class="gr">« Mbo ! »</div><div class="grs">Bonjour en Baoulé</div></div>
+    <div id="mic">🎤 Prononciation IA</div>
+  </div>
+
+  <div class="clip" id="s4" data-track-index="0" data-start="13" data-duration="4">
+    <div id="plbl">Commencer à</div>
+    <div id="phero"><div class="pamt">100</div><div class="punit">FCFA / jour</div></div>
+    <div id="pcards">
+      <div class="pc"><span class="pcl">📅 Mensuel</span><span class="pcv">2 500 FCFA</span></div>
+      <div class="pc hi"><span class="pcl">🏆 Annuel</span><span class="pcv">25 000 FCFA</span></div>
+    </div>
+    <div id="sbadge">🎉 -32% sur l'abonnement annuel</div>
+  </div>
+
+  <div class="clip" id="s5" data-track-index="0" data-start="17" data-duration="3">
+    <div class="circ c1"></div><div class="circ c2"></div><div class="circ c3"></div>
+    <div id="cey">Disponible bientôt</div>
+    <div id="ctit">Télécharge<br>maintenant</div>
+    <div id="csub">Préserve et apprends<br>les langues de Côte d'Ivoire</div>
+    <div id="sbtns">
+      <div class="sbtn"><div class="si">🍎</div><div class="sl">App Store</div></div>
+      <div class="sbtn"><div class="si">🤖</div><div class="sl">Google Play</div></div>
+    </div>
+    <div id="ubar">languesivoire.ci</div>
+    <div id="kfoot"></div>
+  </div>
+
+  <script src="node_modules/gsap/dist/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+    window.__timelines["root"] = tl;
+
+    // Scene 1 (0-4s)
+    tl.fromTo('#logo-ring', {opacity:0,scale:0.4,rotation:-180},{opacity:1,scale:1,rotation:0,duration:0.9,ease:'back.out(1.5)'}, 0.2)
+      .fromTo('#brand-name', {opacity:0,y:60},{opacity:1,y:0,duration:0.7,ease:'expo.out'}, 0.8)
+      .fromTo('#tagline', {opacity:0,letterSpacing:'20px'},{opacity:1,letterSpacing:'8px',duration:0.6,ease:'power3.out'}, 1.4);
+
+    // Scene 2 (4-8s)
+    tl.fromTo('#dline', {opacity:0,scaleX:0},{opacity:1,scaleX:1,duration:0.5,ease:'power3.out',transformOrigin:'left'}, 4.1)
+      .fromTo('#big-num', {opacity:0,scale:0.3},{opacity:1,scale:1,duration:0.6,ease:'back.out(2)'}, 4.4)
+      .fromTo('#big-lbl', {opacity:0,y:40},{opacity:1,y:0,duration:0.5,ease:'expo.out'}, 4.8)
+      .fromTo('#lang-grid', {opacity:0,y:60},{opacity:1,y:0,duration:0.5,ease:'power3.out'}, 5.1)
+      .fromTo('#lang-grid .li', {opacity:0,x:-40},{opacity:1,x:0,duration:0.4,stagger:0.07,ease:'expo.out'}, 5.2);
+
+    // Scene 3 (8-13s)
+    tl.fromTo('#av-bg', {opacity:0,scale:0},{opacity:1,scale:1,duration:0.5,ease:'back.out(1.7)'}, 8.1)
+      .fromTo('#av-em', {opacity:0,y:80},{opacity:1,y:0,duration:0.6,ease:'expo.out'}, 8.4)
+      .fromTo('#tname', {opacity:0,y:30},{opacity:1,y:0,duration:0.5,ease:'power3.out'}, 8.8)
+      .fromTo('#tlang', {opacity:0},{opacity:1,duration:0.4,ease:'sine.inOut'}, 9.1)
+      .fromTo('#bubble', {opacity:0,scale:0.8,y:30},{opacity:1,scale:1,y:0,duration:0.5,ease:'back.out(1.4)'}, 9.3)
+      .fromTo('#mic', {opacity:0,y:20},{opacity:1,y:0,duration:0.4,ease:'expo.out'}, 9.7);
+
+    // Scene 4 (13-17s)
+    tl.fromTo('#plbl', {opacity:0,y:-30},{opacity:1,y:0,duration:0.4,ease:'expo.out'}, 13.1)
+      .fromTo('#phero', {opacity:0,scale:0.6},{opacity:1,scale:1,duration:0.7,ease:'back.out(1.5)'}, 13.3)
+      .fromTo('#pcards', {opacity:0,y:50},{opacity:1,y:0,duration:0.5,ease:'power3.out'}, 13.8)
+      .fromTo('#pcards .pc', {opacity:0,x:-50},{opacity:1,x:0,duration:0.4,stagger:0.15,ease:'expo.out'}, 14.0)
+      .fromTo('#sbadge', {opacity:0,scale:0.7},{opacity:1,scale:1,duration:0.4,ease:'back.out(2)'}, 14.5);
+
+    // Scene 5 (17-20s)
+    tl.fromTo('#kfoot', {opacity:0},{opacity:1,duration:0.3,ease:'sine.inOut'}, 17.1)
+      .fromTo('#cey', {opacity:0,y:-20},{opacity:1,y:0,duration:0.4,ease:'expo.out'}, 17.2)
+      .fromTo('#ctit', {opacity:0,y:80,scale:0.85},{opacity:1,y:0,scale:1,duration:0.6,ease:'back.out(1.4)'}, 17.4)
+      .fromTo('#csub', {opacity:0,y:30},{opacity:1,y:0,duration:0.5,ease:'power3.out'}, 17.8)
+      .fromTo('#sbtns', {opacity:0,y:40},{opacity:1,y:0,duration:0.5,ease:'expo.out'}, 18.1)
+      .fromTo('#sbtns .sbtn', {opacity:0,scale:0.7},{opacity:1,scale:1,duration:0.4,stagger:0.15,ease:'back.out(1.7)'}, 18.2)
+      .fromTo('#ubar', {opacity:0},{opacity:1,duration:0.4,ease:'sine.inOut'}, 18.7);
+  </script>
+  </div>
+</body>
+</html>
