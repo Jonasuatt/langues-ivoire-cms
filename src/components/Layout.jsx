@@ -8,7 +8,7 @@ import {
   HeartIcon, BuildingLibraryIcon, UsersIcon,
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
   LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
-  BanknotesIcon,
+  BanknotesIcon, MapPinIcon,
 } from '@heroicons/react/24/outline';
 
 export const ROLE_LABELS = {
@@ -63,6 +63,7 @@ const NAV_SECTIONS = [
     group: 'PARAMÈTRES APP',
     items: [
       { to: '/langues', label: 'Langues', icon: GlobeAltIcon },
+      { to: '/carte-ci', label: 'Carte CI', icon: MapPinIcon },
       { to: '/badges', label: 'Badges & XP', icon: TrophyIcon },
       { to: '/phrases-sos', label: 'Phrases SOS', icon: ExclamationTriangleIcon },
       { to: '/phrases-utiles', label: 'Phrases Utiles', icon: ChatBubbleLeftRightIcon },

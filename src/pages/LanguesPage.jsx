@@ -7,8 +7,9 @@ import {
 import { languagesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
-// ── Coordonnées géographiques de la Côte d'Ivoire ─────────────────────────
-const GEO = { west: -8.6, east: -2.5, north: 10.75, south: 4.3, W: 400, H: 430 };
+// ── Coordonnées géographiques de la Côte d'Ivoire (calées sur le PNG 713×746) ──
+// Le PNG couvre : ouest -8.7° / est -2.3° / nord 10.9° / sud 4.2°
+const GEO = { west: -8.7, east: -2.3, north: 10.9, south: 4.2, W: 713, H: 746 };
 
 function geoToSVG(lat, lng) {
   return {
@@ -22,13 +23,6 @@ function svgToGeo(x, y) {
     lng: parseFloat((GEO.west  + (x / GEO.W) * (GEO.east  - GEO.west )).toFixed(4)),
   };
 }
-
-const CI_PATH =
-  'M0,7 L39,0 L105,0 L171,7 L236,0 L269,0 ' +
-  'L336,17 L369,83 L393,149 L400,215 ' +
-  'L393,281 L373,335 L353,375 L353,408 ' +
-  'L313,428 L269,428 L202,415 L136,402 L84,389 L52,383 ' +
-  'L39,350 L7,284 L0,215 L0,149 L7,83 L0,49 Z';
 
 const CITIES = [
   { nom: 'Abidjan',      lat: 5.35, lng: -4.00 },
@@ -126,12 +120,12 @@ const EMPTY_FORM = {
   couleur: '#0B7A52', emoji: '', lat: '', lng: '', isActive: true,
 };
 
-// ── Carte SVG ─────────────────────────────────────────────────────────────────
-function CarteCI({ langues = [], selectedId = null, onMarkerClick, onMapClick, editingMarker = null, style = {} }) {
+// ── Carte SVG avec fond PNG réel ───────────────────────────────────────────────
+export function CarteCI({ langues = [], selectedId = null, onMarkerClick, onMapClick, editingMarker = null, style = {} }) {
   return (
     <svg
       viewBox={`0 0 ${GEO.W} ${GEO.H}`}
-      style={{ background: '#D6EAF8', borderRadius: 10, cursor: onMapClick ? 'crosshair' : 'default', ...style }}
+      style={{ borderRadius: 10, cursor: onMapClick ? 'crosshair' : 'default', display: 'block', ...style }}
       onClick={e => {
         if (!onMapClick) return;
         const rect = e.currentTarget.getBoundingClientRect();
@@ -140,16 +134,22 @@ function CarteCI({ langues = [], selectedId = null, onMarkerClick, onMapClick, e
         onMapClick(svgToGeo(svgX, svgY));
       }}
     >
-      <path d={CI_PATH} fill="#C8E6C9" stroke="#43A047" strokeWidth="1.5" />
+      {/* ── Fond : carte réelle Côte d'Ivoire ── */}
+      <image href="/carte-ci.png" x="0" y="0" width={GEO.W} height={GEO.H} />
+
+      {/* ── Villes repères ── */}
       {CITIES.map(c => {
         const { x, y } = geoToSVG(c.lat, c.lng);
         return (
           <g key={c.nom}>
-            <circle cx={x} cy={y} r="2.5" fill="#90A4AE" opacity="0.7" />
-            <text x={x + 4} y={y + 1} fontSize="7" fill="#546E7A" fontFamily="Arial">{c.nom}</text>
+            <circle cx={x} cy={y} r="3" fill="#37474F" opacity="0.85" />
+            <text x={x + 5} y={y + 1} fontSize="8" fill="#1A237E" fontFamily="Arial"
+              fontWeight="600" style={{ textShadow: '0 0 3px white' }}>{c.nom}</text>
           </g>
         );
       })}
+
+      {/* ── Marqueurs des langues ── */}
       {langues.filter(l => l.lat && l.lng).map(lang => {
         const { x, y } = geoToSVG(parseFloat(lang.lat), parseFloat(lang.lng));
         const isSelected = selectedId === lang.id;
@@ -157,31 +157,37 @@ function CarteCI({ langues = [], selectedId = null, onMarkerClick, onMapClick, e
         return (
           <g key={lang.id} style={{ cursor: onMarkerClick ? 'pointer' : 'default' }}
             onClick={e => { e.stopPropagation(); onMarkerClick?.(lang); }}>
-            <circle cx={x + 1} cy={y + 2} r={isSelected ? 15 : 11} fill="#000" opacity="0.12" />
-            <circle cx={x} cy={y} r={isSelected ? 14 : 10}
-              fill={color} stroke={isSelected ? '#fff' : 'rgba(255,255,255,0.4)'}
-              strokeWidth={isSelected ? 2.5 : 1} />
-            <text x={x} y={y + 1} fontSize={isSelected ? 9 : 7.5} fill="#fff"
+            {/* Ombre */}
+            <circle cx={x + 1} cy={y + 2} r={isSelected ? 16 : 12} fill="#000" opacity="0.15" />
+            {/* Cercle principal */}
+            <circle cx={x} cy={y} r={isSelected ? 15 : 11}
+              fill={color} stroke={isSelected ? '#fff' : 'rgba(255,255,255,0.6)'}
+              strokeWidth={isSelected ? 3 : 1.5} />
+            {/* Emoji / code */}
+            <text x={x} y={y + 1} fontSize={isSelected ? 10 : 8} fill="#fff"
               textAnchor="middle" dominantBaseline="middle" fontWeight="bold" fontFamily="Arial">
               {lang.emoji || lang.code?.slice(0, 3).toUpperCase()}
             </text>
+            {/* Label sur sélection */}
             {isSelected && (
               <>
-                <rect x={x - 28} y={y + 17} width="56" height="13" rx="3" fill="white" opacity="0.9" />
-                <text x={x} y={y + 24} fontSize="8" fill={color}
+                <rect x={x - 32} y={y + 18} width="64" height="14" rx="4" fill="white" opacity="0.92" />
+                <text x={x} y={y + 26} fontSize="8.5" fill={color}
                   textAnchor="middle" fontWeight="bold" fontFamily="Arial">{lang.nom}</text>
               </>
             )}
           </g>
         );
       })}
+
+      {/* ── Marqueur en cours d'édition ── */}
       {editingMarker?.lat && editingMarker?.lng && (() => {
         const { x, y } = geoToSVG(parseFloat(editingMarker.lat), parseFloat(editingMarker.lng));
         return (
           <g>
-            <circle cx={x} cy={y} r="10" fill={editingMarker.couleur || '#F47920'}
-              stroke="#fff" strokeWidth="2.5" opacity="0.95" strokeDasharray="4 2" />
-            <text x={x} y={y + 1} fontSize="8" fill="#fff" textAnchor="middle"
+            <circle cx={x} cy={y} r="13" fill={editingMarker.couleur || '#F47920'}
+              stroke="#fff" strokeWidth="2.5" opacity="0.95" strokeDasharray="5 3" />
+            <text x={x} y={y + 1} fontSize="9" fill="#fff" textAnchor="middle"
               dominantBaseline="middle" fontWeight="bold" fontFamily="Arial">
               {editingMarker.emoji || editingMarker.code?.slice(0, 2).toUpperCase() || '?'}
             </text>

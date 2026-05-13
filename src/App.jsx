@@ -35,6 +35,7 @@ import MuseeTresorsPage from './pages/MuseeTresorsPage';
 import FinancePage from './pages/FinancePage';
 import ArbreVocabulairePage from './pages/ArbreVocabulairePage';
 import MarcheDialoguesPage from './pages/MarcheDialoguesPage';
+import CarteCIPage from './pages/CarteCIPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="test-agents" element={<TestAgentsPage />} />
           <Route path="bienvenue-sons" element={<BienvenueEtSonsPage />} />
           <Route path="langues" element={<LanguesPage />} />
+          <Route path="carte-ci" element={<CarteCIPage />} />
           <Route path="badges" element={<BadgesPage />} />
           <Route path="phrases-sos" element={<PhrasesSOSPage />} />
           <Route path="phrases-utiles" element={<PhrasesUtilesPage />} />
