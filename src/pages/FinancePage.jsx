@@ -14,6 +14,8 @@ import {
   CheckCircleIcon, XCircleIcon, ClockIcon,
   BanknotesIcon, ChartBarIcon, UserGroupIcon,
   ArrowDownTrayIcon, BuildingLibraryIcon,
+  StarIcon, UserCircleIcon, ShieldCheckIcon,
+  ArrowPathIcon, NoSymbolIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -59,6 +61,20 @@ const TARIFS_DEFAUT = [
   { id: 'pub-std',   type: 'PUBLICITE_STANDARD', label: '📢 Publicité standard',       montant: 15000, duree: 7,   description: 'Bannière publicitaire pendant 7 jours' },
   { id: 'pub-prem',  type: 'PUBLICITE_PREMIUM',  label: '⭐ Publicité premium',        montant: 50000, duree: 30,  description: 'Publicité prioritaire pendant 30 jours avec audio/vidéo' },
   { id: 'partenaire',type: 'PARTENARIAT',         label: '🤝 Partenariat institutionnel', montant: null,  duree: 365, description: 'Partenariat annuel — tarif sur devis' },
+];
+
+// Plans Premium (cohérents avec PremiumScreen.js mobile)
+const PLANS_PREMIUM = [
+  { key: 'mensuel',     label: '📅 Mensuel',     montant: 3500,  unite: 'FCFA / mois', badge: null,            color: 'border-blue-200 bg-blue-50',   text: 'text-blue-700'  },
+  { key: 'annuel',      label: '🏆 Annuel',      montant: 28000, unite: 'FCFA / an',   badge: '33% d\'économie', color: 'border-amber-300 bg-amber-50', text: 'text-amber-700' },
+  { key: 'institution', label: '🏫 Institution', montant: null,  unite: 'Sur devis',   badge: 'Personnalisé',  color: 'border-purple-200 bg-purple-50', text: 'text-purple-700' },
+];
+
+const STATUTS_PREMIUM = [
+  { value: 'ACTIF',   label: '✅ Actif',   color: 'bg-green-100 text-green-700'  },
+  { value: 'EXPIRE',  label: '⌛ Expiré',  color: 'bg-gray-100 text-gray-600'    },
+  { value: 'ANNULE',  label: '❌ Annulé',  color: 'bg-red-100 text-red-700'      },
+  { value: 'OFFERT',  label: '🎁 Offert',  color: 'bg-purple-100 text-purple-700' },
 ];
 
 const PERIODE_OPTIONS = [
@@ -847,6 +863,493 @@ function ComptabiliteTab() {
             </div>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+// ─── Modal activation Premium manuelle ───────────────────────────────────────
+function ModalPremium({ item, onClose, onSave }) {
+  const isNew = !item;
+  const today = new Date().toISOString().slice(0, 10);
+  const in1Month  = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+  const in1Year   = new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10);
+
+  const [form, setForm] = useState({
+    userEmail:   item?.user?.email   || '',
+    userNom:     item?.user?.prenom ? `${item.user.prenom} ${item.user.nom}` : '',
+    plan:        item?.plan          || 'mensuel',
+    statut:      item?.statut        || 'ACTIF',
+    dateDebut:   item?.dateDebut?.slice(0, 10) || today,
+    dateFin:     item?.dateFin?.slice(0, 10)   || in1Month,
+    methode:     item?.methode       || 'ORANGE_MONEY',
+    montantPaye: item?.montantPaye   || '',
+    reference:   item?.reference     || '',
+    notes:       item?.notes         || '',
+  });
+  const [saving, setSaving] = useState(false);
+  const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  // Auto-calculer la date de fin selon le plan
+  const handlePlanChange = (plan) => {
+    f('plan', plan);
+    const debut = new Date(form.dateDebut);
+    if (plan === 'mensuel') f('dateFin', new Date(debut.getTime() + 30 * 86400000).toISOString().slice(0, 10));
+    if (plan === 'annuel')  f('dateFin', new Date(debut.getTime() + 365 * 86400000).toISOString().slice(0, 10));
+    if (plan === 'institution') f('dateFin', new Date(debut.getTime() + 365 * 86400000).toISOString().slice(0, 10));
+    const plan_info = PLANS_PREMIUM.find(p => p.key === plan);
+    if (plan_info?.montant) f('montantPaye', String(plan_info.montant));
+  };
+
+  const handleSave = async () => {
+    if (!form.userEmail && !form.userNom) { toast.error('Email ou nom requis'); return; }
+    setSaving(true);
+    try { await onSave(form); onClose(); }
+    catch { toast.error('Erreur lors de la sauvegarde'); }
+    finally { setSaving(false); }
+  };
+
+  const planInfo = PLANS_PREMIUM.find(p => p.key === form.plan);
+  const joursRestants = form.dateFin
+    ? Math.ceil((new Date(form.dateFin) - new Date()) / 86400000)
+    : null;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center gap-2 mb-5">
+          <StarIcon className="w-5 h-5 text-amber-500"/>
+          <h2 className="text-lg font-bold text-gray-900">
+            {isNew ? 'Activer un abonnement Premium' : 'Modifier l\'abonnement'}
+          </h2>
+        </div>
+
+        <div className="space-y-4">
+          {/* Utilisateur */}
+          <div className={`grid gap-3 ${isNew ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {isNew && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email de l'utilisateur *</label>
+                <input className="input" type="email" value={form.userEmail}
+                  onChange={e => f('userEmail', e.target.value)} placeholder="user@example.com"/>
+              </div>
+            )}
+            {isNew && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom (si inconnu)</label>
+                <input className="input" value={form.userNom}
+                  onChange={e => f('userNom', e.target.value)} placeholder="Prénom Nom"/>
+              </div>
+            )}
+            {!isNew && item?.user && (
+              <div className="flex items-center gap-3 bg-amber-50 rounded-xl p-3">
+                <div className="w-9 h-9 rounded-full bg-amber-200 flex items-center justify-center">
+                  <span className="font-bold text-amber-700 text-sm">
+                    {item.user.prenom?.[0]}{item.user.nom?.[0]}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{item.user.prenom} {item.user.nom}</p>
+                  <p className="text-xs text-gray-500">{item.user.email}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Plan */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Plan d'abonnement *</label>
+            <div className="grid grid-cols-3 gap-2">
+              {PLANS_PREMIUM.map(p => (
+                <button key={p.key} type="button" onClick={() => handlePlanChange(p.key)}
+                  className={`py-3 px-2 rounded-xl border-2 text-xs font-semibold text-center transition-colors ${
+                    form.plan === p.key ? `${p.color} ${p.text} border-current` : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                  }`}>
+                  <div className="text-base mb-1">{p.label.split(' ')[0]}</div>
+                  <div>{p.label.split(' ').slice(1).join(' ')}</div>
+                  <div className="font-bold mt-1">{p.montant ? FCFA(p.montant) : 'Sur devis'}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+              <input className="input" type="date" value={form.dateDebut}
+                onChange={e => f('dateDebut', e.target.value)}/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date d'expiration</label>
+              <input className="input" type="date" value={form.dateFin}
+                onChange={e => f('dateFin', e.target.value)}/>
+              {joursRestants !== null && (
+                <p className={`text-xs mt-1 ${joursRestants > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  {joursRestants > 0 ? `${joursRestants} jour(s) restant(s)` : 'Expiré'}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Paiement */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Montant payé (FCFA)</label>
+              <input className="input" type="number" value={form.montantPaye}
+                onChange={e => f('montantPaye', e.target.value)} placeholder={planInfo?.montant || ''}/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Méthode</label>
+              <select className="input" value={form.methode} onChange={e => f('methode', e.target.value)}>
+                {METHODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                <option value="OFFERT">🎁 Offert / Gratuit</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Statut */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+              <select className="input" value={form.statut} onChange={e => f('statut', e.target.value)}>
+                {STATUTS_PREMIUM.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Référence paiement</label>
+              <input className="input" value={form.reference}
+                onChange={e => f('reference', e.target.value)} placeholder="Transaction, reçu…"/>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes internes</label>
+            <textarea className="input resize-none" rows={2} value={form.notes}
+              onChange={e => f('notes', e.target.value)}/>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button onClick={onClose} className="btn-secondary flex-1">Annuler</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-white bg-amber-500 hover:bg-amber-600 transition-colors disabled:opacity-50">
+            <StarIcon className="w-4 h-4"/>
+            {saving ? 'Sauvegarde…' : isNew ? 'Activer Premium' : 'Mettre à jour'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Onglet Abonnements Premium ───────────────────────────────────────────────
+function PremiumTab() {
+  const [abonnes, setAbonnes]         = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [filterPlan, setFilterPlan]   = useState('');
+  const [filterStatut, setFilterStatut] = useState('');
+  const [search, setSearch]           = useState('');
+  const [showModal, setShowModal]     = useState(false);
+  const [editItem, setEditItem]       = useState(null);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { data } = await financeAPI.getPremiumUsers({ limit: 200 });
+      setAbonnes(data.data || []);
+    } catch {
+      // Fallback : tenter via adminAPI
+      try {
+        const { data } = await import('../services/api').then(m =>
+          m.adminAPI.getUsers({ isPremium: true, limit: 200 })
+        );
+        setAbonnes((data.data || []).map(u => ({
+          id: u.id,
+          user: u,
+          plan: u.premiumPlan || 'mensuel',
+          statut: u.premiumExpiresAt && new Date(u.premiumExpiresAt) < new Date() ? 'EXPIRE' : u.isPremium ? 'ACTIF' : 'ANNULE',
+          dateDebut: u.premiumStartedAt,
+          dateFin: u.premiumExpiresAt,
+          montantPaye: u.premiumMontant,
+          methode: u.premiumMethode,
+        })));
+      } catch { setAbonnes([]); }
+    }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filtered = abonnes.filter(a => {
+    if (filterPlan   && a.plan   !== filterPlan)   return false;
+    if (filterStatut && a.statut !== filterStatut) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const nom = `${a.user?.prenom || ''} ${a.user?.nom || ''} ${a.user?.email || ''}`.toLowerCase();
+      if (!nom.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // ── Stats ──
+  const nbActifs     = abonnes.filter(a => a.statut === 'ACTIF').length;
+  const nbExpires    = abonnes.filter(a => a.statut === 'EXPIRE').length;
+  const revenusTotal = abonnes.filter(a => a.statut === 'ACTIF' || a.statut === 'OFFERT')
+    .reduce((s, a) => s + (a.montantPaye || 0), 0);
+  const expirantBientot = abonnes.filter(a => {
+    if (a.statut !== 'ACTIF' || !a.dateFin) return false;
+    return Math.ceil((new Date(a.dateFin) - new Date()) / 86400000) <= 30;
+  }).length;
+
+  const handleSave = async (form) => {
+    if (editItem) {
+      await financeAPI.updatePremium(editItem.id, form);
+      toast.success('Abonnement mis à jour');
+    } else {
+      await financeAPI.grantPremium(form);
+      toast.success('Premium activé ✅');
+    }
+    load();
+  };
+
+  const handleRevoke = async (a) => {
+    if (!confirm(`Révoquer le Premium de ${a.user?.prenom} ${a.user?.nom} ?`)) return;
+    try {
+      await financeAPI.revokePremium(a.id);
+      toast.success('Premium révoqué');
+      load();
+    } catch { toast.error('Erreur'); }
+  };
+
+  const handleRenew = async (a) => {
+    const plan = PLANS_PREMIUM.find(p => p.key === a.plan);
+    const days = a.plan === 'annuel' ? 365 : 30;
+    const newEnd = new Date(Math.max(new Date(), new Date(a.dateFin || Date.now())) + days * 86400000)
+      .toISOString().slice(0, 10);
+    try {
+      await financeAPI.updatePremium(a.id, { dateFin: newEnd, statut: 'ACTIF' });
+      toast.success(`Prolongé jusqu'au ${new Date(newEnd).toLocaleDateString('fr-FR')}`);
+      load();
+    } catch { toast.error('Erreur'); }
+  };
+
+  const joursRestants = (dateFin) => {
+    if (!dateFin) return null;
+    return Math.ceil((new Date(dateFin) - new Date()) / 86400000);
+  };
+
+  return (
+    <div className="space-y-6">
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="card py-3 px-5 border-l-4 border-amber-400">
+          <p className="text-2xl font-bold text-amber-600">{nbActifs}</p>
+          <p className="text-sm text-gray-500">Abonnés actifs</p>
+        </div>
+        <div className="card py-3 px-5 border-l-4 border-green-400">
+          <p className="text-xl font-bold text-green-600">{FCFA(revenusTotal)}</p>
+          <p className="text-sm text-gray-500">Revenus Premium</p>
+        </div>
+        <div className="card py-3 px-5 border-l-4 border-orange-400">
+          <p className="text-2xl font-bold text-orange-600">{expirantBientot}</p>
+          <p className="text-sm text-gray-500">Expirent dans 30j</p>
+        </div>
+        <div className="card py-3 px-5 border-l-4 border-gray-300">
+          <p className="text-2xl font-bold text-gray-600">{nbExpires}</p>
+          <p className="text-sm text-gray-500">Expirés</p>
+        </div>
+      </div>
+
+      {/* Plans tarifaires (rappel visuel) */}
+      <div>
+        <h3 className="text-base font-bold text-gray-800 mb-3">Plans tarifaires Premium</h3>
+        <div className="grid grid-cols-3 gap-4">
+          {PLANS_PREMIUM.map(p => (
+            <div key={p.key} className={`card border-2 ${p.color} text-center`}>
+              <p className={`text-sm font-bold mb-1 ${p.text}`}>{p.label}</p>
+              <p className="text-2xl font-bold text-gray-900 my-2">
+                {p.montant ? FCFA(p.montant) : 'Sur devis'}
+              </p>
+              <p className="text-xs text-gray-500">{p.unite}</p>
+              {p.badge && (
+                <span className={`inline-block mt-2 text-xs font-semibold px-2 py-0.5 rounded-full ${p.color} ${p.text}`}>
+                  {p.badge}
+                </span>
+              )}
+              <p className="text-xs text-gray-400 mt-2">
+                {abonnes.filter(a => a.plan === p.key && a.statut === 'ACTIF').length} abonné(s) actif(s)
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Filtres + bouton */}
+      <div className="flex gap-3 flex-wrap items-center">
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/>
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Rechercher un utilisateur…" className="input pl-9 w-52"/>
+        </div>
+        <select value={filterPlan} onChange={e => setFilterPlan(e.target.value)} className="input w-auto">
+          <option value="">Tous les plans</option>
+          {PLANS_PREMIUM.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+        </select>
+        <select value={filterStatut} onChange={e => setFilterStatut(e.target.value)} className="input w-auto">
+          <option value="">Tous les statuts</option>
+          {STATUTS_PREMIUM.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+        <span className="text-sm text-gray-400">{filtered.length} abonné(s)</span>
+        <button onClick={() => { setEditItem(null); setShowModal(true); }}
+          className="ml-auto btn-primary flex items-center gap-2 text-sm py-2">
+          <StarIcon className="w-4 h-4"/> Activer Premium manuellement
+        </button>
+      </div>
+
+      {/* Alerte expiration proche */}
+      {expirantBientot > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-800 flex items-center gap-3">
+          <ClockIcon className="w-5 h-5 text-orange-500 flex-shrink-0"/>
+          <span>
+            <strong>{expirantBientot} abonnement(s)</strong> expirent dans moins de 30 jours.
+            Pensez à relancer ces utilisateurs.
+          </span>
+        </div>
+      )}
+
+      {/* Liste */}
+      {loading ? (
+        <div className="space-y-2 animate-pulse">
+          {[1,2,3,4].map(i => <div key={i} className="h-16 bg-gray-100 rounded-xl"/>)}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="card text-center py-14">
+          <StarIcon className="w-10 h-10 text-gray-300 mx-auto mb-3"/>
+          <p className="text-gray-400 font-medium">Aucun abonné Premium</p>
+          <p className="text-sm text-gray-400 mt-1">Activez manuellement un abonnement ou attendez les souscriptions via l'app</p>
+          <button onClick={() => { setEditItem(null); setShowModal(true); }}
+            className="btn-primary mt-4 mx-auto text-sm flex items-center gap-2 w-fit">
+            <StarIcon className="w-4 h-4"/> Activer le premier abonnement
+          </button>
+        </div>
+      ) : (
+        <div className="card overflow-hidden p-0">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                {['Utilisateur', 'Plan', 'Début', 'Expiration', 'Jours restants', 'Montant', 'Méthode', 'Statut', 'Actions'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map(a => {
+                const plan       = PLANS_PREMIUM.find(p => p.key === a.plan);
+                const statut     = STATUTS_PREMIUM.find(s => s.value === a.statut);
+                const jours      = joursRestants(a.dateFin);
+                const isExpiring = jours !== null && jours <= 30 && jours > 0;
+                const isExpired  = jours !== null && jours <= 0;
+                return (
+                  <tr key={a.id} className={`hover:bg-gray-50 transition-colors ${isExpired ? 'opacity-60' : ''}`}>
+                    {/* Utilisateur */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-amber-700">
+                            {a.user?.prenom?.[0]}{a.user?.nom?.[0]}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">
+                            {a.user?.prenom} {a.user?.nom}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">{a.user?.email}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Plan */}
+                    <td className="px-4 py-3">
+                      <span className={`badge text-xs ${plan?.color || ''} ${plan?.text || ''}`}>
+                        {plan?.label || a.plan}
+                      </span>
+                    </td>
+
+                    {/* Dates */}
+                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{fmtDate(a.dateDebut)}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{fmtDate(a.dateFin)}</td>
+
+                    {/* Jours restants */}
+                    <td className="px-4 py-3">
+                      {jours === null ? <span className="text-gray-400">—</span> : (
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${
+                          isExpired  ? 'bg-red-100 text-red-600' :
+                          isExpiring ? 'bg-orange-100 text-orange-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {isExpired ? 'Expiré' : `${jours}j`}
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Montant */}
+                    <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">
+                      {a.montantPaye ? FCFA(a.montantPaye) : '—'}
+                    </td>
+
+                    {/* Méthode */}
+                    <td className="px-4 py-3 text-xs text-gray-500">
+                      {a.methode === 'OFFERT' ? '🎁 Offert' : METHODES.find(m => m.value === a.methode)?.label || a.methode || '—'}
+                    </td>
+
+                    {/* Statut */}
+                    <td className="px-4 py-3">
+                      <span className={`badge text-xs ${statut?.color || 'bg-gray-100 text-gray-600'}`}>
+                        {statut?.label || a.statut}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {/* Modifier */}
+                        <button onClick={() => { setEditItem(a); setShowModal(true); }}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-primary-50 transition-colors" title="Modifier">
+                          <PencilIcon className="w-4 h-4"/>
+                        </button>
+                        {/* Renouveler */}
+                        {a.statut !== 'ANNULE' && (
+                          <button onClick={() => handleRenew(a)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors" title="Prolonger">
+                            <ArrowPathIcon className="w-4 h-4"/>
+                          </button>
+                        )}
+                        {/* Révoquer */}
+                        {a.statut === 'ACTIF' && (
+                          <button onClick={() => handleRevoke(a)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Révoquer">
+                            <NoSymbolIcon className="w-4 h-4"/>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {showModal && (
+        <ModalPremium
+          item={editItem}
+          onClose={() => { setShowModal(false); setEditItem(null); }}
+          onSave={handleSave}
+        />
       )}
     </div>
   );

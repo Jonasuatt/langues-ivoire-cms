@@ -169,6 +169,12 @@ export const financeAPI = {
   updateContribution: (id, data) => api.patch(`/finance/contributions/${id}`, data),
   deleteContribution: (id) => api.delete(`/finance/contributions/${id}`),
 
+  // Abonnements Premium
+  getPremiumUsers: (params) => api.get('/finance/premium', { params }),
+  grantPremium: (data) => api.post('/finance/premium/grant', data),
+  updatePremium: (id, data) => api.patch(`/finance/premium/${id}`, data),
+  revokePremium: (id) => api.delete(`/finance/premium/${id}`),
+
   // Comptabilité / résumé
   getResume: (params) => api.get('/finance/resume', { params }),
 };
