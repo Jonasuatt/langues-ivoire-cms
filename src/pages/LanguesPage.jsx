@@ -464,12 +464,22 @@ export default function LanguesPage() {
     }
   }
 
+  // ── Recherche dans le catalogue par code OU nom normalisé ──
+  function findInCatalogue(lang) {
+    const norm = s => s?.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim() || '';
+    return CATALOGUE_CI.find(c =>
+      (c.code.toLowerCase() === lang.code?.toLowerCase()) ||
+      (norm(c.nom) === norm(lang.nom))
+    );
+  }
+
   // ── Synchronisation coordonnées depuis le catalogue ──
   async function handleSyncCoords() {
     const sansCoords = langues.filter(l => !l.lat || !l.lng);
-    const aSync = sansCoords.filter(l =>
-      CATALOGUE_CI.some(c => c.code.toLowerCase() === l.code?.toLowerCase() && c.lat && c.lng)
-    );
+    const aSync = sansCoords.filter(l => {
+      const cat = findInCatalogue(l);
+      return cat && cat.lat && cat.lng;
+    });
 
     if (aSync.length === 0) {
       toast('Toutes les langues ont déjà des coordonnées ou ne figurent pas dans le catalogue.');
@@ -486,7 +496,7 @@ export default function LanguesPage() {
     let failed = 0;
 
     for (const lang of aSync) {
-      const cat = CATALOGUE_CI.find(c => c.code.toLowerCase() === lang.code?.toLowerCase());
+      const cat = findInCatalogue(lang);
       try {
         const payload = { lat: cat.lat, lng: cat.lng };
         // Enrichir aussi couleur / emoji / région si absents
@@ -524,8 +534,7 @@ export default function LanguesPage() {
   const languesFutures      = langues.filter(l => l.isActive === false).length;
   const dejaAjoutees        = new Set(langues.map(l => l.code?.toLowerCase()));
   const restantCatalogue    = CATALOGUE_CI.filter(l => !dejaAjoutees.has(l.code.toLowerCase())).length;
-  const aSynchroniser       = langues.filter(l => (!l.lat || !l.lng) &&
-    CATALOGUE_CI.some(c => c.code.toLowerCase() === l.code?.toLowerCase() && c.lat && c.lng));
+  const aSynchroniser       = langues.filter(l => (!l.lat || !l.lng) && !!findInCatalogue(l)?.lat);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
