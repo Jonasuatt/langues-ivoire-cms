@@ -101,6 +101,7 @@ export const videosAPI = {
 export const uploadAPI = {
   uploadAudio: (formData) => api.post('/upload/audio', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   uploadImage: (formData) => api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadVideo: (formData) => api.post('/upload/video', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 export const badgesAPI = {
@@ -120,7 +121,9 @@ export const phrasesAdminAPI = {
 
 export const notificationsAdminAPI = {
   send: (data) => api.post('/admin/notifications/send', data),
+  sendPublicite: (formData) => api.post('/admin/notifications/publicite', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   getHistory: (params) => api.get('/admin/notifications/history', { params }),
+  getOne: (id) => api.get(`/admin/notifications/${id}`),
   getUserCount: () => api.get('/admin/users', { params: { limit: 1 } }),
 };
 
