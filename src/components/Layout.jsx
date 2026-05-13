@@ -8,6 +8,7 @@ import {
   HeartIcon, BuildingLibraryIcon, UsersIcon,
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
   LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
+  BanknotesIcon,
 } from '@heroicons/react/24/outline';
 
 export const ROLE_LABELS = {
@@ -71,6 +72,13 @@ const NAV_SECTIONS = [
       { to: '/musee-tresors', label: 'Musée des Trésors', icon: SparklesIcon },
       { to: '/arbre-vocabulaire', label: 'Arbre à Palabres', icon: UserGroupIcon },
       { to: '/marche-dialogues', label: 'Au Marché', icon: ChatBubbleLeftRightIcon },
+    ],
+  },
+  {
+    group: 'FINANCE',
+    adminOnly: true,
+    items: [
+      { to: '/finance', label: 'Finance', icon: BanknotesIcon, adminOnly: true },
     ],
   },
   {

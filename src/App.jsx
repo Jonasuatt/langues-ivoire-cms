@@ -32,6 +32,7 @@ import ProfilePage from './pages/ProfilePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import UserGuidePage from './pages/UserGuidePage';
 import MuseeTresorsPage from './pages/MuseeTresorsPage';
+import FinancePage from './pages/FinancePage';
 import ArbreVocabulairePage from './pages/ArbreVocabulairePage';
 import MarcheDialoguesPage from './pages/MarcheDialoguesPage';
 
@@ -80,6 +81,7 @@ export default function App() {
           <Route path="musee-tresors" element={<MuseeTresorsPage />} />
           <Route path="arbre-vocabulaire" element={<ArbreVocabulairePage />} />
           <Route path="marche-dialogues" element={<MarcheDialoguesPage />} />
+          <Route path="finance" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><FinancePage /></ProtectedRoute>} />
           <Route path="guide" element={<UserGuidePage />} />
           {/* Admin only */}
           <Route path="users" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><UsersPage /></ProtectedRoute>} />

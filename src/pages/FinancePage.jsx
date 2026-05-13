@@ -1,0 +1,903 @@
+/**
+ * FinancePage — Gestion financière de la plateforme Langues Ivoire
+ *
+ * Trois onglets :
+ *  1. 💰 Tarifs & Paiements  — droits pour Annonces et Publicités
+ *  2. 🤝 Contributions       — dons et parrainages des utilisateurs / organisations
+ *  3. 📊 Comptabilité        — tableau de bord financier consolidé
+ */
+import { useEffect, useState } from 'react';
+import { financeAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon,
+  CheckCircleIcon, XCircleIcon, ClockIcon,
+  BanknotesIcon, ChartBarIcon, UserGroupIcon,
+  ArrowDownTrayIcon, BuildingLibraryIcon,
+} from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
+
+// ─── Constantes ───────────────────────────────────────────────────────────────
+const FCFA = (n) => new Intl.NumberFormat('fr-FR').format(n) + ' FCFA';
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+const METHODES = [
+  { value: 'ORANGE_MONEY', label: '🟠 Orange Money' },
+  { value: 'MTN_MONEY',    label: '🟡 MTN Money'    },
+  { value: 'WAVE',         label: '🔵 Wave'          },
+  { value: 'MOOV_MONEY',   label: '🟣 Moov Money'   },
+  { value: 'VIREMENT',     label: '🏦 Virement bancaire' },
+  { value: 'ESPECES',      label: '💵 Espèces'       },
+];
+
+const TYPES_PAIEMENT = [
+  { value: 'ANNONCE',            label: '📣 Annonce partenaire' },
+  { value: 'PUBLICITE_STANDARD', label: '📢 Publicité standard (7j)' },
+  { value: 'PUBLICITE_PREMIUM',  label: '⭐ Publicité premium (30j)' },
+  { value: 'PARTENARIAT',        label: '🤝 Partenariat annuel' },
+];
+
+const STATUTS_PAI = [
+  { value: 'EN_ATTENTE', label: '⏳ En attente', color: 'bg-amber-100 text-amber-700' },
+  { value: 'RECU',       label: '✅ Reçu',       color: 'bg-green-100 text-green-700' },
+  { value: 'ANNULE',     label: '❌ Annulé',     color: 'bg-red-100 text-red-700'    },
+  { value: 'REMBOURSE',  label: '↩️ Remboursé',  color: 'bg-gray-100 text-gray-600'  },
+];
+
+const OBJETS_CONTRIB = [
+  { value: 'SOUTIEN_GENERAL',   label: '💚 Soutien général'         },
+  { value: 'PARRAINAGE_LANGUE', label: '🌍 Parrainage d\'une langue' },
+  { value: 'ENREGISTREMENT',    label: '🎙️ Enregistrement audio'    },
+  { value: 'TRADUCTION',        label: '📝 Traduction'              },
+  { value: 'DEVELOPPEMENT',     label: '📱 Développement app'       },
+  { value: 'DON_LIBRE',         label: '🎁 Don libre'               },
+];
+
+// Tarifs par défaut (affichés même si l'API ne répond pas encore)
+const TARIFS_DEFAUT = [
+  { id: 'annonce',   type: 'ANNONCE',            label: '📣 Annonce partenaire',       montant: 5000,  duree: null, description: 'Publication d\'une annonce dans l\'app et notifications' },
+  { id: 'pub-std',   type: 'PUBLICITE_STANDARD', label: '📢 Publicité standard',       montant: 15000, duree: 7,   description: 'Bannière publicitaire pendant 7 jours' },
+  { id: 'pub-prem',  type: 'PUBLICITE_PREMIUM',  label: '⭐ Publicité premium',        montant: 50000, duree: 30,  description: 'Publicité prioritaire pendant 30 jours avec audio/vidéo' },
+  { id: 'partenaire',type: 'PARTENARIAT',         label: '🤝 Partenariat institutionnel', montant: null,  duree: 365, description: 'Partenariat annuel — tarif sur devis' },
+];
+
+const PERIODE_OPTIONS = [
+  { value: 'mois',      label: 'Ce mois'      },
+  { value: 'trimestre', label: 'Ce trimestre' },
+  { value: 'annee',     label: 'Cette année'  },
+  { value: 'tout',      label: 'Tout'         },
+];
+
+// ─── Composant statut badge ───────────────────────────────────────────────────
+function StatutBadge({ value, options }) {
+  const opt = options.find(o => o.value === value) || options[0];
+  return <span className={`badge text-xs ${opt.color}`}>{opt.label}</span>;
+}
+
+// ─── Modal Paiement (annonce / publicité) ────────────────────────────────────
+function ModalPaiement({ item, onClose, onSave }) {
+  const EMPTY = { type: 'ANNONCE', payeurNom: '', payeurEmail: '', payeurOrganisation: '',
+    montant: '', methode: 'ORANGE_MONEY', statut: 'EN_ATTENTE', reference: '',
+    dateEcheance: '', notes: '', contentId: '' };
+  const [form, setForm] = useState(item ? {
+    type: item.type || 'ANNONCE', payeurNom: item.payeurNom || '',
+    payeurEmail: item.payeurEmail || '', payeurOrganisation: item.payeurOrganisation || '',
+    montant: item.montant || '', methode: item.methode || 'ORANGE_MONEY',
+    statut: item.statut || 'EN_ATTENTE', reference: item.reference || '',
+    dateEcheance: item.dateEcheance?.slice(0,10) || '', notes: item.notes || '', contentId: item.contentId || '',
+  } : EMPTY);
+  const [saving, setSaving] = useState(false);
+  const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = async () => {
+    if (!form.payeurNom || !form.montant) { toast.error('Nom du payeur et montant requis'); return; }
+    setSaving(true);
+    try { await onSave(form); onClose(); }
+    catch { toast.error('Erreur lors de la sauvegarde'); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg font-bold text-gray-900 mb-5">
+          {item ? 'Modifier le paiement' : 'Enregistrer un paiement'}
+        </h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Type de prestation *</label>
+            <select className="input" value={form.type} onChange={e => f('type', e.target.value)}>
+              {TYPES_PAIEMENT.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nom / Contact *</label>
+              <input className="input" value={form.payeurNom} onChange={e => f('payeurNom', e.target.value)} placeholder="Prénom Nom"/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Organisation</label>
+              <input className="input" value={form.payeurOrganisation} onChange={e => f('payeurOrganisation', e.target.value)} placeholder="Société / Structure"/>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input className="input" type="email" value={form.payeurEmail} onChange={e => f('payeurEmail', e.target.value)}/>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Montant (FCFA) *</label>
+              <input className="input" type="number" value={form.montant} onChange={e => f('montant', e.target.value)} placeholder="15000"/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Méthode de paiement</label>
+              <select className="input" value={form.methode} onChange={e => f('methode', e.target.value)}>
+                {METHODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+              <select className="input" value={form.statut} onChange={e => f('statut', e.target.value)}>
+                {STATUTS_PAI.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date d'échéance</label>
+              <input className="input" type="date" value={form.dateEcheance} onChange={e => f('dateEcheance', e.target.value)}/>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Référence de paiement</label>
+            <input className="input" value={form.reference} onChange={e => f('reference', e.target.value)} placeholder="N° de transaction, reçu…"/>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes internes</label>
+            <textarea className="input resize-none" rows={2} value={form.notes} onChange={e => f('notes', e.target.value)}/>
+          </div>
+        </div>
+        <div className="flex gap-3 mt-6">
+          <button onClick={onClose} className="btn-secondary flex-1">Annuler</button>
+          <button onClick={handleSave} disabled={saving} className="btn-primary flex-1">
+            {saving ? 'Sauvegarde…' : item ? 'Mettre à jour' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Modal Contribution financière ───────────────────────────────────────────
+function ModalContribution({ item, onClose, onSave }) {
+  const EMPTY = { contributeurNom: '', contributeurEmail: '', contributeurOrganisation: '',
+    isOrganisation: false, montant: '', objet: 'SOUTIEN_GENERAL', langueId: '',
+    methode: 'ORANGE_MONEY', statut: 'EN_ATTENTE', reference: '', message: '', dateReception: '' };
+  const [form, setForm] = useState(item ? {
+    contributeurNom: item.contributeurNom || '', contributeurEmail: item.contributeurEmail || '',
+    contributeurOrganisation: item.contributeurOrganisation || '',
+    isOrganisation: item.isOrganisation || false, montant: item.montant || '',
+    objet: item.objet || 'SOUTIEN_GENERAL', langueId: item.langueId || '',
+    methode: item.methode || 'ORANGE_MONEY', statut: item.statut || 'EN_ATTENTE',
+    reference: item.reference || '', message: item.message || '',
+    dateReception: item.dateReception?.slice(0,10) || '',
+  } : EMPTY);
+  const [saving, setSaving] = useState(false);
+  const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = async () => {
+    if (!form.contributeurNom || !form.montant) { toast.error('Nom et montant requis'); return; }
+    setSaving(true);
+    try { await onSave(form); onClose(); }
+    catch { toast.error('Erreur lors de la sauvegarde'); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg font-bold text-gray-900 mb-5">
+          {item ? 'Modifier la contribution' : 'Enregistrer une contribution'}
+        </h2>
+        <div className="space-y-4">
+          {/* Type contributeur */}
+          <div className="flex gap-3">
+            {[{ v: false, l: '👤 Particulier' }, { v: true, l: '🏢 Organisation' }].map(opt => (
+              <button key={String(opt.v)} type="button" onClick={() => f('isOrganisation', opt.v)}
+                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-colors ${
+                  form.isOrganisation === opt.v ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                }`}>
+                {opt.l}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nom / Prénom *</label>
+              <input className="input" value={form.contributeurNom} onChange={e => f('contributeurNom', e.target.value)}/>
+            </div>
+            {form.isOrganisation && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Organisation *</label>
+                <input className="input" value={form.contributeurOrganisation} onChange={e => f('contributeurOrganisation', e.target.value)} placeholder="Nom de l'organisation"/>
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input className="input" type="email" value={form.contributeurEmail} onChange={e => f('contributeurEmail', e.target.value)}/>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Montant (FCFA) *</label>
+              <input className="input" type="number" value={form.montant} onChange={e => f('montant', e.target.value)}/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Objet de la contribution</label>
+              <select className="input" value={form.objet} onChange={e => f('objet', e.target.value)}>
+                {OBJETS_CONTRIB.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Méthode</label>
+              <select className="input" value={form.methode} onChange={e => f('methode', e.target.value)}>
+                {METHODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+              <select className="input" value={form.statut} onChange={e => f('statut', e.target.value)}>
+                {STATUTS_PAI.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date de réception</label>
+              <input className="input" type="date" value={form.dateReception} onChange={e => f('dateReception', e.target.value)}/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Référence</label>
+              <input className="input" value={form.reference} onChange={e => f('reference', e.target.value)} placeholder="Reçu, transaction…"/>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Message du contributeur</label>
+            <textarea className="input resize-none" rows={3} value={form.message} onChange={e => f('message', e.target.value)} placeholder="Message d'accompagnement (optionnel)…"/>
+          </div>
+        </div>
+        <div className="flex gap-3 mt-6">
+          <button onClick={onClose} className="btn-secondary flex-1">Annuler</button>
+          <button onClick={handleSave} disabled={saving} className="btn-primary flex-1">
+            {saving ? 'Sauvegarde…' : item ? 'Mettre à jour' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Onglet Tarifs & Paiements ────────────────────────────────────────────────
+function TarifsTab({ isAdmin }) {
+  const [paiements, setPaiements]     = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [tarifs, setTarifs]           = useState(TARIFS_DEFAUT);
+  const [filterStatut, setFilterStatut] = useState('');
+  const [filterType, setFilterType]   = useState('');
+  const [search, setSearch]           = useState('');
+  const [showModal, setShowModal]     = useState(false);
+  const [editItem, setEditItem]       = useState(null);
+  const [editTarif, setEditTarif]     = useState(null);
+  const [tempMontant, setTempMontant] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { data } = await financeAPI.getPaiements({ limit: 100 });
+      setPaiements(data.data || []);
+    } catch { setPaiements([]); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filtered = paiements.filter(p => {
+    if (filterStatut && p.statut !== filterStatut) return false;
+    if (filterType   && p.type   !== filterType)   return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!['payeurNom','payeurOrganisation','reference'].some(k => (p[k]||'').toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
+
+  const totalRecu    = paiements.filter(p => p.statut === 'RECU').reduce((s, p) => s + (p.montant || 0), 0);
+  const totalAttente = paiements.filter(p => p.statut === 'EN_ATTENTE').reduce((s, p) => s + (p.montant || 0), 0);
+  const totalMois    = paiements.filter(p => {
+    if (p.statut !== 'RECU') return false;
+    const d = new Date(p.createdAt); const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).reduce((s, p) => s + (p.montant || 0), 0);
+
+  const handleSavePaiement = async (form) => {
+    if (editItem) {
+      await financeAPI.updatePaiement(editItem.id, form);
+      toast.success('Paiement mis à jour');
+    } else {
+      await financeAPI.createPaiement(form);
+      toast.success('Paiement enregistré');
+    }
+    load();
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Supprimer ce paiement ?')) return;
+    try { await financeAPI.deletePaiement(id); toast.success('Supprimé'); load(); }
+    catch { toast.error('Erreur'); }
+  };
+
+  const handleMarkRecu = async (p) => {
+    try {
+      await financeAPI.updatePaiement(p.id, { statut: 'RECU' });
+      toast.success('Marqué comme reçu ✅');
+      load();
+    } catch { toast.error('Erreur'); }
+  };
+
+  const saveTarif = async (t) => {
+    try {
+      await financeAPI.updateTarif(t.id, { montant: parseInt(tempMontant) || t.montant });
+      toast.success('Tarif mis à jour');
+    } catch {}
+    setTarifs(prev => prev.map(x => x.id === t.id ? { ...x, montant: parseInt(tempMontant) || x.montant } : x));
+    setEditTarif(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="card py-3 px-5 border-l-4 border-green-400">
+          <p className="text-xl font-bold text-green-600">{FCFA(totalRecu)}</p>
+          <p className="text-sm text-gray-500">Total encaissé</p>
+        </div>
+        <div className="card py-3 px-5 border-l-4 border-amber-400">
+          <p className="text-xl font-bold text-amber-600">{FCFA(totalAttente)}</p>
+          <p className="text-sm text-gray-500">En attente de paiement</p>
+        </div>
+        <div className="card py-3 px-5 border-l-4 border-blue-400">
+          <p className="text-xl font-bold text-blue-600">{FCFA(totalMois)}</p>
+          <p className="text-sm text-gray-500">Encaissé ce mois</p>
+        </div>
+      </div>
+
+      {/* Grille des tarifs */}
+      <div>
+        <h3 className="text-base font-bold text-gray-800 mb-3">Grille tarifaire</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {tarifs.map(t => (
+            <div key={t.id} className="card border border-gray-200 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between mb-2">
+                <p className="font-semibold text-sm text-gray-900">{t.label}</p>
+                {isAdmin && (
+                  <button onClick={() => { setEditTarif(t); setTempMontant(String(t.montant || '')); }}
+                    className="p-1 text-gray-400 hover:text-primary-500 transition-colors">
+                    <PencilIcon className="w-3.5 h-3.5"/>
+                  </button>
+                )}
+              </div>
+              {editTarif?.id === t.id ? (
+                <div className="space-y-2">
+                  <input type="number" className="input text-sm py-1" value={tempMontant}
+                    onChange={e => setTempMontant(e.target.value)} placeholder="Montant FCFA"/>
+                  <div className="flex gap-1">
+                    <button onClick={() => saveTarif(t)} className="flex-1 py-1 text-xs bg-primary-500 text-white rounded-lg">✓</button>
+                    <button onClick={() => setEditTarif(null)} className="flex-1 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg">✕</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-2xl font-bold text-primary-600 my-2">
+                    {t.montant ? FCFA(t.montant) : 'Sur devis'}
+                  </p>
+                  {t.duree && <p className="text-xs text-gray-400">{t.duree} jours</p>}
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{t.description}</p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Liste des paiements */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-bold text-gray-800">Paiements enregistrés</h3>
+          <button onClick={() => { setEditItem(null); setShowModal(true); }}
+            className="btn-primary flex items-center gap-2 text-sm py-2">
+            <PlusIcon className="w-4 h-4"/> Enregistrer un paiement
+          </button>
+        </div>
+
+        {/* Filtres */}
+        <div className="flex gap-3 mb-4 flex-wrap items-center">
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/>
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Rechercher…" className="input pl-9 w-48"/>
+          </div>
+          <select value={filterType} onChange={e => setFilterType(e.target.value)} className="input w-auto">
+            <option value="">Tous les types</option>
+            {TYPES_PAIEMENT.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+          <select value={filterStatut} onChange={e => setFilterStatut(e.target.value)} className="input w-auto">
+            <option value="">Tous les statuts</option>
+            {STATUTS_PAI.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+          <span className="ml-auto text-sm text-gray-400">{filtered.length} paiement(s)</span>
+        </div>
+
+        {loading ? (
+          <div className="space-y-2 animate-pulse">{[1,2,3].map(i => <div key={i} className="h-14 bg-gray-100 rounded-xl"/>)}</div>
+        ) : filtered.length === 0 ? (
+          <div className="card text-center py-12">
+            <BanknotesIcon className="w-10 h-10 text-gray-300 mx-auto mb-3"/>
+            <p className="text-gray-400">Aucun paiement enregistré</p>
+            <button onClick={() => { setEditItem(null); setShowModal(true); }}
+              className="btn-primary mt-4 mx-auto text-sm">Enregistrer le premier paiement</button>
+          </div>
+        ) : (
+          <div className="card overflow-hidden p-0">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  {['Date', 'Payeur', 'Type', 'Montant', 'Méthode', 'Statut', 'Actions'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map(p => (
+                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{fmtDate(p.createdAt)}</td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-900 text-sm">{p.payeurNom}</p>
+                      {p.payeurOrganisation && <p className="text-xs text-gray-400">{p.payeurOrganisation}</p>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="badge bg-blue-100 text-blue-700 text-xs">
+                        {TYPES_PAIEMENT.find(t => t.value === p.type)?.label || p.type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-bold text-gray-900 whitespace-nowrap">{FCFA(p.montant)}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">
+                      {METHODES.find(m => m.value === p.methode)?.label || p.methode}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatutBadge value={p.statut} options={STATUTS_PAI}/>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {p.statut === 'EN_ATTENTE' && (
+                          <button onClick={() => handleMarkRecu(p)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors" title="Marquer reçu">
+                            <CheckCircleIcon className="w-4 h-4"/>
+                          </button>
+                        )}
+                        <button onClick={() => { setEditItem(p); setShowModal(true); }}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-primary-50 transition-colors">
+                          <PencilIcon className="w-4 h-4"/>
+                        </button>
+                        {isAdmin && (
+                          <button onClick={() => handleDelete(p.id)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                            <TrashIcon className="w-4 h-4"/>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {showModal && (
+        <ModalPaiement
+          item={editItem}
+          onClose={() => { setShowModal(false); setEditItem(null); }}
+          onSave={handleSavePaiement}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Onglet Contributions financières ────────────────────────────────────────
+function ContributionsTab() {
+  const [contributions, setContributions] = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [filterStatut, setFilterStatut]   = useState('');
+  const [filterType, setFilterType]       = useState('');
+  const [search, setSearch]               = useState('');
+  const [showModal, setShowModal]         = useState(false);
+  const [editItem, setEditItem]           = useState(null);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { data } = await financeAPI.getContributions({ limit: 200 });
+      setContributions(data.data || []);
+    } catch { setContributions([]); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filtered = contributions.filter(c => {
+    if (filterStatut && c.statut !== filterStatut) return false;
+    if (filterType   && (c.isOrganisation ? 'org' : 'part') !== filterType) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!['contributeurNom','contributeurOrganisation','message'].some(k => (c[k]||'').toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
+
+  const totalRecu  = contributions.filter(c => c.statut === 'RECU').reduce((s, c) => s + (c.montant || 0), 0);
+  const nbOrgs     = contributions.filter(c => c.isOrganisation).length;
+  const totalMois  = contributions.filter(c => {
+    if (c.statut !== 'RECU') return false;
+    const d = new Date(c.dateReception || c.createdAt); const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).reduce((s, c) => s + (c.montant || 0), 0);
+
+  const handleSave = async (form) => {
+    if (editItem) {
+      await financeAPI.updateContribution(editItem.id, form);
+      toast.success('Contribution mise à jour');
+    } else {
+      await financeAPI.createContribution(form);
+      toast.success('Contribution enregistrée');
+    }
+    load();
+  };
+
+  const handleMarkRecu = async (c) => {
+    try { await financeAPI.updateContribution(c.id, { statut: 'RECU' }); toast.success('Reçu ✅'); load(); }
+    catch { toast.error('Erreur'); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Supprimer cette contribution ?')) return;
+    try { await financeAPI.deleteContribution(id); toast.success('Supprimée'); load(); }
+    catch { toast.error('Erreur'); }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="card py-3 px-5 border-l-4 border-green-400">
+          <p className="text-xl font-bold text-green-600">{FCFA(totalRecu)}</p>
+          <p className="text-sm text-gray-500">Total reçu</p>
+        </div>
+        <div className="card py-3 px-5 border-l-4 border-blue-400">
+          <p className="text-xl font-bold text-blue-600">{FCFA(totalMois)}</p>
+          <p className="text-sm text-gray-500">Ce mois</p>
+        </div>
+        <div className="card py-3 px-5 border-l-4 border-purple-400">
+          <p className="text-xl font-bold text-purple-600">{contributions.length}</p>
+          <p className="text-sm text-gray-500">Contributeurs</p>
+        </div>
+        <div className="card py-3 px-5 border-l-4 border-amber-400">
+          <p className="text-xl font-bold text-amber-600">{nbOrgs}</p>
+          <p className="text-sm text-gray-500">Organisations</p>
+        </div>
+      </div>
+
+      {/* Info mobile */}
+      <div className="bg-primary-50 border border-primary-200 rounded-xl px-4 py-3 text-sm text-primary-800 flex items-start gap-3">
+        <span className="text-lg flex-shrink-0">📱</span>
+        <div>
+          <p className="font-semibold mb-0.5">Contributions via l'application mobile</p>
+          <p className="text-xs text-primary-600">
+            Les utilisateurs peuvent soumettre une contribution financière directement depuis l'écran
+            <strong> Profil → Soutenir Langues Ivoire</strong>. Les contributions mobile apparaissent automatiquement ici.
+          </p>
+        </div>
+      </div>
+
+      {/* Filtres + bouton */}
+      <div className="flex gap-3 flex-wrap items-center">
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/>
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Rechercher…" className="input pl-9 w-48"/>
+        </div>
+        <select value={filterType} onChange={e => setFilterType(e.target.value)} className="input w-auto">
+          <option value="">Tous les contributeurs</option>
+          <option value="part">👤 Particuliers</option>
+          <option value="org">🏢 Organisations</option>
+        </select>
+        <select value={filterStatut} onChange={e => setFilterStatut(e.target.value)} className="input w-auto">
+          <option value="">Tous les statuts</option>
+          {STATUTS_PAI.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+        <button onClick={() => { setEditItem(null); setShowModal(true); }}
+          className="ml-auto btn-primary flex items-center gap-2 text-sm py-2">
+          <PlusIcon className="w-4 h-4"/> Enregistrer une contribution
+        </button>
+      </div>
+
+      {/* Liste */}
+      {loading ? (
+        <div className="space-y-2 animate-pulse">{[1,2,3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-xl"/>)}</div>
+      ) : filtered.length === 0 ? (
+        <div className="card text-center py-14">
+          <UserGroupIcon className="w-10 h-10 text-gray-300 mx-auto mb-3"/>
+          <p className="text-gray-400">Aucune contribution financière</p>
+          <button onClick={() => { setEditItem(null); setShowModal(true); }}
+            className="btn-primary mt-4 mx-auto text-sm">Enregistrer la première contribution</button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(c => {
+            const objet = OBJETS_CONTRIB.find(o => o.value === c.objet);
+            return (
+              <div key={c.id} className="card hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${c.isOrganisation ? 'bg-purple-100' : 'bg-blue-100'}`}>
+                    <span className="text-lg">{c.isOrganisation ? '🏢' : '👤'}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <p className="font-semibold text-gray-900">{c.contributeurNom}</p>
+                      {c.contributeurOrganisation && <span className="badge bg-purple-100 text-purple-700 text-xs">{c.contributeurOrganisation}</span>}
+                      {objet && <span className="badge bg-gray-100 text-gray-600 text-xs">{objet.label}</span>}
+                      <StatutBadge value={c.statut} options={STATUTS_PAI}/>
+                    </div>
+                    {c.contributeurEmail && <p className="text-xs text-gray-400 mb-1">{c.contributeurEmail}</p>}
+                    {c.message && <p className="text-sm text-gray-600 italic">"{c.message}"</p>}
+                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                      <ClockIcon className="w-3 h-3"/>
+                      {fmtDate(c.dateReception || c.createdAt)}
+                      {c.methode && <> · {METHODES.find(m => m.value === c.methode)?.label}</>}
+                      {c.reference && <> · Réf: {c.reference}</>}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <p className="text-xl font-bold text-gray-900">{FCFA(c.montant)}</p>
+                    <div className="flex gap-1">
+                      {c.statut === 'EN_ATTENTE' && (
+                        <button onClick={() => handleMarkRecu(c)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors" title="Marquer reçu">
+                          <CheckCircleIcon className="w-4 h-4"/>
+                        </button>
+                      )}
+                      <button onClick={() => { setEditItem(c); setShowModal(true); }}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-primary-50 transition-colors">
+                        <PencilIcon className="w-4 h-4"/>
+                      </button>
+                      <button onClick={() => handleDelete(c.id)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                        <TrashIcon className="w-4 h-4"/>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {showModal && (
+        <ModalContribution
+          item={editItem}
+          onClose={() => { setShowModal(false); setEditItem(null); }}
+          onSave={handleSave}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Onglet Comptabilité ─────────────────────────────────────────────────────
+function ComptabiliteTab() {
+  const [periode, setPeriode]   = useState('mois');
+  const [resume, setResume]     = useState(null);
+  const [loading, setLoading]   = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { data } = await financeAPI.getResume({ periode });
+      setResume(data);
+    } catch {
+      // Données simulées si l'API n'existe pas encore
+      setResume({
+        totalEncaisse: 0, totalAnnonces: 0, totalPublicites: 0,
+        totalContributions: 0, totalEnAttente: 0, totalRembourses: 0,
+        nbTransactions: 0, nbContributeurs: 0,
+        lignes: [],
+      });
+    }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, [periode]);
+
+  const r = resume || {};
+
+  return (
+    <div className="space-y-6">
+      {/* Filtre période */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-gray-600">Période :</span>
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+          {PERIODE_OPTIONS.map(p => (
+            <button key={p.value} onClick={() => setPeriode(p.value)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                periode === p.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+        <button onClick={load} className="ml-auto btn-secondary flex items-center gap-2 text-sm py-1.5">
+          <ArrowDownTrayIcon className="w-4 h-4"/> Exporter CSV
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="space-y-4 animate-pulse">
+          <div className="grid grid-cols-3 gap-4">{[1,2,3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-xl"/>)}</div>
+          <div className="h-64 bg-gray-100 rounded-xl"/>
+        </div>
+      ) : (
+        <>
+          {/* KPIs */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="card py-4 px-5 border-l-4 border-green-500">
+              <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Total encaissé</p>
+              <p className="text-2xl font-bold text-green-600">{FCFA(r.totalEncaisse || 0)}</p>
+            </div>
+            <div className="card py-4 px-5 border-l-4 border-amber-400">
+              <p className="text-xs font-semibold text-gray-400 uppercase mb-1">En attente</p>
+              <p className="text-2xl font-bold text-amber-600">{FCFA(r.totalEnAttente || 0)}</p>
+            </div>
+            <div className="card py-4 px-5 border-l-4 border-gray-300">
+              <p className="text-xs font-semibold text-gray-400 uppercase mb-1">Remboursé</p>
+              <p className="text-2xl font-bold text-gray-600">{FCFA(r.totalRembourses || 0)}</p>
+            </div>
+          </div>
+
+          {/* Ventilation par source */}
+          <div>
+            <h3 className="text-base font-bold text-gray-800 mb-3">Ventilation par source de revenus</h3>
+            <div className="card overflow-hidden p-0">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    {['Source', 'Encaissé', 'En attente', 'Total', '% du total'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {[
+                    { label: '📣 Annonces',          encaisse: r.totalAnnonces || 0,       attente: 0 },
+                    { label: '📢 Publicités',         encaisse: r.totalPublicites || 0,     attente: 0 },
+                    { label: '🤝 Contributions',      encaisse: r.totalContributions || 0,  attente: 0 },
+                  ].map((row, i) => {
+                    const total = (r.totalEncaisse || 0);
+                    const pct   = total > 0 ? Math.round((row.encaisse / total) * 100) : 0;
+                    return (
+                      <tr key={i} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-gray-900">{row.label}</td>
+                        <td className="px-4 py-3 font-semibold text-green-600">{FCFA(row.encaisse)}</td>
+                        <td className="px-4 py-3 text-amber-600">{FCFA(row.attente)}</td>
+                        <td className="px-4 py-3 font-bold text-gray-900">{FCFA(row.encaisse + row.attente)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-2 bg-gray-100 rounded-full max-w-[80px]">
+                              <div className="h-2 bg-primary-500 rounded-full transition-all" style={{ width: `${pct}%` }}/>
+                            </div>
+                            <span className="text-xs text-gray-500">{pct}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {/* Ligne total */}
+                  <tr className="bg-gray-50 font-bold">
+                    <td className="px-4 py-3 text-gray-900">TOTAL</td>
+                    <td className="px-4 py-3 text-green-700">{FCFA(r.totalEncaisse || 0)}</td>
+                    <td className="px-4 py-3 text-amber-700">{FCFA(r.totalEnAttente || 0)}</td>
+                    <td className="px-4 py-3 text-gray-900">{FCFA((r.totalEncaisse || 0) + (r.totalEnAttente || 0))}</td>
+                    <td className="px-4 py-3 text-gray-500">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Métriques complémentaires */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="card py-3 px-5">
+              <p className="text-2xl font-bold text-gray-800">{r.nbTransactions || 0}</p>
+              <p className="text-sm text-gray-500">Transactions sur la période</p>
+            </div>
+            <div className="card py-3 px-5">
+              <p className="text-2xl font-bold text-gray-800">{r.nbContributeurs || 0}</p>
+              <p className="text-sm text-gray-500">Contributeurs distincts</p>
+            </div>
+          </div>
+
+          {/* Avertissement backend */}
+          {(r.totalEncaisse === 0 && r.nbTransactions === 0) && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700">
+              <p className="font-semibold mb-1">📡 En attente des données backend</p>
+              <p>Les endpoints <code>/finance/resume</code>, <code>/finance/paiements</code> et <code>/finance/contributions</code> doivent être implémentés côté API pour afficher les données réelles.</p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Page principale ──────────────────────────────────────────────────────────
+export default function FinancePage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const [activeTab, setActiveTab] = useState('tarifs');
+
+  const TABS = [
+    { key: 'tarifs',        label: '💰 Tarifs & Paiements',      icon: BanknotesIcon    },
+    { key: 'contributions', label: '🤝 Contributions',            icon: UserGroupIcon    },
+    { key: 'comptabilite',  label: '📊 Comptabilité',             icon: ChartBarIcon     },
+  ];
+
+  return (
+    <div className="p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <BuildingLibraryIcon className="w-7 h-7 text-primary-500"/>
+            Finance
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Gestion des droits, paiements, contributions et comptabilité de la plateforme
+          </p>
+        </div>
+      </div>
+
+      {/* Onglets */}
+      <div className="flex gap-1 border-b border-gray-200 mb-6">
+        {TABS.map(tab => (
+          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-t-lg transition-colors -mb-px ${
+              activeTab === tab.key
+                ? 'bg-white border border-b-white border-gray-200 text-primary-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}>
+            <tab.icon className="w-4 h-4"/>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Contenu des onglets */}
+      {activeTab === 'tarifs'        && <TarifsTab isAdmin={isAdmin}/>}
+      {activeTab === 'contributions' && <ContributionsTab/>}
+      {activeTab === 'comptabilite'  && <ComptabiliteTab/>}
+    </div>
+  );
+}

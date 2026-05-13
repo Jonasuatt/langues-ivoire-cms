@@ -152,6 +152,27 @@ export const certificatesAPI = {
   issue: (data) => api.post('/certificates', data),
 };
 
+export const financeAPI = {
+  // Tarifs
+  getTarifs: () => api.get('/finance/tarifs'),
+  updateTarif: (id, data) => api.patch(`/finance/tarifs/${id}`, data),
+
+  // Paiements (annonces / publicités)
+  getPaiements: (params) => api.get('/finance/paiements', { params }),
+  createPaiement: (data) => api.post('/finance/paiements', data),
+  updatePaiement: (id, data) => api.patch(`/finance/paiements/${id}`, data),
+  deletePaiement: (id) => api.delete(`/finance/paiements/${id}`),
+
+  // Contributions financières (dons / parrainages)
+  getContributions: (params) => api.get('/finance/contributions', { params }),
+  createContribution: (data) => api.post('/finance/contributions', data),
+  updateContribution: (id, data) => api.patch(`/finance/contributions/${id}`, data),
+  deleteContribution: (id) => api.delete(`/finance/contributions/${id}`),
+
+  // Comptabilité / résumé
+  getResume: (params) => api.get('/finance/resume', { params }),
+};
+
 export const textContentAPI = {
   list: (params) => api.get('/text-contents/admin/list', { params }),
   create: (data) => api.post('/text-contents/admin', data),
