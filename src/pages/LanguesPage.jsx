@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   GlobeAltIcon, CheckCircleIcon, XCircleIcon,
   MapPinIcon, PlusIcon, PencilIcon, BookOpenIcon,
@@ -7,9 +7,9 @@ import {
 import { languagesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
-// ── Coordonnées géographiques de la Côte d'Ivoire (calées sur le PNG 713×746) ──
+// ── Coordonnées géographiques de la Côte d'Ivoire (calées sur le PNG 1500×1573) ──
 // Le PNG couvre : ouest -8.7° / est -2.3° / nord 10.9° / sud 4.2°
-const GEO = { west: -8.7, east: -2.3, north: 10.9, south: 4.2, W: 713, H: 746 };
+const GEO = { west: -8.7, east: -2.3, north: 10.9, south: 4.2, W: 1500, H: 1573 };
 
 function geoToSVG(lat, lng) {
   return {
@@ -120,81 +120,167 @@ const EMPTY_FORM = {
   couleur: '#0B7A52', emoji: '', lat: '', lng: '', isActive: true,
 };
 
-// ── Carte SVG avec fond PNG réel ───────────────────────────────────────────────
+// ── Carte SVG avec fond PNG réel + zoom/pan ───────────────────────────────────
 export function CarteCI({ langues = [], selectedId = null, onMarkerClick, onMapClick, editingMarker = null, style = {} }) {
+  const svgRef = useRef(null);
+  const [vb, setVb] = useState({ x: 0, y: 0, w: GEO.W, h: GEO.H });
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef(null);
+  const zoom = GEO.W / vb.w;
+
+  // ── Zoom molette ──
+  const handleWheel = useCallback((e) => {
+    e.preventDefault();
+    const rect = svgRef.current.getBoundingClientRect();
+    const mx = ((e.clientX - rect.left) / rect.width)  * vb.w + vb.x;
+    const my = ((e.clientY - rect.top)  / rect.height) * vb.h + vb.y;
+    const factor = e.deltaY < 0 ? 0.8 : 1.25;
+    setVb(v => {
+      const nw = Math.min(Math.max(v.w * factor, GEO.W / 10), GEO.W);
+      const nh = Math.min(Math.max(v.h * factor, GEO.H / 10), GEO.H);
+      return {
+        x: Math.max(0, Math.min(mx - (mx - v.x) * (nw / v.w), GEO.W - nw)),
+        y: Math.max(0, Math.min(my - (my - v.y) * (nh / v.h), GEO.H - nh)),
+        w: nw, h: nh,
+      };
+    });
+  }, [vb]);
+
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
+
+  // ── Pan (drag) ──
+  const handleMouseDown = (e) => {
+    if (onMapClick && zoom <= 1.05) return; // En mode édition non zoomé → clic normal
+    if (e.button !== 0) return;
+    setDragging(true);
+    dragStart.current = { x: e.clientX, y: e.clientY, vb: { ...vb } };
+  };
+  const handleMouseMove = useCallback((e) => {
+    if (!dragging || !dragStart.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const dx = (dragStart.current.x - e.clientX) / rect.width  * vb.w;
+    const dy = (dragStart.current.y - e.clientY) / rect.height * vb.h;
+    setVb(v => ({
+      ...v,
+      x: Math.max(0, Math.min(dragStart.current.vb.x + dx, GEO.W - v.w)),
+      y: Math.max(0, Math.min(dragStart.current.vb.y + dy, GEO.H - v.h)),
+    }));
+  }, [dragging, vb.w, vb.h]);
+  const handleMouseUp = () => { setDragging(false); dragStart.current = null; };
+
+  // ── Boutons zoom ──
+  const zoomIn  = () => setVb(v => { const nw = Math.max(v.w * 0.65, GEO.W / 10); const nh = Math.max(v.h * 0.65, GEO.H / 10); return { x: Math.min(v.x + (v.w - nw) / 2, GEO.W - nw), y: Math.min(v.y + (v.h - nh) / 2, GEO.H - nh), w: nw, h: nh }; });
+  const zoomOut = () => setVb(v => { const nw = Math.min(v.w * 1.55, GEO.W); const nh = Math.min(v.h * 1.55, GEO.H); return { x: Math.max(0, v.x - (nw - v.w) / 2), y: Math.max(0, v.y - (nh - v.h) / 2), w: nw, h: nh }; });
+  const zoomReset = () => setVb({ x: 0, y: 0, w: GEO.W, h: GEO.H });
+
+  // ── Clic carte (placement marqueur) ──
+  const handleClick = (e) => {
+    if (!onMapClick || dragging) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const svgX = ((e.clientX - rect.left) / rect.width)  * vb.w + vb.x;
+    const svgY = ((e.clientY - rect.top)  / rect.height) * vb.h + vb.y;
+    onMapClick(svgToGeo(svgX, svgY));
+  };
+
+  const cursor = dragging ? 'grabbing' : onMapClick ? 'crosshair' : zoom > 1.05 ? 'grab' : 'default';
+
   return (
-    <svg
-      viewBox={`0 0 ${GEO.W} ${GEO.H}`}
-      style={{ borderRadius: 10, cursor: onMapClick ? 'crosshair' : 'default', display: 'block', ...style }}
-      onClick={e => {
-        if (!onMapClick) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const svgX = ((e.clientX - rect.left) / rect.width)  * GEO.W;
-        const svgY = ((e.clientY - rect.top)  / rect.height) * GEO.H;
-        onMapClick(svgToGeo(svgX, svgY));
-      }}
-    >
-      {/* ── Fond : carte réelle Côte d'Ivoire ── */}
-      <image href="/carte-ci.png" x="0" y="0" width={GEO.W} height={GEO.H} />
+    <div style={{ position: 'relative', display: 'inline-block', ...style }}>
+      <svg
+        ref={svgRef}
+        viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
+        style={{ borderRadius: 10, cursor, display: 'block', width: '100%', height: '100%' }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onClick={handleClick}
+      >
+        {/* ── Fond : carte réelle Côte d'Ivoire ── */}
+        <image href="/carte-ci.png" x="0" y="0" width={GEO.W} height={GEO.H} />
 
-      {/* ── Villes repères ── */}
-      {CITIES.map(c => {
-        const { x, y } = geoToSVG(c.lat, c.lng);
-        return (
-          <g key={c.nom}>
-            <circle cx={x} cy={y} r="3" fill="#37474F" opacity="0.85" />
-            <text x={x + 5} y={y + 1} fontSize="8" fill="#1A237E" fontFamily="Arial"
-              fontWeight="600" style={{ textShadow: '0 0 3px white' }}>{c.nom}</text>
-          </g>
-        );
-      })}
+        {/* ── Villes repères ── */}
+        {CITIES.map(c => {
+          const { x, y } = geoToSVG(c.lat, c.lng);
+          const fs = Math.round(14 * (vb.w / GEO.W));
+          return (
+            <g key={c.nom}>
+              <circle cx={x} cy={y} r={fs * 0.35} fill="#37474F" opacity="0.85" />
+              <text x={x + fs * 0.6} y={y + fs * 0.15} fontSize={fs} fill="#1A237E"
+                fontFamily="Arial" fontWeight="600">{c.nom}</text>
+            </g>
+          );
+        })}
 
-      {/* ── Marqueurs des langues ── */}
-      {langues.filter(l => l.lat && l.lng).map(lang => {
-        const { x, y } = geoToSVG(parseFloat(lang.lat), parseFloat(lang.lng));
-        const isSelected = selectedId === lang.id;
-        const color = lang.couleur || '#0B7A52';
-        return (
-          <g key={lang.id} style={{ cursor: onMarkerClick ? 'pointer' : 'default' }}
-            onClick={e => { e.stopPropagation(); onMarkerClick?.(lang); }}>
-            {/* Ombre */}
-            <circle cx={x + 1} cy={y + 2} r={isSelected ? 16 : 12} fill="#000" opacity="0.15" />
-            {/* Cercle principal */}
-            <circle cx={x} cy={y} r={isSelected ? 15 : 11}
-              fill={color} stroke={isSelected ? '#fff' : 'rgba(255,255,255,0.6)'}
-              strokeWidth={isSelected ? 3 : 1.5} />
-            {/* Emoji / code */}
-            <text x={x} y={y + 1} fontSize={isSelected ? 10 : 8} fill="#fff"
-              textAnchor="middle" dominantBaseline="middle" fontWeight="bold" fontFamily="Arial">
-              {lang.emoji || lang.code?.slice(0, 3).toUpperCase()}
-            </text>
-            {/* Label sur sélection */}
-            {isSelected && (
-              <>
-                <rect x={x - 32} y={y + 18} width="64" height="14" rx="4" fill="white" opacity="0.92" />
-                <text x={x} y={y + 26} fontSize="8.5" fill={color}
-                  textAnchor="middle" fontWeight="bold" fontFamily="Arial">{lang.nom}</text>
-              </>
-            )}
-          </g>
-        );
-      })}
+        {/* ── Marqueurs des langues ── */}
+        {langues.filter(l => l.lat && l.lng).map(lang => {
+          const { x, y } = geoToSVG(parseFloat(lang.lat), parseFloat(lang.lng));
+          const isSelected = selectedId === lang.id;
+          const color = lang.couleur || '#0B7A52';
+          const r = Math.round((isSelected ? 22 : 16) * (vb.w / GEO.W));
+          const fs = Math.round((isSelected ? 14 : 12) * (vb.w / GEO.W));
+          return (
+            <g key={lang.id} style={{ cursor: onMarkerClick ? 'pointer' : 'default' }}
+              onClick={e => { e.stopPropagation(); onMarkerClick?.(lang); }}>
+              <circle cx={x + 1} cy={y + 2} r={r} fill="#000" opacity="0.15" />
+              <circle cx={x} cy={y} r={r}
+                fill={color} stroke={isSelected ? '#fff' : 'rgba(255,255,255,0.6)'}
+                strokeWidth={isSelected ? Math.max(2, r * 0.15) : Math.max(1, r * 0.1)} />
+              <text x={x} y={y + 1} fontSize={fs} fill="#fff"
+                textAnchor="middle" dominantBaseline="middle" fontWeight="bold" fontFamily="Arial">
+                {lang.emoji || lang.code?.slice(0, 3).toUpperCase()}
+              </text>
+              {isSelected && (
+                <>
+                  <rect x={x - r * 2.2} y={y + r + 4} width={r * 4.4} height={fs + 4} rx={fs * 0.4} fill="white" opacity="0.92" />
+                  <text x={x} y={y + r + fs + 4} fontSize={fs * 0.9} fill={color}
+                    textAnchor="middle" fontWeight="bold" fontFamily="Arial">{lang.nom}</text>
+                </>
+              )}
+            </g>
+          );
+        })}
 
-      {/* ── Marqueur en cours d'édition ── */}
-      {editingMarker?.lat && editingMarker?.lng && (() => {
-        const { x, y } = geoToSVG(parseFloat(editingMarker.lat), parseFloat(editingMarker.lng));
-        return (
-          <g>
-            <circle cx={x} cy={y} r="13" fill={editingMarker.couleur || '#F47920'}
-              stroke="#fff" strokeWidth="2.5" opacity="0.95" strokeDasharray="5 3" />
-            <text x={x} y={y + 1} fontSize="9" fill="#fff" textAnchor="middle"
-              dominantBaseline="middle" fontWeight="bold" fontFamily="Arial">
-              {editingMarker.emoji || editingMarker.code?.slice(0, 2).toUpperCase() || '?'}
-            </text>
-          </g>
-        );
-      })()}
-    </svg>
+        {/* ── Marqueur en cours d'édition ── */}
+        {editingMarker?.lat && editingMarker?.lng && (() => {
+          const { x, y } = geoToSVG(parseFloat(editingMarker.lat), parseFloat(editingMarker.lng));
+          const r = Math.round(18 * (vb.w / GEO.W));
+          const fs = Math.round(13 * (vb.w / GEO.W));
+          return (
+            <g>
+              <circle cx={x} cy={y} r={r} fill={editingMarker.couleur || '#F47920'}
+                stroke="#fff" strokeWidth={Math.max(2, r * 0.12)} opacity="0.95" strokeDasharray={`${r * 0.4} ${r * 0.2}`} />
+              <text x={x} y={y + 1} fontSize={fs} fill="#fff" textAnchor="middle"
+                dominantBaseline="middle" fontWeight="bold" fontFamily="Arial">
+                {editingMarker.emoji || editingMarker.code?.slice(0, 2).toUpperCase() || '?'}
+              </text>
+            </g>
+          );
+        })()}
+      </svg>
+
+      {/* ── Contrôles zoom ── */}
+      <div style={{ position: 'absolute', bottom: 10, right: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <button onClick={zoomIn}
+          style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid rgba(0,0,0,0.15)', background: 'rgba(255,255,255,0.92)', cursor: 'pointer', fontSize: 18, fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }}>+</button>
+        {zoom > 1.05 && (
+          <button onClick={zoomReset}
+            style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid rgba(0,0,0,0.15)', background: 'rgba(255,255,255,0.92)', cursor: 'pointer', fontSize: 10, fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }}>↺</button>
+        )}
+        <button onClick={zoomOut} disabled={zoom <= 1.01}
+          style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid rgba(0,0,0,0.15)', background: zoom <= 1.01 ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.92)', cursor: zoom <= 1.01 ? 'default' : 'pointer', fontSize: 18, fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }}>−</button>
+      </div>
+      {zoom > 1.05 && (
+        <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(0,0,0,0.5)', color: '#fff', borderRadius: 4, padding: '2px 7px', fontSize: 11, fontWeight: 600 }}>
+          ×{zoom.toFixed(1)}
+        </div>
+      )}
+    </div>
   );
 }
 
