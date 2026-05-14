@@ -500,11 +500,16 @@ export default function BienvenueEtSonsPage() {
       {/* ── Bandeau info ── */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 text-sm text-amber-800">
         <MusicalNoteIcon className="w-5 h-5 mt-0.5 flex-shrink-0 text-amber-600" />
-        <div>
-          <strong>Comment ça fonctionne ?</strong> Quand un utilisateur sélectionne une langue pendant
+        <div className="space-y-1">
+          <p><strong>Comment ça fonctionne ?</strong> Quand un utilisateur sélectionne une langue pendant
           l'inscription, l'app joue le son traditionnel (~5 s), puis lit le message de bienvenue à voix haute.
           Utilisez le bouton <strong>Simuler</strong> pour tester la séquence.
-          Le bouton <strong>⟳ Réinitialiser</strong> efface la configuration personnalisée et remet le message par défaut.
+          Le bouton <strong>⟳ Réinitialiser</strong> efface la configuration personnalisée et remet le message par défaut.</p>
+          <p className="text-xs text-amber-700">
+            <strong>✅ Accessible aux éditeurs :</strong> Tous les éditeurs, agents et administrateurs peuvent modifier
+            les messages et ajouter des sons. Pour ajouter une nouvelle langue, rendez-vous dans
+            <strong> Paramètres APP → Langues</strong>.
+          </p>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { videosAPI, languagesAPI } from '../services/api';
-import { PlusIcon, PencilIcon, TrashIcon, PlayIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState, useRef } from 'react';
+import { videosAPI, languagesAPI, uploadAPI } from '../services/api';
+import { PlusIcon, PencilIcon, TrashIcon, PlayIcon, LinkIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import LanguageSelect from '../components/LanguageSelect';
 
@@ -39,6 +39,8 @@ export default function VideosPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [previewId, setPreviewId] = useState(null);
+  const [uploadingThumb, setUploadingThumb] = useState(false);
+  const thumbFileRef = useRef(null);
 
   useEffect(() => {
     languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
@@ -84,6 +86,25 @@ export default function VideosPage() {
       load();
     } catch { toast.error('Erreur lors de la sauvegarde'); }
     finally { setSaving(false); }
+  };
+
+  const handleThumbUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Seules les images sont acceptées'); return; }
+    setUploadingThumb(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const { data } = await uploadAPI.uploadImage(formData);
+      const url = data.imageUrl || data.url || data.fileUrl || '';
+      setForm(f => ({ ...f, thumbnailUrl: url }));
+      toast.success('Miniature uploadée !');
+    } catch { toast.error('Erreur lors de l\'upload'); }
+    finally {
+      setUploadingThumb(false);
+      if (thumbFileRef.current) thumbFileRef.current.value = '';
+    }
   };
 
   const handleDelete = async (v) => {
@@ -279,10 +300,35 @@ export default function VideosPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL Thumbnail (optionnel)</label>
-                <input className="input" value={form.thumbnailUrl}
-                  onChange={e => setForm({...form, thumbnailUrl: e.target.value})}
-                  placeholder="Auto-extrait pour YouTube" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Miniature (optionnel)</label>
+                {form.thumbnailUrl ? (
+                  <div className="flex items-center gap-3 mb-2">
+                    <img src={form.thumbnailUrl} alt="" className="w-24 h-14 object-cover rounded-lg border border-gray-200 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-500 truncate">{form.thumbnailUrl}</p>
+                      <button onClick={() => setForm(f => ({ ...f, thumbnailUrl: '' }))}
+                        className="text-xs text-red-500 hover:text-red-700 mt-1">✕ Retirer</button>
+                    </div>
+                  </div>
+                ) : null}
+                <div className="flex gap-2">
+                  <input className="input flex-1" value={form.thumbnailUrl}
+                    onChange={e => setForm({...form, thumbnailUrl: e.target.value})}
+                    placeholder="URL ou auto-extrait pour YouTube" />
+                  <button
+                    type="button"
+                    onClick={() => thumbFileRef.current?.click()}
+                    disabled={uploadingThumb}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex-shrink-0 disabled:opacity-50"
+                    title="Importer depuis l'ordinateur">
+                    {uploadingThumb
+                      ? <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                      : <ArrowUpTrayIcon className="w-4 h-4" />}
+                    {uploadingThumb ? 'Upload…' : 'Importer'}
+                  </button>
+                </div>
+                <input ref={thumbFileRef} type="file" accept="image/*" className="hidden" onChange={handleThumbUpload} />
+                <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP · La miniature YouTube est extraite automatiquement si vous laissez vide.</p>
               </div>
             </div>
             <div className="flex gap-3 mt-6">

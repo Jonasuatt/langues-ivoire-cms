@@ -12,6 +12,18 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
+// Images exemples gratuites (Unsplash / domaine public) pour faciliter les tests
+const SAMPLE_IMAGES = [
+  { url: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=80', label: 'Marché Afrique' },
+  { url: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=800&q=80', label: 'Village traditionnel' },
+  { url: 'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=800&q=80', label: 'Tisserand' },
+  { url: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&q=80', label: 'Savane Côte d\'Ivoire' },
+  { url: 'https://images.unsplash.com/photo-1555636222-cae831e670b3?w=800&q=80', label: 'Femme en tenue traditionnelle' },
+  { url: 'https://images.unsplash.com/photo-1602524817-1f9f4e62db9a?w=800&q=80', label: 'Musique africaine' },
+  { url: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=800&q=80', label: 'Enfants jouant' },
+  { url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&q=80', label: 'Texture colorée' },
+];
+
 const EMPTY_GALLERY_FORM = {
   languageId: '',
   rubrique: '',
@@ -65,6 +77,7 @@ export default function ImageGalleryPage() {
   // Upload state
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGalleryImage, setUploadingGalleryImage] = useState(false);
+  const [showSamples, setShowSamples] = useState(false);
 
   // File input refs
   const coverFileRef = useRef(null);
@@ -634,6 +647,34 @@ export default function ImageGalleryPage() {
                     value={imageForm.imageUrl}
                     onChange={url => setImageForm(f => ({ ...f, imageUrl: url }))}
                   />
+
+                  {/* Images exemples */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowSamples(s => !s)}
+                      className="text-xs text-emerald-600 hover:text-emerald-800 font-medium underline">
+                      {showSamples ? '▲ Masquer les images exemples' : '▼ Utiliser une image exemple'}
+                    </button>
+                    {showSamples && (
+                      <div className="mt-2 grid grid-cols-4 gap-2">
+                        {SAMPLE_IMAGES.map((img, i) => (
+                          <button key={i} type="button"
+                            onClick={() => { setImageForm(f => ({ ...f, imageUrl: img.url })); setShowSamples(false); }}
+                            title={img.label}
+                            className="relative group overflow-hidden rounded-lg aspect-video bg-gray-100 border-2 border-transparent hover:border-emerald-500 transition-all">
+                            <img src={img.url} alt={img.label}
+                              className="w-full h-full object-cover" loading="lazy" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-end justify-center p-1">
+                              <span className="text-white text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity text-center leading-tight">
+                                {img.label}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Légende */}
                   <div>

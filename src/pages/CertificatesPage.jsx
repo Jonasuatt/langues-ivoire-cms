@@ -5,7 +5,7 @@ import LanguageSelect from '../components/LanguageSelect';
 import {
   AcademicCapIcon, PlusIcon, MagnifyingGlassIcon,
   InformationCircleIcon, XMarkIcon, StarIcon,
-  DocumentTextIcon, TrophyIcon,
+  DocumentTextIcon, TrophyIcon, PencilIcon, CheckIcon, SwatchIcon,
 } from '@heroicons/react/24/outline';
 
 // ── Certificats ─────────────────────────────────────────────────────────────
@@ -424,6 +424,180 @@ function ModalDiplome({ languages, onSave, onClose }) {
   );
 }
 
+// ── Panneau de gestion des modèles ──────────────────────────────────────────
+const TEMPLATE_STORAGE_KEY = 'cert_templates_v1';
+
+const DEFAULT_CERT_TEMPLATE = {
+  accentColor: '#2563eb',
+  bgColor: '#eff6ff',
+  borderColor: '#93c5fd',
+  organisationName: 'LANGUES IVOIRE',
+  organisationSubtitle: 'République de Côte d\'Ivoire',
+  certTitle: 'CERTIFICAT DE NIVEAU',
+  footerText: 'Ce certificat atteste de la validation du niveau par notre système d\'évaluation.',
+  signatureName: 'Direction Pédagogique',
+  logoEmoji: '🎓',
+};
+
+const DEFAULT_DIPL_TEMPLATE = {
+  accentColor: '#d97706',
+  bgColor: '#fffbeb',
+  borderColor: '#fcd34d',
+  organisationName: 'LANGUES IVOIRE',
+  organisationSubtitle: 'République de Côte d\'Ivoire',
+  diplTitle: 'DIPLÔME D\'HONNEUR',
+  footerText: 'Ce diplôme est décerné en reconnaissance des mérites exceptionnels.',
+  signatureName: 'Direction Générale',
+  logoEmoji: '🏆',
+};
+
+function loadTemplates() {
+  try {
+    const saved = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        cert: { ...DEFAULT_CERT_TEMPLATE, ...parsed.cert },
+        dipl: { ...DEFAULT_DIPL_TEMPLATE, ...parsed.dipl },
+      };
+    }
+  } catch {}
+  return { cert: { ...DEFAULT_CERT_TEMPLATE }, dipl: { ...DEFAULT_DIPL_TEMPLATE } };
+}
+
+function TemplatesPanel() {
+  const [activeTpl, setActiveTpl] = useState('cert'); // 'cert' | 'dipl'
+  const [templates, setTemplates] = useState(loadTemplates);
+  const [saved, setSaved] = useState(false);
+
+  const tpl = templates[activeTpl];
+  const setTpl = (updates) => setTemplates(t => ({ ...t, [activeTpl]: { ...t[activeTpl], ...updates } }));
+
+  const handleSave = () => {
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
+    setSaved(true);
+    toast.success('Modèle sauvegardé !');
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const handleReset = () => {
+    const def = activeTpl === 'cert' ? DEFAULT_CERT_TEMPLATE : DEFAULT_DIPL_TEMPLATE;
+    setTemplates(t => ({ ...t, [activeTpl]: { ...def } }));
+    toast.success('Modèle réinitialisé');
+  };
+
+  const Field = ({ label, field, type = 'text', placeholder = '' }) => (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+      {type === 'color' ? (
+        <div className="flex items-center gap-2">
+          <input type="color" value={tpl[field]} onChange={e => setTpl({ [field]: e.target.value })}
+            className="h-8 w-12 rounded border border-gray-200 cursor-pointer" />
+          <input type="text" value={tpl[field]} onChange={e => setTpl({ [field]: e.target.value })}
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-primary-400" />
+        </div>
+      ) : (
+        <input type={type} value={tpl[field]} placeholder={placeholder}
+          onChange={e => setTpl({ [field]: e.target.value })}
+          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary-400" />
+      )}
+    </div>
+  );
+
+  // Aperçu certificat
+  const CertPreview = () => (
+    <div className="rounded-2xl border-4 p-6 text-center relative overflow-hidden"
+      style={{ backgroundColor: tpl.bgColor, borderColor: tpl.borderColor }}>
+      <div className="absolute top-0 left-0 right-0 h-1.5" style={{ backgroundColor: tpl.accentColor }} />
+      <p className="text-xs uppercase tracking-[0.3em] mb-3 font-semibold" style={{ color: tpl.accentColor, opacity: 0.7 }}>
+        {tpl.organisationSubtitle}
+      </p>
+      <div className="text-4xl mb-2">{tpl.logoEmoji}</div>
+      <p className="text-xs uppercase tracking-[0.2em] font-bold mb-1" style={{ color: tpl.accentColor }}>
+        {tpl.organisationName}
+      </p>
+      <p className="text-lg font-bold uppercase tracking-wider mt-3 mb-1" style={{ color: tpl.accentColor }}>
+        {activeTpl === 'cert' ? tpl.certTitle : tpl.diplTitle}
+      </p>
+      <p className="text-sm font-medium text-gray-700 mt-2">décerné à</p>
+      <p className="text-xl font-bold text-gray-900 mt-1">Prénom Nom</p>
+      <p className="text-sm text-gray-600 mt-1">Niveau B1 — Intermédiaire · Baoulé</p>
+      <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-xs mx-auto">{tpl.footerText}</p>
+      <div className="mt-4 pt-3 border-t" style={{ borderColor: tpl.borderColor }}>
+        <p className="text-xs font-semibold" style={{ color: tpl.accentColor }}>{tpl.signatureName}</p>
+        <p className="text-xs text-gray-400">{new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Info */}
+      <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 flex gap-3">
+        <SwatchIcon className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-purple-900">
+          <p className="font-semibold mb-0.5">Personnalisation des modèles</p>
+          <p className="text-xs leading-relaxed">
+            Modifiez les couleurs, textes et logo des certificats et diplômes. Les changements sont
+            sauvegardés localement et appliqués à l'affichage. Pour déployer un nouveau modèle
+            en production, contactez l'équipe technique avec les paramètres ci-dessous.
+          </p>
+        </div>
+      </div>
+
+      {/* Onglets cert / diplôme */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        {[['cert', '🎓 Certificat'], ['dipl', '🏆 Diplôme']].map(([k, label]) => (
+          <button key={k} onClick={() => setActiveTpl(k)}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTpl === k ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}>{label}</button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-8">
+        {/* Formulaire */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <PencilIcon className="w-4 h-4" /> Paramètres du modèle
+          </h3>
+
+          <Field label="Emoji / Logo" field="logoEmoji" placeholder="🎓" />
+          <Field label="Nom de l'organisation" field="organisationName" />
+          <Field label="Sous-titre organisation" field="organisationSubtitle" />
+          <Field label={activeTpl === 'cert' ? "Titre du certificat" : "Titre du diplôme"} field={activeTpl === 'cert' ? 'certTitle' : 'diplTitle'} />
+          <Field label="Couleur principale" field="accentColor" type="color" />
+          <Field label="Couleur de fond" field="bgColor" type="color" />
+          <Field label="Couleur de bordure" field="borderColor" type="color" />
+          <Field label="Texte de bas de page" field="footerText" />
+          <Field label="Nom du signataire" field="signatureName" />
+
+          <div className="flex gap-3 pt-2">
+            <button onClick={handleReset}
+              className="px-4 py-2 text-sm border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors">
+              Réinitialiser
+            </button>
+            <button onClick={handleSave}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-colors">
+              {saved ? <CheckIcon className="w-4 h-4" /> : <CheckIcon className="w-4 h-4" />}
+              {saved ? 'Sauvegardé !' : 'Sauvegarder le modèle'}
+            </button>
+          </div>
+        </div>
+
+        {/* Aperçu en direct */}
+        <div>
+          <h3 className="text-sm font-bold text-gray-700 mb-3">Aperçu en direct</h3>
+          <CertPreview />
+          <p className="text-xs text-gray-400 text-center mt-3">
+            L'aperçu se met à jour en temps réel
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Page principale ──────────────────────────────────────────────────────────
 export default function CertificatesPage() {
   const [tab,       setTab]       = useState('certificats'); // 'certificats' | 'diplomes'
@@ -520,15 +694,18 @@ export default function CertificatesPage() {
         {[
           ['certificats', '🎓 Certificats', certs.length],
           ['diplomes',    '🏆 Diplômes',    diplomes.length],
+          ['modeles',     '🎨 Modèles',     null],
         ].map(([key, label, count]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
               tab === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}>
             {label}
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-              tab === key ? 'bg-gray-100 text-gray-600' : 'bg-gray-200 text-gray-500'
-            }`}>{count}</span>
+            {count !== null && (
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                tab === key ? 'bg-gray-100 text-gray-600' : 'bg-gray-200 text-gray-500'
+              }`}>{count}</span>
+            )}
           </button>
         ))}
       </div>
@@ -761,6 +938,9 @@ export default function CertificatesPage() {
           )}
         </>
       )}
+
+      {/* ══════════════ MODÈLES ══════════════ */}
+      {tab === 'modeles' && <TemplatesPanel />}
 
       {/* ══════════════ MODAUX ══════════════ */}
       {modalCert && (
