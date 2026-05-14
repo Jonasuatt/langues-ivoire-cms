@@ -122,29 +122,40 @@ const EMPTY_FORM = {
 
 // ── Carte SVG avec fond PNG réel + zoom/pan ───────────────────────────────────
 export function CarteCI({ langues = [], selectedId = null, onMarkerClick, onMapClick, editingMarker = null, style = {} }) {
-  const svgRef = useRef(null);
-  const [vb, setVb] = useState({ x: 0, y: 0, w: GEO.W, h: GEO.H });
-  const [dragging, setDragging] = useState(false);
-  const dragStart = useRef(null);
+  const svgRef    = useRef(null);
+  const vbRef     = useRef({ x: 0, y: 0, w: GEO.W, h: GEO.H });
+  const [vb, setVb] = useState(vbRef.current);
+  const isDragging  = useRef(false);
+  const dragStart   = useRef(null);
   const zoom = GEO.W / vb.w;
 
-  // ── Zoom molette ──
+  // Synchronise vbRef avec l'état (pour l'utiliser dans les handlers stables)
+  const updateVb = useCallback((next) => {
+    setVb(v => {
+      const n = typeof next === 'function' ? next(v) : next;
+      vbRef.current = n;
+      return n;
+    });
+  }, []);
+
+  // ── Zoom molette (handler stable via ref) ──
   const handleWheel = useCallback((e) => {
     e.preventDefault();
     const rect = svgRef.current.getBoundingClientRect();
-    const mx = ((e.clientX - rect.left) / rect.width)  * vb.w + vb.x;
-    const my = ((e.clientY - rect.top)  / rect.height) * vb.h + vb.y;
+    const v  = vbRef.current;
+    const mx = ((e.clientX - rect.left) / rect.width)  * v.w + v.x;
+    const my = ((e.clientY - rect.top)  / rect.height) * v.h + v.y;
     const factor = e.deltaY < 0 ? 0.8 : 1.25;
-    setVb(v => {
-      const nw = Math.min(Math.max(v.w * factor, GEO.W / 10), GEO.W);
-      const nh = Math.min(Math.max(v.h * factor, GEO.H / 10), GEO.H);
+    updateVb(v2 => {
+      const nw = Math.min(Math.max(v2.w * factor, GEO.W / 10), GEO.W);
+      const nh = Math.min(Math.max(v2.h * factor, GEO.H / 10), GEO.H);
       return {
-        x: Math.max(0, Math.min(mx - (mx - v.x) * (nw / v.w), GEO.W - nw)),
-        y: Math.max(0, Math.min(my - (my - v.y) * (nh / v.h), GEO.H - nh)),
+        x: Math.max(0, Math.min(mx - (mx - v2.x) * (nw / v2.w), GEO.W - nw)),
+        y: Math.max(0, Math.min(my - (my - v2.y) * (nh / v2.h), GEO.H - nh)),
         w: nw, h: nh,
       };
     });
-  }, [vb]);
+  }, [updateVb]);
 
   useEffect(() => {
     const el = svgRef.current;
@@ -155,28 +166,29 @@ export function CarteCI({ langues = [], selectedId = null, onMarkerClick, onMapC
 
   // ── Pan (drag) ──
   const handleMouseDown = (e) => {
-    if (onMapClick && zoom <= 1.05) return; // En mode édition non zoomé → clic normal
+    if (onMapClick && zoom <= 1.05) return;
     if (e.button !== 0) return;
-    setDragging(true);
-    dragStart.current = { x: e.clientX, y: e.clientY, vb: { ...vb } };
+    isDragging.current = true;
+    dragStart.current  = { x: e.clientX, y: e.clientY, vb: { ...vbRef.current } };
   };
   const handleMouseMove = useCallback((e) => {
-    if (!dragging || !dragStart.current) return;
+    if (!isDragging.current || !dragStart.current) return;
     const rect = svgRef.current.getBoundingClientRect();
-    const dx = (dragStart.current.x - e.clientX) / rect.width  * vb.w;
-    const dy = (dragStart.current.y - e.clientY) / rect.height * vb.h;
-    setVb(v => ({
-      ...v,
-      x: Math.max(0, Math.min(dragStart.current.vb.x + dx, GEO.W - v.w)),
-      y: Math.max(0, Math.min(dragStart.current.vb.y + dy, GEO.H - v.h)),
+    const v    = vbRef.current;
+    const dx   = (dragStart.current.x - e.clientX) / rect.width  * v.w;
+    const dy   = (dragStart.current.y - e.clientY) / rect.height * v.h;
+    updateVb(v2 => ({
+      ...v2,
+      x: Math.max(0, Math.min(dragStart.current.vb.x + dx, GEO.W - v2.w)),
+      y: Math.max(0, Math.min(dragStart.current.vb.y + dy, GEO.H - v2.h)),
     }));
-  }, [dragging, vb.w, vb.h]);
-  const handleMouseUp = () => { setDragging(false); dragStart.current = null; };
+  }, [updateVb]);
+  const handleMouseUp = () => { isDragging.current = false; dragStart.current = null; };
 
   // ── Boutons zoom ──
-  const zoomIn  = () => setVb(v => { const nw = Math.max(v.w * 0.65, GEO.W / 10); const nh = Math.max(v.h * 0.65, GEO.H / 10); return { x: Math.min(v.x + (v.w - nw) / 2, GEO.W - nw), y: Math.min(v.y + (v.h - nh) / 2, GEO.H - nh), w: nw, h: nh }; });
-  const zoomOut = () => setVb(v => { const nw = Math.min(v.w * 1.55, GEO.W); const nh = Math.min(v.h * 1.55, GEO.H); return { x: Math.max(0, v.x - (nw - v.w) / 2), y: Math.max(0, v.y - (nh - v.h) / 2), w: nw, h: nh }; });
-  const zoomReset = () => setVb({ x: 0, y: 0, w: GEO.W, h: GEO.H });
+  const zoomIn    = () => updateVb(v => { const nw = Math.max(v.w * 0.65, GEO.W / 10); const nh = Math.max(v.h * 0.65, GEO.H / 10); return { x: Math.min(v.x + (v.w - nw) / 2, GEO.W - nw), y: Math.min(v.y + (v.h - nh) / 2, GEO.H - nh), w: nw, h: nh }; });
+  const zoomOut   = () => updateVb(v => { const nw = Math.min(v.w * 1.55, GEO.W); const nh = Math.min(v.h * 1.55, GEO.H); return { x: Math.max(0, v.x - (nw - v.w) / 2), y: Math.max(0, v.y - (nh - v.h) / 2), w: nw, h: nh }; });
+  const zoomReset = () => updateVb({ x: 0, y: 0, w: GEO.W, h: GEO.H });
 
   // ── Clic carte (placement marqueur) ──
   const handleClick = (e) => {
