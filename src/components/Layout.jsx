@@ -34,6 +34,7 @@ const NAV_SECTIONS = [
     items: [
       { to: '/', label: 'Tableau de bord', icon: HomeIcon, exact: true },
       { to: '/dictionary', label: 'Dictionnaire', icon: LanguageIcon },
+      { to: '/alphabet-langues', label: 'Alphabet des Langues', icon: LanguageIcon },
       { to: '/conjugation', label: 'Conjugaison', icon: BookOpenIcon },
       { to: '/vocabulary', label: 'Vocabulaire', icon: BookOpenIcon },
       { to: '/lessons', label: 'Leçons', icon: AcademicCapIcon },
