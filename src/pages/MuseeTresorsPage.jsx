@@ -508,7 +508,7 @@ export default function MuseeTresorsPage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="musee-tresors" />
+      <PageHelp pageId="musee" />
     </div>
   );
 }

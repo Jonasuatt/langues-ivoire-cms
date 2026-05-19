@@ -686,7 +686,7 @@ export default function CulturalPage() {
         </div>
       )}
 
-      <PageHelp pageId="cultural" />
+      <PageHelp pageId="culture" />
     </div>
   );
 }

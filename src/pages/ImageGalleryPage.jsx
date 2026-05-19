@@ -822,7 +822,7 @@ export default function ImageGalleryPage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="image-galleries" />
+      <PageHelp pageId="galeries" />
     </div>
   );
 }

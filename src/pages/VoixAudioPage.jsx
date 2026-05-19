@@ -975,7 +975,7 @@ export default function VoixAudioPage() {
           onDeleted={() => { loadItems(); loadStats(); setDeleteItem(null); }}
         />
       )}
-      <PageHelp pageId="voix-audio" />
+      <PageHelp pageId="import-audio" />
     </div>
   );
 }

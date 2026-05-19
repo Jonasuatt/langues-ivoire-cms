@@ -397,7 +397,7 @@ export default function ArbreVocabulairePage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="arbre-vocabulaire" />
+      <PageHelp pageId="arbre-palabres" />
     </div>
   );
 }
