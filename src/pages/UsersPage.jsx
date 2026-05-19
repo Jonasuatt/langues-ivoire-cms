@@ -10,62 +10,76 @@ import {
 import LanguageSelect from '../components/LanguageSelect';
 
 // ── Rôles ──────────────────────────────────────────────────────────────
-const ALL_ROLES = ['USER', 'CONTRIBUTOR', 'EDITOR', 'ADMIN', 'SUPER_ADMIN'];
+const ALL_ROLES = ['USER', 'CONTRIBUTOR', 'EDITOR', 'PARTNER', 'ADMIN', 'SUPER_ADMIN'];
 
 const ROLE_CONFIG = {
-  USER:        { label: 'Utilisateur',          color: 'bg-gray-100 text-gray-600',     dot: 'bg-gray-400',   cms: false },
-  CONTRIBUTOR: { label: 'Contributeur',          color: 'bg-blue-100 text-blue-700',     dot: 'bg-blue-500',   cms: true  },
-  EDITOR:      { label: 'Éditeur',               color: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500', cms: true  },
-  ADMIN:       { label: 'Administrateur',        color: 'bg-red-100 text-red-700',       dot: 'bg-red-500',    cms: false },
-  SUPER_ADMIN: { label: 'Super-Administrateur',  color: 'bg-amber-100 text-amber-800',   dot: 'bg-amber-500',  cms: false },
+  USER:        { label: 'Utilisateur',          color: 'bg-gray-100 text-gray-600',       dot: 'bg-gray-400',    cms: false,    mobile: true  },
+  CONTRIBUTOR: { label: 'Contributeur',          color: 'bg-blue-100 text-blue-700',       dot: 'bg-blue-500',    cms: true,     mobile: true  },
+  EDITOR:      { label: 'Éditeur',               color: 'bg-purple-100 text-purple-700',   dot: 'bg-purple-500',  cms: true,     mobile: true  },
+  PARTNER:     { label: 'Partenaire',            color: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500', cms: 'partner',mobile: true  },
+  ADMIN:       { label: 'Administrateur',        color: 'bg-red-100 text-red-700',         dot: 'bg-red-500',     cms: false,    mobile: false },
+  SUPER_ADMIN: { label: 'Super-Administrateur',  color: 'bg-amber-100 text-amber-800',     dot: 'bg-amber-500',   cms: false,    mobile: false },
 };
 
 const ROLE_DESC = {
   SUPER_ADMIN: '⚠️ Accès total au CMS, finances, gestion des comptes.',
-  ADMIN:       '🔐 Accès complet au CMS. Peut créer des comptes Éditeur et Contributeur.',
-  EDITOR:      '✏️ Consulte et modifie le contenu des modules assignés.',
-  CONTRIBUTOR: '📝 Contribue aux modules sélectionnés. Accès en lecture/écriture limité.',
+  ADMIN:       '🔐 Accès complet au CMS. Peut créer des comptes Éditeur, Contributeur et Partenaire.',
+  EDITOR:      '✏️ Consulte et modifie le contenu des modules assignés. Un titre/fonction peut lui être attribué.',
+  CONTRIBUTOR: '📝 Contribue aux modules sélectionnés. Accès en lecture/écriture limité. Un titre/fonction peut lui être attribué.',
+  PARTNER:     '🤝 Accès illimité (Premium) à l\'application mobile + vue Partenaire dans le CMS. Idéal pour les décideurs et institutions.',
   USER:        '📱 Utilisateur mobile uniquement. Aucun accès au CMS.',
+};
+
+// Titres suggérés selon le rôle
+const TITRES_SUGGES = {
+  EDITOR:      ['Linguiste', 'Responsable éditorial', 'Coordinateur de langue', 'Chargé de contenu', 'Chercheur en linguistique', 'Expert culturel'],
+  CONTRIBUTOR: ['Locuteur natif', 'Contributeur linguistique', 'Assistant de recherche', 'Traducteur', 'Enregistreur natif', 'Ambassadeur culturel'],
+  PARTNER:     ['Partenaire institutionnel', 'Investisseur', 'Décideur', 'Représentant ONG', 'Partenaire académique', 'Sponsor'],
 };
 
 // ── Modules CMS ────────────────────────────────────────────────────────
 const CMS_MODULES = [
-  { key: 'dictionary',        label: 'Dictionnaire',        group: 'Contenu' },
-  { key: 'conjugation',       label: 'Conjugaison',         group: 'Contenu' },
-  { key: 'vocabulary',        label: 'Vocabulaire',         group: 'Contenu' },
-  { key: 'lessons',           label: 'Leçons',              group: 'Contenu' },
-  { key: 'cultural',          label: 'Culture & Traditions',group: 'Contenu' },
-  { key: 'textes-recits',     label: 'Textes & Récits',     group: 'Contenu' },
-  { key: 'image-galleries',   label: "Galeries d'Images",   group: 'Contenu' },
-  { key: 'videos',            label: 'Vidéos',              group: 'Contenu' },
-  { key: 'contributions',     label: 'Contributions',       group: 'Communauté' },
-  { key: 'messages',          label: 'Messages',            group: 'Communauté' },
-  { key: 'certificates',      label: 'Certificats',         group: 'Communauté' },
-  { key: 'ia-linguistique',   label: 'IA Linguistique',     group: 'Communauté' },
-  { key: 'voix-audio',        label: 'Import Audio',        group: 'Communauté' },
-  { key: 'tutors',            label: 'Tuteurs IA',          group: 'Intelligence Artificielle' },
-  { key: 'test-agents',       label: 'Test Agents IA',      group: 'Intelligence Artificielle' },
-  { key: 'bienvenue-sons',    label: 'Bienvenue & Sons',    group: 'Intelligence Artificielle' },
-  { key: 'langues',           label: 'Langues',             group: 'Paramètres App' },
-  { key: 'badges',            label: 'Badges & XP',         group: 'Paramètres App' },
-  { key: 'phrases-sos',       label: 'Phrases SOS',         group: 'Paramètres App' },
-  { key: 'phrases-utiles',    label: 'Phrases Utiles',      group: 'Paramètres App' },
-  { key: 'notifications',     label: 'Notifications',       group: 'Paramètres App' },
-  { key: 'premiers-secours',  label: 'Premiers Secours',    group: 'Paramètres App' },
-  { key: 'civisme',           label: 'Civisme',             group: 'Paramètres App' },
-  { key: 'musee-tresors',     label: 'Musée des Trésors',   group: 'Paramètres App' },
-  { key: 'arbre-vocabulaire', label: 'Arbre à Palabres',    group: 'Paramètres App' },
-  { key: 'marche-dialogues',  label: 'Au Marché',           group: 'Paramètres App' },
+  { key: 'dictionary',        label: 'Dictionnaire',          group: 'Contenu' },
+  { key: 'alphabet-langues',  label: 'Alphabet des Langues',  group: 'Contenu' },
+  { key: 'conjugation',       label: 'Conjugaison',           group: 'Contenu' },
+  { key: 'vocabulary',        label: 'Vocabulaire',           group: 'Contenu' },
+  { key: 'lessons',           label: 'Leçons',                group: 'Contenu' },
+  { key: 'cultural',          label: 'Culture & Traditions',  group: 'Contenu' },
+  { key: 'textes-recits',     label: 'Textes & Récits',       group: 'Contenu' },
+  { key: 'image-galleries',   label: "Galeries d'Images",     group: 'Contenu' },
+  { key: 'sens-mots',         label: 'Sens des Mots',         group: 'Contenu' },
+  { key: 'videos',            label: 'Vidéos',                group: 'Contenu' },
+  { key: 'contributions',     label: 'Contributions',         group: 'Communauté' },
+  { key: 'messages',          label: 'Messages',              group: 'Communauté' },
+  { key: 'certificates',      label: 'Certificats',           group: 'Communauté' },
+  { key: 'ia-linguistique',   label: 'IA Linguistique',       group: 'Communauté' },
+  { key: 'voix-audio',        label: 'Import Audio',          group: 'Communauté' },
+  { key: 'tutors',            label: 'Tuteurs IA',            group: 'Intelligence Artificielle' },
+  { key: 'test-agents',       label: 'Test Agents IA',        group: 'Intelligence Artificielle' },
+  { key: 'bienvenue-sons',    label: 'Bienvenue & Sons',      group: 'Intelligence Artificielle' },
+  { key: 'langues',           label: 'Langues',               group: 'Paramètres App' },
+  { key: 'carte-ci',          label: 'Carte CI',              group: 'Paramètres App' },
+  { key: 'badges',            label: 'Badges & XP',           group: 'Paramètres App' },
+  { key: 'phrases-sos',       label: 'Phrases SOS',           group: 'Paramètres App' },
+  { key: 'phrases-utiles',    label: 'Phrases Utiles',        group: 'Paramètres App' },
+  { key: 'notifications',     label: 'Notifications',         group: 'Paramètres App' },
+  { key: 'premiers-secours',  label: 'Premiers Secours',      group: 'Paramètres App' },
+  { key: 'civisme',           label: 'Civisme',               group: 'Paramètres App' },
+  { key: 'musee-tresors',     label: 'Musée des Trésors',     group: 'Paramètres App' },
+  { key: 'arbre-vocabulaire', label: 'Arbre à Palabres',      group: 'Paramètres App' },
+  { key: 'marche-dialogues',  label: 'Au Marché',             group: 'Paramètres App' },
 ];
 
 const MODULE_GROUPS = [...new Set(CMS_MODULES.map(m => m.group))];
 
 // ── Helpers ────────────────────────────────────────────────────────────
 function needsModules(role) { return ROLE_CONFIG[role]?.cms === true; }
+function isPartner(role)    { return ROLE_CONFIG[role]?.cms === 'partner'; }
+function hasMobileAccess(role) { return ROLE_CONFIG[role]?.mobile === true; }
 
 function creatableRoles(currentRole) {
-  if (currentRole === 'SUPER_ADMIN') return ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR'];
-  if (currentRole === 'ADMIN')       return ['EDITOR', 'CONTRIBUTOR'];
+  if (currentRole === 'SUPER_ADMIN') return ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR', 'PARTNER'];
+  if (currentRole === 'ADMIN')       return ['EDITOR', 'CONTRIBUTOR', 'PARTNER'];
   return [];
 }
 
@@ -80,6 +94,8 @@ function assignableRoles(currentRole) {
   if (currentRole === 'ADMIN') return ALL_ROLES.filter(r => !['ADMIN', 'SUPER_ADMIN'].includes(r));
   return [];
 }
+
+function needsTitre(role) { return ['EDITOR', 'CONTRIBUTOR', 'PARTNER'].includes(role); }
 
 // ── Composant sélection de modules ────────────────────────────────────
 function ModuleSelector({ selected, onChange }) {
@@ -160,7 +176,7 @@ export default function UsersPage() {
   // Créer un compte
   const defaultRole = canCreate[0] || 'CONTRIBUTOR';
   const [showCreate, setShowCreate]   = useState(false);
-  const [form, setForm]               = useState({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, modules: [], langues: [] });
+  const [form, setForm]               = useState({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, titre: '', modules: [], langues: [] });
   const [creating, setCreating]       = useState(false);
 
   // Édition des modules d'un utilisateur existant
@@ -215,12 +231,15 @@ export default function UsersPage() {
       await adminAPI.createMember({
         nom: form.nom, prenom: form.prenom, email: form.email,
         motDePasse: form.motDePasse, role: form.role,
+        titre: needsTitre(form.role) ? (form.titre || null) : null,
+        // Partenaires : isPremium auto, pas de restriction de modules
+        isPremium: isPartner(form.role) ? true : undefined,
         modules: needsModules(form.role) ? form.modules : [],
         langues: needsModules(form.role) ? form.langues : [],
       });
       toast.success('Compte créé avec succès');
       setShowCreate(false);
-      setForm({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, modules: [], langues: [] });
+      setForm({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, titre: '', modules: [], langues: [] });
       load();
     } catch (err) { toast.error(err.response?.data?.error || 'Erreur lors de la création'); }
     finally { setCreating(false); }
@@ -285,7 +304,7 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['Utilisateur', 'Email', 'Rôle', 'Modules CMS', 'Premium', 'Streak', 'Contribs', 'Dernière activité', 'Actions'].map(h => (
+                {['Utilisateur', 'Titre / Fonction', 'Email', 'Rôle', 'Modules CMS', 'Mobile', 'Streak', 'Contribs', 'Dernière activité', 'Actions'].map(h => (
                   <th key={h} className="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -304,11 +323,28 @@ export default function UsersPage() {
                     {/* Nom */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                          u.role === 'PARTNER' ? 'bg-emerald-500' :
+                          u.role === 'EDITOR'  ? 'bg-purple-500'  :
+                          u.role === 'CONTRIBUTOR' ? 'bg-blue-500' : 'bg-primary-500'
+                        }`}>
                           {u.prenom?.[0]}{u.nom?.[0]}
                         </div>
-                        <span className="font-medium whitespace-nowrap">{u.prenom} {u.nom}</span>
+                        <div>
+                          <p className="font-medium whitespace-nowrap">{u.prenom} {u.nom}</p>
+                          {u.role === 'PARTNER' && (
+                            <span className="text-[10px] text-emerald-600 font-semibold">🤝 Partenaire</span>
+                          )}
+                        </div>
                       </div>
+                    </td>
+                    {/* Titre / Fonction */}
+                    <td className="px-4 py-3">
+                      {u.titre ? (
+                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-medium">{u.titre}</span>
+                      ) : (
+                        <span className="text-xs text-gray-300 italic">—</span>
+                      )}
                     </td>
                     {/* Email */}
                     <td className="px-4 py-3 text-gray-500 text-xs">{u.email}</td>
@@ -345,12 +381,16 @@ export default function UsersPage() {
                         </span>
                       )}
                     </td>
-                    {/* Premium */}
+                    {/* Mobile / Premium */}
                     <td className="px-4 py-3">
-                      <button onClick={() => togglePremium(u.id, u.isPremium)}
-                        className={`badge cursor-pointer ${u.isPremium ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {u.isPremium ? '⭐ Premium' : 'Gratuit'}
-                      </button>
+                      {u.role === 'PARTNER' ? (
+                        <span className="badge bg-emerald-100 text-emerald-700">♾️ Illimité</span>
+                      ) : (
+                        <button onClick={() => togglePremium(u.id, u.isPremium)}
+                          className={`badge cursor-pointer ${u.isPremium ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>
+                          {u.isPremium ? '⭐ Premium' : 'Gratuit'}
+                        </button>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center"><span className="font-semibold text-accent">{u.streak ?? 0}🔥</span></td>
                     <td className="px-4 py-3 text-center text-gray-600">{u._count?.contributions ?? 0}</td>
@@ -448,10 +488,10 @@ export default function UsersPage() {
               {/* Rôle */}
               <section>
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Rôle CMS</p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {canCreate.map(r => (
                     <button type="button" key={r}
-                      onClick={() => setForm(f => ({ ...f, role: r, modules: [] }))}
+                      onClick={() => setForm(f => ({ ...f, role: r, titre: '', modules: [] }))}
                       className={`px-3 py-3 rounded-xl border-2 text-sm font-medium transition-all text-center ${
                         form.role === r
                           ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
@@ -459,23 +499,67 @@ export default function UsersPage() {
                       }`}>
                       <div className={`w-2.5 h-2.5 rounded-full mx-auto mb-1.5 ${ROLE_CONFIG[r].dot}`} />
                       <div className="text-xs font-semibold">{ROLE_CONFIG[r].label}</div>
-                      {ROLE_CONFIG[r].cms && (
-                        <p className="text-[10px] text-gray-400 mt-0.5">modules requis</p>
-                      )}
+                      <p className="text-[10px] text-gray-400 mt-0.5">
+                        {r === 'PARTNER'     ? '🤝 accès illimité mobile' :
+                         r === 'EDITOR'      ? '✏️ modules requis'        :
+                         r === 'CONTRIBUTOR' ? '📝 modules requis'        :
+                         r === 'SUPER_ADMIN' ? '👑 accès total'           :
+                         r === 'ADMIN'       ? '🔐 accès complet'         : ''}
+                      </p>
                     </button>
                   ))}
                 </div>
                 {/* Description du rôle sélectionné */}
                 <div className={`mt-3 p-3 rounded-xl text-xs border ${
-                  form.role === 'SUPER_ADMIN' ? 'bg-amber-50  border-amber-200  text-amber-800'  :
-                  form.role === 'ADMIN'        ? 'bg-red-50    border-red-200    text-red-800'    :
-                  form.role === 'EDITOR'       ? 'bg-purple-50 border-purple-200 text-purple-800' :
-                  form.role === 'CONTRIBUTOR'  ? 'bg-blue-50   border-blue-200   text-blue-800'   :
-                                                 'bg-gray-50   border-gray-200   text-gray-600'
+                  form.role === 'SUPER_ADMIN' ? 'bg-amber-50   border-amber-200   text-amber-800'   :
+                  form.role === 'ADMIN'        ? 'bg-red-50     border-red-200     text-red-800'     :
+                  form.role === 'EDITOR'       ? 'bg-purple-50  border-purple-200  text-purple-800'  :
+                  form.role === 'CONTRIBUTOR'  ? 'bg-blue-50    border-blue-200    text-blue-800'    :
+                  form.role === 'PARTNER'      ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+                                                 'bg-gray-50    border-gray-200    text-gray-600'
                 }`}>
                   {ROLE_DESC[form.role]}
                 </div>
+
+                {/* Partenaire : info accès illimité */}
+                {isPartner(form.role) && (
+                  <div className="mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+                    <span className="text-lg">♾️</span>
+                    <div>
+                      <p className="text-xs font-semibold text-emerald-800">Accès Premium automatique</p>
+                      <p className="text-xs text-emerald-700 mt-0.5">Ce compte bénéficiera d'un accès illimité à toutes les fonctionnalités de l'application mobile Langues Ivoire.</p>
+                    </div>
+                  </div>
+                )}
               </section>
+
+              {/* Titre / Fonction — pour Éditeur, Contributeur, Partenaire */}
+              {needsTitre(form.role) && (
+                <section>
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Titre / Fonction</p>
+                  <div className="mb-2">
+                    <input className="input" placeholder="Ex: Linguiste, Locuteur natif, Partenaire institutionnel…"
+                      value={form.titre}
+                      onChange={e => setForm(f => ({ ...f, titre: e.target.value }))} />
+                  </div>
+                  {TITRES_SUGGES[form.role] && (
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="text-xs text-gray-400 self-center mr-1">Suggestions :</span>
+                      {TITRES_SUGGES[form.role].map(t => (
+                        <button type="button" key={t}
+                          onClick={() => setForm(f => ({ ...f, titre: t }))}
+                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors font-medium ${
+                            form.titre === t
+                              ? 'bg-primary-100 border-primary-300 text-primary-700'
+                              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                          }`}>
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
 
               {/* Modules — uniquement pour EDITOR et CONTRIBUTOR */}
               {needsModules(form.role) && (
