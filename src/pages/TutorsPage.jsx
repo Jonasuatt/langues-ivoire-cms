@@ -41,7 +41,15 @@ export default function TutorsPage() {
     setLoading(true);
     Promise.all([tutorsAPI.getAll(), languagesAPI.getAll()])
       .then(([tutorsRes, langsRes]) => {
-        setTutors(tutorsRes.data);
+        const sorted = [...(tutorsRes.data || [])].sort((a, b) => {
+          const langA = a.language?.nom || '';
+          const langB = b.language?.nom || '';
+          if (langA !== langB) return langA.localeCompare(langB, 'fr');
+          // Au sein d'une même langue : M avant F, puis alphabétique
+          if (a.genre !== b.genre) return a.genre === 'M' ? -1 : 1;
+          return (a.nomAvatar || '').localeCompare(b.nomAvatar || '', 'fr');
+        });
+        setTutors(sorted);
         setLanguages(langsRes.data);
       })
       .catch(() => {})

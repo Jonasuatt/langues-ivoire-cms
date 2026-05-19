@@ -8,9 +8,17 @@ const PORTRAIT_KEYS = [
   'pololo', 'tehia', 'tialagnon', 'tra_lou', 'yoro', 'zan_bi',
 ];
 
+// Agents IA — images dans public/agents/ (Kouadio et Zélé)
+const AGENT_PORTRAIT_MAP = {
+  'kouadio': '/agents/kouadio.png',
+  'zele':    '/agents/zele.png',
+  'zele_2':  '/agents/zele2.png',
+  'kouadio_2': '/agents/kouadio2.png',
+};
+
 /**
  * Retourne l'URL du portrait local pour un tuteur.
- * @param {string} nomAvatar - ex: "Zan Bi", "Koffi", "Tra Lou", "Djénéba"
+ * @param {string} nomAvatar - ex: "Zan Bi", "Koffi", "Kouadio", "Zélé"
  * @returns {string|null}
  */
 export function getAvatarPortrait(nomAvatar) {
@@ -22,6 +30,9 @@ export function getAvatarPortrait(nomAvatar) {
     .replace(/[̀-ͯ]/g, '')
     .trim()
     .replace(/\s+/g, '_');
+  // Agents IA
+  if (AGENT_PORTRAIT_MAP[key]) return AGENT_PORTRAIT_MAP[key];
+  // Tuteurs ethniques classiques
   if (!PORTRAIT_KEYS.includes(key)) return null;
   return `/portraits/${key}_portrait.png`;
 }

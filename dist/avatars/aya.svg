@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0B3D2E"/><stop offset="100%" stop-color="#1B5E3A"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#A0752A"/><stop offset="100%" stop-color="#8B6520"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- Kente wrap dress -->
+  <path d="M50 155 Q70 138 100 142 Q130 138 150 155 L160 200 H40 Z" fill="#C8960C" stroke="#A67B00" stroke-width="1"/>
+  <rect x="55" y="152" width="6" height="48" fill="#2E7D32" opacity="0.6"/>
+  <rect x="75" y="146" width="6" height="54" fill="#E65100" opacity="0.5"/>
+  <rect x="95" y="144" width="6" height="56" fill="#2E7D32" opacity="0.6"/>
+  <rect x="115" y="146" width="6" height="54" fill="#E65100" opacity="0.5"/>
+  <rect x="135" y="152" width="6" height="48" fill="#2E7D32" opacity="0.6"/>
+  <!-- Neck -->
+  <rect x="87" y="128" width="26" height="18" rx="5" fill="url(#skin)"/>
+  <!-- Gold necklace -->
+  <ellipse cx="100" cy="142" rx="22" ry="6" fill="none" stroke="#FFD700" stroke-width="2.5"/>
+  <circle cx="100" cy="148" r="4" fill="#FFD700"/>
+  <!-- Face -->
+  <ellipse cx="100" cy="105" rx="36" ry="40" fill="url(#skin)"/>
+  <!-- Braided hair with gold beads -->
+  <ellipse cx="100" cy="78" rx="42" ry="30" fill="#1A1A1A"/>
+  <path d="M58 85 Q55 100 58 120" stroke="#1A1A1A" stroke-width="6" fill="none"/>
+  <path d="M142 85 Q145 100 142 120" stroke="#1A1A1A" stroke-width="6" fill="none"/>
+  <circle cx="58" cy="95" r="3" fill="#FFD700"/>
+  <circle cx="142" cy="95" r="3" fill="#FFD700"/>
+  <circle cx="58" cy="110" r="3" fill="#FFD700"/>
+  <circle cx="142" cy="110" r="3" fill="#FFD700"/>
+  <!-- Eyebrows -->
+  <path d="M80 94 Q86 91 92 93" stroke="#3E2B0A" stroke-width="1.5" fill="none"/>
+  <path d="M108 93 Q114 91 120 94" stroke="#3E2B0A" stroke-width="1.5" fill="none"/>
+  <!-- Eyes with lashes -->
+  <ellipse cx="86" cy="100" rx="6" ry="5" fill="white"/>
+  <circle cx="87" cy="100" r="3" fill="#2C1810"/>
+  <circle cx="88" cy="99" r="1" fill="white"/>
+  <path d="M80 97 L78 95" stroke="#1A1A1A" stroke-width="1" fill="none"/>
+  <path d="M92 97 L94 95" stroke="#1A1A1A" stroke-width="1" fill="none"/>
+  <ellipse cx="114" cy="100" rx="6" ry="5" fill="white"/>
+  <circle cx="115" cy="100" r="3" fill="#2C1810"/>
+  <circle cx="116" cy="99" r="1" fill="white"/>
+  <path d="M108 97 L106 95" stroke="#1A1A1A" stroke-width="1" fill="none"/>
+  <path d="M120 97 L122 95" stroke="#1A1A1A" stroke-width="1" fill="none"/>
+  <!-- Nose -->
+  <path d="M96 106 Q100 112 104 106" stroke="#7A5A15" stroke-width="1.5" fill="none"/>
+  <!-- Smile -->
+  <path d="M90 116 Q100 124 110 116" stroke="#5C3D0A" stroke-width="2" fill="none"/>
+  <!-- Lips -->
+  <ellipse cx="100" cy="118" rx="8" ry="3" fill="#B5651D" opacity="0.4"/>
+  <!-- Gold earrings -->
+  <circle cx="63" cy="108" r="4" fill="#FFD700"/>
+  <circle cx="137" cy="108" r="4" fill="#FFD700"/>
+</svg>

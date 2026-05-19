@@ -6,6 +6,29 @@ import FileUploadField from '../components/FileUploadField';
 import toast from 'react-hot-toast';
 import LanguageSelect from '../components/LanguageSelect';
 
+function GenrePicker({ value, onChange }) {
+  const opts = [
+    { key: '',  label: 'Non renseigné', icon: '—',  cls: 'border-gray-200 text-gray-400 bg-white' },
+    { key: 'M', label: 'Homme',         icon: '👨', cls: 'border-blue-300 text-blue-700 bg-blue-50' },
+    { key: 'F', label: 'Femme',         icon: '👩', cls: 'border-pink-300 text-pink-700 bg-pink-50' },
+  ];
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">Genre du locuteur (audio)</label>
+      <div className="flex gap-2">
+        {opts.map(o => (
+          <button key={o.key} type="button" onClick={() => onChange(o.key)}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 font-medium text-sm transition-colors ${
+              value === o.key ? o.cls + ' ring-2 ring-offset-1' : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
+            }`}>
+            <span className="text-lg">{o.icon}</span>{o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const CATEGORIES = ['expressions', 'salutations', 'nourriture', 'vie_quotidienne', 'vie_sociale', 'corps', 'lieux', 'autre'];
 const CAT_LABELS = {
   expressions: '💬 Expressions', salutations: '👋 Salutations', nourriture: '🍽️ Nourriture',
@@ -18,7 +41,7 @@ const CAT_COLORS = {
   vie_sociale: 'bg-pink-100 text-pink-700', corps: 'bg-orange-100 text-orange-700',
   lieux: 'bg-indigo-100 text-indigo-700', autre: 'bg-gray-100 text-gray-600',
 };
-const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'expressions', contexte: '', audioUrl: '', audioUrlFr: '', status: 'PUBLISHED' };
+const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'expressions', contexte: '', audioUrl: '', audioUrlFr: '', genreLocuteur: '', status: 'PUBLISHED' };
 
 export default function PhrasesUtilesPage() {
   const { user } = useAuth();
@@ -65,7 +88,7 @@ export default function PhrasesUtilesPage() {
     setEditItem(p);
     setForm({ languageId: p.languageId || '', phrase: p.phrase || '', transcription: p.transcription || '',
       traduction: p.traduction || '', categorie: p.categorie || 'expressions',
-      contexte: p.contexte || '', audioUrl: p.audioUrl || '', audioUrlFr: p.audioUrlFr || '', status: p.status || 'PUBLISHED' });
+      contexte: p.contexte || '', audioUrl: p.audioUrl || '', audioUrlFr: p.audioUrlFr || '', genreLocuteur: p.genreLocuteur || '', status: p.status || 'PUBLISHED' });
     setShowModal(true);
   };
 
@@ -75,7 +98,8 @@ export default function PhrasesUtilesPage() {
     const payload = { languageId: form.languageId, phrase: form.phrase.trim(),
       transcription: form.transcription.trim() || null, traduction: form.traduction.trim(),
       categorie: form.categorie, contexte: form.contexte.trim() || null,
-      audioUrl: form.audioUrl.trim() || null, audioUrlFr: form.audioUrlFr.trim() || null, status: form.status };
+      audioUrl: form.audioUrl.trim() || null, audioUrlFr: form.audioUrlFr.trim() || null,
+      genreLocuteur: form.genreLocuteur || null, status: form.status };
     try {
       if (editItem) { await phrasesAdminAPI.update(editItem.id, payload); toast.success('Phrase mise à jour'); }
       else { await phrasesAdminAPI.create(payload); toast.success('Phrase ajoutée'); }
@@ -228,6 +252,7 @@ export default function PhrasesUtilesPage() {
                   onChange={url => setForm({ ...form, audioUrlFr: url })}
                 />
               </div>
+              <GenrePicker value={form.genreLocuteur} onChange={v => setForm({ ...form, genreLocuteur: v })} />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                 <select className="input" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>

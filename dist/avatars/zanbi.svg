@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4E342E"/><stop offset="100%" stop-color="#6D4C41"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6B4226"/><stop offset="100%" stop-color="#5A3720"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- Simple farmer attire -->
+  <path d="M50 148 Q70 132 100 136 Q130 132 150 148 L160 200 H40 Z" fill="#A1887F"/>
+  <path d="M70 150 Q100 140 130 150" fill="none" stroke="#8D6E63" stroke-width="2"/>
+  <!-- Neck -->
+  <rect x="85" y="126" width="30" height="16" rx="5" fill="url(#skin)"/>
+  <!-- Face -->
+  <ellipse cx="100" cy="104" rx="37" ry="41" fill="url(#skin)"/>
+  <!-- Straw hat -->
+  <ellipse cx="100" cy="78" rx="52" ry="12" fill="#D4A843"/>
+  <path d="M65 78 Q65 50 100 45 Q135 50 135 78" fill="#C8960C"/>
+  <ellipse cx="100" cy="78" rx="52" ry="12" fill="none" stroke="#A67B00" stroke-width="1.5"/>
+  <path d="M70 55 Q100 48 130 55" fill="none" stroke="#A67B00" stroke-width="1" opacity="0.5"/>
+  <path d="M68 62 Q100 54 132 62" fill="none" stroke="#A67B00" stroke-width="1" opacity="0.5"/>
+  <path d="M66 69 Q100 60 134 69" fill="none" stroke="#A67B00" stroke-width="1" opacity="0.5"/>
+  <!-- Warm eyebrows -->
+  <path d="M78 93 Q85 90 92 92" stroke="#3E2510" stroke-width="2" fill="none"/>
+  <path d="M108 92 Q115 90 122 93" stroke="#3E2510" stroke-width="2" fill="none"/>
+  <!-- Friendly eyes -->
+  <ellipse cx="86" cy="99" rx="6" ry="5" fill="white"/>
+  <circle cx="87" cy="99" r="3" fill="#2C1810"/>
+  <circle cx="88" cy="98" r="1" fill="white"/>
+  <ellipse cx="114" cy="99" rx="6" ry="5" fill="white"/>
+  <circle cx="115" cy="99" r="3" fill="#2C1810"/>
+  <circle cx="116" cy="98" r="1" fill="white"/>
+  <!-- Nose -->
+  <path d="M96 105 Q100 112 104 105" stroke="#4A3018" stroke-width="1.5" fill="none"/>
+  <!-- Big warm smile -->
+  <path d="M86 116 Q100 128 114 116" stroke="#3E2515" stroke-width="2" fill="none"/>
+  <path d="M90 118 Q100 124 110 118" fill="white" opacity="0.8"/>
+  <!-- Smile wrinkles -->
+  <path d="M76 110 Q78 114 80 112" stroke="#4A3018" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <path d="M120 112 Q122 114 124 110" stroke="#4A3018" stroke-width="0.8" fill="none" opacity="0.4"/>
+</svg>

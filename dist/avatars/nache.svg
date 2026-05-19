@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#37474F"/><stop offset="100%" stop-color="#546E7A"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#A0752A"/><stop offset="100%" stop-color="#8B6520"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- Modern stylish top -->
+  <path d="M45 152 Q70 136 100 140 Q130 136 155 152 L165 200 H35 Z" fill="#E91E63"/>
+  <!-- Off-shoulder detail -->
+  <path d="M55 152 Q70 145 85 148" fill="url(#skin)" stroke="url(#skin)" stroke-width="2"/>
+  <path d="M115 148 Q130 145 145 152" fill="url(#skin)" stroke="url(#skin)" stroke-width="2"/>
+  <!-- African print pattern on top -->
+  <circle cx="80" cy="170" r="8" fill="#AD1457" opacity="0.4"/>
+  <circle cx="100" cy="160" r="8" fill="#C2185B" opacity="0.3"/>
+  <circle cx="120" cy="170" r="8" fill="#AD1457" opacity="0.4"/>
+  <!-- Neck -->
+  <rect x="87" y="128" width="26" height="16" rx="5" fill="url(#skin)"/>
+  <!-- Modern chain necklace -->
+  <path d="M82 138 Q100 144 118 138" fill="none" stroke="#FFD700" stroke-width="1.5"/>
+  <circle cx="100" cy="144" r="3" fill="#FFD700"/>
+  <!-- Face -->
+  <ellipse cx="100" cy="104" rx="35" ry="40" fill="url(#skin)"/>
+  <!-- Trendy short curly hair / TWA -->
+  <ellipse cx="100" cy="76" rx="40" ry="28" fill="#1A1A1A"/>
+  <!-- Curly texture -->
+  <circle cx="75" cy="68" r="5" fill="#2C2C2C"/>
+  <circle cx="85" cy="62" r="5" fill="#2C2C2C"/>
+  <circle cx="95" cy="60" r="5" fill="#2C2C2C"/>
+  <circle cx="105" cy="60" r="5" fill="#2C2C2C"/>
+  <circle cx="115" cy="62" r="5" fill="#2C2C2C"/>
+  <circle cx="125" cy="68" r="5" fill="#2C2C2C"/>
+  <circle cx="70" cy="78" r="4" fill="#2C2C2C"/>
+  <circle cx="130" cy="78" r="4" fill="#2C2C2C"/>
+  <!-- Color streak in hair -->
+  <circle cx="120" cy="65" r="4" fill="#E91E63" opacity="0.7"/>
+  <!-- Trendy eyebrows -->
+  <path d="M80 94 Q86 90 92 93" stroke="#3E2B0A" stroke-width="1.8" fill="none"/>
+  <path d="M108 93 Q114 90 120 94" stroke="#3E2B0A" stroke-width="1.8" fill="none"/>
+  <!-- Bright eyes with lashes -->
+  <ellipse cx="86" cy="100" rx="6" ry="5.5" fill="white"/>
+  <circle cx="87" cy="100" r="3.5" fill="#2C1810"/>
+  <circle cx="88.5" cy="99" r="1.2" fill="white"/>
+  <path d="M80 97 L77 94" stroke="#1A1A1A" stroke-width="1.2"/>
+  <path d="M82 96 L80 93" stroke="#1A1A1A" stroke-width="1"/>
+  <path d="M92 97 L95 94" stroke="#1A1A1A" stroke-width="1.2"/>
+  <ellipse cx="114" cy="100" rx="6" ry="5.5" fill="white"/>
+  <circle cx="115" cy="100" r="3.5" fill="#2C1810"/>
+  <circle cx="116.5" cy="99" r="1.2" fill="white"/>
+  <path d="M108 97 L105 94" stroke="#1A1A1A" stroke-width="1.2"/>
+  <path d="M120 97 L123 94" stroke="#1A1A1A" stroke-width="1.2"/>
+  <!-- Nose -->
+  <path d="M96 106 Q100 112 104 106" stroke="#7A5A15" stroke-width="1.5" fill="none"/>
+  <!-- Fun bright smile -->
+  <path d="M87 116 Q100 127 113 116" stroke="#5C3D0A" stroke-width="2" fill="none"/>
+  <path d="M91 118 Q100 124 109 118" fill="white" opacity="0.9"/>
+  <!-- Lips -->
+  <ellipse cx="100" cy="119" rx="8" ry="3" fill="#C2185B" opacity="0.3"/>
+  <!-- Hoop earrings -->
+  <circle cx="62" cy="104" r="6" fill="none" stroke="#FFD700" stroke-width="2"/>
+  <circle cx="138" cy="104" r="6" fill="none" stroke="#FFD700" stroke-width="2"/>
+  <!-- Nose stud -->
+  <circle cx="103" cy="108" r="1.5" fill="#FFD700"/>
+</svg>

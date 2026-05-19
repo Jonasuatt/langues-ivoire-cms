@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E65100"/><stop offset="100%" stop-color="#F57C00"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8B6520"/><stop offset="100%" stop-color="#7A5918"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- Woven fabric dress -->
+  <path d="M45 152 Q70 136 100 140 Q130 136 155 152 L165 200 H35 Z" fill="#BCAAA4"/>
+  <path d="M60 158 L60 200" stroke="#A1887F" stroke-width="3" opacity="0.5"/>
+  <path d="M80 150 L80 200" stroke="#8D6E63" stroke-width="3" opacity="0.5"/>
+  <path d="M100 146 L100 200" stroke="#A1887F" stroke-width="3" opacity="0.5"/>
+  <path d="M120 150 L120 200" stroke="#8D6E63" stroke-width="3" opacity="0.5"/>
+  <path d="M140 158 L140 200" stroke="#A1887F" stroke-width="3" opacity="0.5"/>
+  <!-- Neck -->
+  <rect x="87" y="128" width="26" height="16" rx="5" fill="url(#skin)"/>
+  <!-- Amber necklace -->
+  <circle cx="82" cy="143" r="3.5" fill="#FF8F00"/>
+  <circle cx="91" cy="140" r="3.5" fill="#FFB300"/>
+  <circle cx="100" cy="139" r="3.5" fill="#FF8F00"/>
+  <circle cx="109" cy="140" r="3.5" fill="#FFB300"/>
+  <circle cx="118" cy="143" r="3.5" fill="#FF8F00"/>
+  <!-- Face -->
+  <ellipse cx="100" cy="105" rx="35" ry="39" fill="url(#skin)"/>
+  <!-- Traditional hair with wrap -->
+  <ellipse cx="100" cy="78" rx="38" ry="28" fill="#1A1A1A"/>
+  <path d="M62 82 Q65 58 100 52 Q135 58 138 82" fill="#BF360C" opacity="0.8"/>
+  <path d="M62 80 Q65 60 100 55 Q135 60 138 80" fill="#E65100"/>
+  <path d="M70 72 L130 72" stroke="#FF8F00" stroke-width="1.5"/>
+  <path d="M68 78 L132 78" stroke="#FF8F00" stroke-width="1.5"/>
+  <!-- Eyebrows -->
+  <path d="M80 95 Q86 92 92 94" stroke="#3E2B0A" stroke-width="1.5" fill="none"/>
+  <path d="M108 94 Q114 92 120 95" stroke="#3E2B0A" stroke-width="1.5" fill="none"/>
+  <!-- Eyes with lashes -->
+  <ellipse cx="86" cy="101" rx="6" ry="5" fill="white"/>
+  <circle cx="87" cy="101" r="3" fill="#2C1810"/>
+  <circle cx="88" cy="100" r="1" fill="white"/>
+  <path d="M80 98 L78 96" stroke="#1A1A1A" stroke-width="1"/>
+  <path d="M92 98 L94 96" stroke="#1A1A1A" stroke-width="1"/>
+  <ellipse cx="114" cy="101" rx="6" ry="5" fill="white"/>
+  <circle cx="115" cy="101" r="3" fill="#2C1810"/>
+  <circle cx="116" cy="100" r="1" fill="white"/>
+  <path d="M108 98 L106 96" stroke="#1A1A1A" stroke-width="1"/>
+  <path d="M120 98 L122 96" stroke="#1A1A1A" stroke-width="1"/>
+  <!-- Nose -->
+  <path d="M96 107 Q100 113 104 107" stroke="#6B4D10" stroke-width="1.5" fill="none"/>
+  <!-- Methodical smile -->
+  <path d="M89 117 Q100 124 111 117" stroke="#5C3D0A" stroke-width="2" fill="none"/>
+  <ellipse cx="100" cy="119" rx="7" ry="2.5" fill="#A0522D" opacity="0.3"/>
+  <!-- Earrings -->
+  <circle cx="63" cy="100" r="4" fill="#FF8F00"/>
+  <circle cx="137" cy="100" r="4" fill="#FF8F00"/>
+</svg>
