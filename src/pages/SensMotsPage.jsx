@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
+import FileUploadField from '../components/FileUploadField';
 import {
   MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon,
   SpeakerWaveIcon, SpeakerXMarkIcon,
@@ -349,26 +350,13 @@ export default function SensMotsPage() {
                   placeholder="Ex: Locuteur natif, Institut des Langues, …" />
               </div>
 
-              {/* Audio URL */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                  <SpeakerWaveIcon className="w-4 h-4 text-accent" />
-                  Audio de prononciation native
-                </label>
-                <input className="input" value={form.audioUrl}
-                  onChange={e => setForm(f => ({ ...f, audioUrl: e.target.value }))}
-                  placeholder="https://… (URL audio)" />
-                {form.audioUrl && (
-                  <div className="mt-2 flex items-center gap-3 bg-gray-50 rounded-lg p-2 border border-gray-100">
-                    <audio controls className="h-8 flex-1" src={form.audioUrl} preload="metadata" />
-                  </div>
-                )}
-                {!form.audioUrl && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    Uploadez l'audio via Import Audio puis collez l'URL ici.
-                  </p>
-                )}
-              </div>
+              {/* Audio — upload local ou URL */}
+              <FileUploadField
+                type="audio"
+                label="🔊 Audio de prononciation native"
+                value={form.audioUrl}
+                onChange={url => setForm(f => ({ ...f, audioUrl: url }))}
+              />
 
               {/* Statut */}
               <div>
