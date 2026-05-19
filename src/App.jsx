@@ -36,6 +36,7 @@ import FinancePage from './pages/FinancePage';
 import ArbreVocabulairePage from './pages/ArbreVocabulairePage';
 import MarcheDialoguesPage from './pages/MarcheDialoguesPage';
 import CarteCIPage from './pages/CarteCIPage';
+import SensMotsPage from './pages/SensMotsPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="dictionary" element={<DictionaryPage />} />
           <Route path="conjugation" element={<ConjugationPage />} />
           <Route path="image-galleries" element={<ImageGalleryPage />} />
+          <Route path="sens-mots" element={<SensMotsPage />} />
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="contributions" element={<ContributionsPage />} />
           <Route path="messages" element={<MessagesPage />} />

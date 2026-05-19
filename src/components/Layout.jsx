@@ -38,6 +38,7 @@ const NAV_SECTIONS = [
       { to: '/cultural', label: 'Culture & Traditions', icon: SparklesIcon },
       { to: '/textes-recits', label: 'Textes & Récits', icon: BookOpenIcon },
       { to: '/image-galleries', label: "Galeries d'Images", icon: PhotoIcon },
+      { to: '/sens-mots', label: 'Sens des Mots', icon: LanguageIcon },
       { to: '/videos', label: 'Vidéos', icon: VideoCameraIcon },
     ],
   },
