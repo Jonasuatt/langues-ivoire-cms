@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { analyticsAPI, contributionsAPI, supportAPI, certificatesAPI, tutorsAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import {
   UsersIcon, BookOpenIcon, ClockIcon, ArrowTrendingUpIcon,
   EnvelopeIcon, AcademicCapIcon,
@@ -23,21 +24,97 @@ const NIVEAU_COLORS = {
   C1: 'bg-orange-100 text-orange-700',
 };
 
-const MODULES = [
-  { emoji: '📚', label: 'Vocabulaire',      color: 'bg-blue-600',   key: 'vocabulary',     unit: 'mots',            to: '/vocabulary' },
-  { emoji: '📖', label: 'Dictionnaire',     color: 'bg-sky-600',    key: 'dictionary',     unit: 'entrées',         to: '/dictionary' },
-  { emoji: '✏️', label: 'Conjugaison',      color: 'bg-violet-600', key: 'conjugation',    unit: 'fiches',          to: '/conjugation' },
-  { emoji: '🎓', label: 'Leçons',           color: 'bg-green-600',  key: 'lessons',        unit: 'leçons',          to: '/lessons' },
-  { emoji: '🤖', label: 'Tuteurs IA',       color: 'bg-primary-500',key: 'tutors',         unit: 'tuteurs',         to: '/tutors' },
-  { emoji: '🌍', label: 'Culture',          color: 'bg-purple-600', key: 'cultural',       unit: 'éléments',        to: '/cultural' },
-  { emoji: '📄', label: 'Textes & Récits',  color: 'bg-indigo-600', key: 'textContents',   unit: 'textes',          to: '/textes-recits' },
-  { emoji: '🖼️', label: 'Galeries Images',  color: 'bg-pink-600',   key: 'images',         unit: 'images',          to: '/image-galleries' },
-  { emoji: '🚨', label: 'Phrases SOS',      color: 'bg-red-600',    key: 'phrases',        unit: 'phrases',         to: '/phrases-sos' },
-  { emoji: '💬', label: 'Phrases Utiles',   color: 'bg-teal-500',   key: 'phrasesUtiles',  unit: 'phrases',         to: '/phrases-utiles' },
-  { emoji: '🎙️', label: 'Voix Audio',       color: 'bg-orange-600', key: 'audioContribs',  unit: 'enregistrements', to: '/voix-audio' },
-  { emoji: '🏥', label: 'Premiers Secours', color: 'bg-rose-700',   key: 'premierSecours', unit: 'fiches',          to: '/premiers-secours' },
-  { emoji: '🏛️', label: 'Civisme',          color: 'bg-teal-600',   key: 'civisme',        unit: 'contenus',        to: '/civisme' },
-  { emoji: '🎯', label: 'Contributions',    color: 'bg-accent',     key: 'contributions',  unit: 'contributions',   to: '/contributions' },
+// ─── Sections de modules ──────────────────────────────────────────────────────
+const MODULE_SECTIONS = [
+  {
+    label: 'Contenu linguistique',
+    color: 'text-indigo-700',
+    dot: 'bg-indigo-500',
+    items: [
+      { emoji: '📖', label: 'Dictionnaire',      color: 'bg-sky-600',     key: 'dictionary',    unit: 'entrées',   to: '/dictionary' },
+      { emoji: '🔤', label: 'Alphabet',           color: 'bg-indigo-500',  key: 'alphabet',      unit: 'entrées',   to: '/alphabet-langues' },
+      { emoji: '✏️', label: 'Conjugaison',        color: 'bg-violet-600',  key: 'conjugation',   unit: 'fiches',    to: '/conjugation' },
+      { emoji: '📚', label: 'Vocabulaire',        color: 'bg-blue-600',    key: 'vocabulary',    unit: 'mots',      to: '/vocabulary' },
+      { emoji: '🎓', label: 'Leçons',             color: 'bg-green-600',   key: 'lessons',       unit: 'leçons',    to: '/lessons' },
+      { emoji: '🌍', label: 'Culture & Traditions',color: 'bg-purple-600', key: 'cultural',      unit: 'éléments',  to: '/cultural' },
+      { emoji: '📄', label: 'Textes & Récits',    color: 'bg-indigo-600',  key: 'textContents',  unit: 'textes',    to: '/textes-recits' },
+      { emoji: '🖼️', label: 'Galeries d\'Images', color: 'bg-pink-600',    key: 'images',        unit: 'images',    to: '/image-galleries' },
+      { emoji: '🔠', label: 'Sens des Mots',      color: 'bg-cyan-600',    key: 'sensMots',      unit: 'fiches',    to: '/sens-mots' },
+      { emoji: '🎬', label: 'Vidéos',             color: 'bg-red-500',     key: 'videos',        unit: 'vidéos',    to: '/videos' },
+    ],
+  },
+  {
+    label: 'SOS & Santé & Société',
+    color: 'text-red-700',
+    dot: 'bg-red-500',
+    items: [
+      { emoji: '🚨', label: 'Phrases SOS',        color: 'bg-red-600',     key: 'phrases',        unit: 'phrases',  to: '/phrases-sos' },
+      { emoji: '💬', label: 'Phrases Utiles',     color: 'bg-teal-500',    key: 'phrasesUtiles',  unit: 'phrases',  to: '/phrases-utiles' },
+      { emoji: '🏥', label: 'Premiers Secours',   color: 'bg-rose-700',    key: 'premierSecours', unit: 'fiches',   to: '/premiers-secours' },
+      { emoji: '🏛️', label: 'Civisme',            color: 'bg-teal-600',    key: 'civisme',        unit: 'contenus', to: '/civisme' },
+    ],
+  },
+  {
+    label: 'Médias & Audio',
+    color: 'text-purple-700',
+    dot: 'bg-purple-500',
+    items: [
+      { emoji: '🎙️', label: 'Import Audio',       color: 'bg-orange-600',  key: 'audioContribs', unit: 'fichiers', to: '/voix-audio' },
+      { emoji: '🤖', label: 'IA Linguistique',    color: 'bg-cyan-700',    key: 'iaLinguistique',unit: 'modèles',  to: '/ia-linguistique' },
+    ],
+  },
+  {
+    label: 'Communauté',
+    color: 'text-orange-700',
+    dot: 'bg-orange-500',
+    items: [
+      { emoji: '🎯', label: 'Contributions',      color: 'bg-accent',      key: 'contributions', unit: 'soumises', to: '/contributions' },
+      { emoji: '✉️', label: 'Messages',           color: 'bg-indigo-600',  key: 'messages',      unit: 'messages', to: '/messages' },
+      { emoji: '🏆', label: 'Certificats',        color: 'bg-yellow-500',  key: 'certs',         unit: 'délivrés', to: '/certificates' },
+    ],
+  },
+  {
+    label: 'Intelligence Artificielle',
+    color: 'text-cyan-700',
+    dot: 'bg-cyan-500',
+    items: [
+      { emoji: '🧑‍🏫', label: 'Tuteurs IA',       color: 'bg-primary-500', key: 'tutors',        unit: 'tuteurs',  to: '/tutors' },
+      { emoji: '🧪', label: 'Test Agents IA',     color: 'bg-emerald-600', key: 'testAgents',    unit: 'agents',   to: '/test-agents' },
+      { emoji: '🎵', label: 'Bienvenue & Sons',   color: 'bg-pink-500',    key: 'bienvenue',     unit: 'messages', to: '/bienvenue-sons' },
+    ],
+  },
+  {
+    label: 'Paramètres Application',
+    color: 'text-green-700',
+    dot: 'bg-green-500',
+    items: [
+      { emoji: '🌐', label: 'Langues',            color: 'bg-green-600',   key: 'langues',       unit: 'langues',  to: '/langues' },
+      { emoji: '📍', label: 'Carte CI',           color: 'bg-lime-600',    key: 'carte',         unit: 'lieux',    to: '/carte-ci' },
+      { emoji: '🏅', label: 'Badges & XP',        color: 'bg-amber-500',   key: 'badges',        unit: 'badges',   to: '/badges' },
+      { emoji: '🔔', label: 'Notifications',      color: 'bg-sky-500',     key: 'notifications', unit: 'envoyées', to: '/notifications' },
+      { emoji: '🏺', label: 'Musée des Trésors',  color: 'bg-amber-700',   key: 'musee',         unit: 'objets',   to: '/musee-tresors' },
+      { emoji: '🌳', label: 'Arbre à Palabres',   color: 'bg-green-700',   key: 'arbre',         unit: 'mots',     to: '/arbre-vocabulaire' },
+      { emoji: '🛒', label: 'Au Marché',          color: 'bg-orange-500',  key: 'marche',        unit: 'dialogues',to: '/marche-dialogues' },
+    ],
+  },
+  {
+    label: 'Finance',
+    color: 'text-amber-700',
+    dot: 'bg-amber-500',
+    adminOnly: true,
+    items: [
+      { emoji: '💰', label: 'Finance',            color: 'bg-amber-600',   key: 'finance',       unit: 'entrées',  to: '/finance' },
+    ],
+  },
+  {
+    label: 'Administration',
+    color: 'text-gray-700',
+    dot: 'bg-gray-500',
+    adminOnly: true,
+    items: [
+      { emoji: '👥', label: 'Utilisateurs',       color: 'bg-gray-600',    key: 'users',         unit: 'comptes',  to: '/users' },
+    ],
+  },
 ];
 
 function StatCard({ title, value, subtitle, icon: Icon, color }) {
@@ -73,6 +150,8 @@ function ModuleCard({ emoji, label, color, value, unit, to }) {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   const [stats, setStats]       = useState(null);
   const [pending, setPending]   = useState([]);
   const [messages, setMessages] = useState([]);
@@ -155,21 +234,36 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Modules de contenu */}
+      {/* Modules de contenu — groupés par section */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Modules de contenu</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {MODULES.map(m => (
-            <ModuleCard
-              key={m.key}
-              emoji={m.emoji}
-              label={m.label}
-              color={m.color}
-              value={stats?.modules?.[m.key]}
-              unit={m.unit}
-              to={m.to}
-            />
-          ))}
+        <h2 className="text-lg font-semibold text-gray-900 mb-5">Modules de contenu</h2>
+        <div className="space-y-6">
+          {MODULE_SECTIONS
+            .filter(section => !section.adminOnly || isAdmin)
+            .map(section => (
+              <div key={section.label}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`w-2.5 h-2.5 rounded-full ${section.dot}`} />
+                  <h3 className={`text-xs font-bold uppercase tracking-widest ${section.color}`}>
+                    {section.label}
+                  </h3>
+                  <span className="text-xs text-gray-400">({section.items.length})</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {section.items.map(m => (
+                    <ModuleCard
+                      key={m.key}
+                      emoji={m.emoji}
+                      label={m.label}
+                      color={m.color}
+                      value={stats?.modules?.[m.key]}
+                      unit={m.unit}
+                      to={m.to}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
         </div>
       </div>
 
