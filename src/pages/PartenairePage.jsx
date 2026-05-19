@@ -24,6 +24,7 @@ import {
 } from 'recharts';
 import PageHelp from '../components/PageHelp';
 import { CarteCI } from './LanguesPage';
+import { getAvatarPortrait } from '../utils/getAvatar';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 const MOCK_ACTIVITY = [
@@ -199,32 +200,54 @@ function MemberCard({ member }) {
   );
 }
 
-function TutorCard({ tutor }) {
+function TutorCard({ tutor, large = false }) {
   const initials = tutor.nomAvatar?.slice(0, 2).toUpperCase() ?? '??';
   const isFemale = tutor.genre === 'F';
+  const portrait = getAvatarPortrait(tutor.nomAvatar);
+
+  const avatarSize = large ? 'w-20 h-20' : 'w-14 h-14';
+  const ringColor  = isFemale ? 'ring-pink-300'  : 'ring-blue-300';
+  const bgColor    = isFemale ? 'bg-pink-400'    : 'bg-blue-400';
+  const cardBg     = isFemale ? 'bg-pink-50 border-pink-200'  : 'bg-blue-50 border-blue-200';
+  const badgeBg    = isFemale ? 'bg-pink-200 text-pink-800'   : 'bg-blue-200 text-blue-800';
+
   return (
-    <div className={`rounded-2xl border p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow
-      ${isFemale ? 'bg-pink-50 border-pink-200' : 'bg-blue-50 border-blue-200'}`}>
-      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0
-        ${isFemale ? 'bg-pink-400 text-white' : 'bg-blue-400 text-white'}`}>
-        {initials}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-bold text-gray-900 text-sm">{tutor.nomAvatar}</p>
-        <p className="text-xs text-gray-500 italic truncate">
-          {tutor.personalite?.split('.')[0] ?? (isFemale ? 'Douce et patiente' : 'Dynamique et encourageant')}
-        </p>
-        {tutor.language?.nom && (
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block
-            ${isFemale ? 'bg-pink-200 text-pink-800' : 'bg-blue-200 text-blue-800'}`}>
-            {tutor.language.nom}
-          </span>
+    <div className={`rounded-2xl border p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 ${cardBg}`}>
+      {/* Avatar avec portrait réel ou initiales */}
+      <div className={`${avatarSize} rounded-full flex-shrink-0 ring-2 ${ringColor} overflow-hidden ${!portrait ? bgColor + ' flex items-center justify-center font-black text-white' : ''}`}>
+        {portrait ? (
+          <img
+            src={portrait}
+            alt={tutor.nomAvatar}
+            className="w-full h-full object-cover object-top"
+            onError={e => {
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.parentElement.classList.add(bgColor, 'flex', 'items-center', 'justify-center');
+              e.currentTarget.parentElement.innerHTML = `<span class="font-black text-white text-sm">${initials}</span>`;
+            }}
+          />
+        ) : (
+          <span className="text-sm">{initials}</span>
         )}
       </div>
-      <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0
-        ${isFemale ? 'bg-pink-200 text-pink-800' : 'bg-blue-200 text-blue-800'}`}>
-        {isFemale ? '♀' : '♂'}
-      </span>
+
+      {/* Infos */}
+      <div className="min-w-0 flex-1">
+        <p className="font-bold text-gray-900 text-sm leading-tight">{tutor.nomAvatar}</p>
+        <p className="text-xs text-gray-500 italic truncate mt-0.5">
+          {tutor.personalite?.split('.')[0] ?? (isFemale ? 'Douce et patiente' : 'Dynamique et encourageant')}
+        </p>
+        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeBg}`}>
+            {isFemale ? '♀ Féminin' : '♂ Masculin'}
+          </span>
+          {tutor.language?.nom && (
+            <span className="text-[10px] font-semibold bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
+              {tutor.language.nom}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -798,66 +821,149 @@ export default function PartenairePage() {
                 {tutors.length} agents · IA linguistiques &amp; tuteurs culturels
               </p>
             </div>
-            <div className="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 text-sm font-bold px-4 py-2 rounded-xl">
+            <div className="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 text-sm font-bold px-4 py-2 rounded-xl border border-cyan-200">
               <CpuChipIcon className="w-4 h-4" />
               Powered by Claude AI
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* IA Linguistiques */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center">
-                  <CpuChipIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-black text-gray-900 text-sm">IA Linguistiques</h3>
-                  <p className="text-xs text-gray-500">Toutes langues · multi-modal</p>
-                </div>
-                <span className="ml-auto text-xs font-bold bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-full">
-                  {iaAgents.length} agent{iaAgents.length > 1 ? 's' : ''}
-                </span>
+          {/* ── IA Linguistiques (grands portraits) ── */}
+          <div className="bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 rounded-2xl p-6 mb-6">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center flex-shrink-0">
+                <CpuChipIcon className="w-5 h-5 text-white" />
               </div>
-              {loading ? (
-                <div className="space-y-3">
-                  {[1,2].map(i => <Skeleton key={i} className="h-16" />)}
-                </div>
-              ) : iaAgents.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-6">Aucun agent IA global configuré</p>
-              ) : (
-                <div className="space-y-3">
-                  {iaAgents.map(t => <TutorCard key={t.id ?? t.nomAvatar} tutor={t} />)}
-                </div>
-              )}
+              <div>
+                <h3 className="font-black text-gray-900 text-sm">IA Linguistiques</h3>
+                <p className="text-xs text-gray-500">Agents conversationnels · Toutes langues</p>
+              </div>
+              <span className="ml-auto text-xs font-bold bg-cyan-100 text-cyan-700 px-3 py-1 rounded-full border border-cyan-200">
+                {iaAgents.length} agent{iaAgents.length > 1 ? 's' : ''}
+              </span>
             </div>
 
-            {/* Tuteurs culturels */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center">
-                  <StarIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-black text-gray-900 text-sm">Tuteurs Culturels</h3>
-                  <p className="text-xs text-gray-500">Par langue · personnalisés</p>
-                </div>
-                <span className="ml-auto text-xs font-bold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">
-                  {cultTutors.length} tuteur{cultTutors.length > 1 ? 's' : ''}
-                </span>
+            {loading ? (
+              <div className="flex gap-4">
+                {[1,2].map(i => <Skeleton key={i} className="h-48 flex-1 rounded-2xl" />)}
               </div>
-              {loading ? (
-                <div className="space-y-3">
-                  {[1,2,3].map(i => <Skeleton key={i} className="h-16" />)}
-                </div>
-              ) : cultTutors.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-6">Aucun tuteur culturel configuré</p>
-              ) : (
-                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                  {cultTutors.map(t => <TutorCard key={t.id ?? t.nomAvatar} tutor={t} />)}
-                </div>
-              )}
+            ) : iaAgents.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-8">Aucun agent IA global configuré</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {iaAgents.map(t => {
+                  const portrait = getAvatarPortrait(t.nomAvatar);
+                  const isFemale = t.genre === 'F';
+                  const initials = t.nomAvatar?.slice(0, 2).toUpperCase() ?? '??';
+                  return (
+                    <div key={t.id ?? t.nomAvatar}
+                      className={`rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border-2 ${
+                        isFemale ? 'border-pink-200' : 'border-blue-200'
+                      }`}>
+                      {/* Portrait */}
+                      <div className={`relative h-40 flex items-center justify-center ${
+                        isFemale ? 'bg-gradient-to-b from-pink-100 to-pink-200' : 'bg-gradient-to-b from-blue-100 to-blue-200'
+                      }`}>
+                        {portrait ? (
+                          <img
+                            src={portrait}
+                            alt={t.nomAvatar}
+                            className="h-full w-full object-cover object-top"
+                          />
+                        ) : (
+                          <span className={`text-4xl font-black ${isFemale ? 'text-pink-500' : 'text-blue-500'}`}>
+                            {initials}
+                          </span>
+                        )}
+                        <span className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full shadow ${
+                          isFemale ? 'bg-pink-500 text-white' : 'bg-blue-500 text-white'
+                        }`}>
+                          {isFemale ? '♀' : '♂'}
+                        </span>
+                      </div>
+                      {/* Infos */}
+                      <div className="bg-white px-3 py-2.5">
+                        <p className="font-black text-gray-900 text-sm leading-tight">{t.nomAvatar}</p>
+                        <p className="text-[10px] text-gray-500 italic mt-0.5 line-clamp-2">
+                          {t.personalite?.split('.')[0] ?? (isFemale ? 'Douce et patiente' : 'Dynamique et encourageant')}
+                        </p>
+                        <span className={`text-[10px] font-bold mt-1.5 inline-block px-2 py-0.5 rounded-full ${
+                          isFemale ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          Toutes langues
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ── Tuteurs Culturels (grille portraits) ── */}
+          <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-2xl p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
+                <StarIcon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-black text-gray-900 text-sm">Tuteurs Culturels</h3>
+                <p className="text-xs text-gray-500">Un tuteur masculin et féminin par langue</p>
+              </div>
+              <span className="ml-auto text-xs font-bold bg-violet-100 text-violet-700 px-3 py-1 rounded-full border border-violet-200">
+                {cultTutors.length} tuteur{cultTutors.length > 1 ? 's' : ''}
+              </span>
             </div>
+
+            {loading ? (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-36 rounded-2xl" />)}
+              </div>
+            ) : cultTutors.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-8">Aucun tuteur culturel configuré</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {cultTutors.map(t => {
+                  const portrait = getAvatarPortrait(t.nomAvatar);
+                  const isFemale = t.genre === 'F';
+                  const initials = t.nomAvatar?.slice(0, 2).toUpperCase() ?? '??';
+                  return (
+                    <div key={t.id ?? t.nomAvatar}
+                      className={`rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border ${
+                        isFemale ? 'border-pink-200' : 'border-blue-200'
+                      }`}>
+                      {/* Portrait */}
+                      <div className={`relative h-32 flex items-center justify-center ${
+                        isFemale ? 'bg-gradient-to-b from-pink-100 to-pink-200' : 'bg-gradient-to-b from-blue-100 to-blue-200'
+                      }`}>
+                        {portrait ? (
+                          <img
+                            src={portrait}
+                            alt={t.nomAvatar}
+                            className="h-full w-full object-cover object-top"
+                          />
+                        ) : (
+                          <span className={`text-3xl font-black ${isFemale ? 'text-pink-400' : 'text-blue-400'}`}>
+                            {initials}
+                          </span>
+                        )}
+                        <span className={`absolute top-1.5 right-1.5 text-[9px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow ${
+                          isFemale ? 'bg-pink-500 text-white' : 'bg-blue-500 text-white'
+                        }`}>
+                          {isFemale ? '♀' : '♂'}
+                        </span>
+                      </div>
+                      {/* Nom + langue */}
+                      <div className="bg-white px-2 py-2 text-center">
+                        <p className="font-bold text-gray-900 text-xs leading-tight truncate">{t.nomAvatar}</p>
+                        {t.language?.nom && (
+                          <p className="text-[10px] text-gray-400 mt-0.5 truncate">{t.language.nom}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
