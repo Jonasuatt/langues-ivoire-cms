@@ -36,6 +36,7 @@ import FinancePage from './pages/FinancePage';
 import ArbreVocabulairePage from './pages/ArbreVocabulairePage';
 import MarcheDialoguesPage from './pages/MarcheDialoguesPage';
 import CarteCIPage from './pages/CarteCIPage';
+import AlphabetPage from './pages/AlphabetPage';
 import SensMotsPage from './pages/SensMotsPage';
 
 function ProtectedRoute({ children, roles }) {
@@ -85,6 +86,7 @@ export default function App() {
           <Route path="musee-tresors" element={<MuseeTresorsPage />} />
           <Route path="arbre-vocabulaire" element={<ArbreVocabulairePage />} />
           <Route path="marche-dialogues" element={<MarcheDialoguesPage />} />
+          <Route path="alphabet-langues" element={<AlphabetPage />} />
           <Route path="finance" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><FinancePage /></ProtectedRoute>} />
           <Route path="guide" element={<UserGuidePage />} />
           {/* Admin only */}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import { badgesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import FileUploadField from '../components/FileUploadField';
@@ -290,6 +291,7 @@ export default function BadgesPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="badges" />
     </div>
   );
 }

@@ -6,6 +6,7 @@
  *  2. Où j'ai mal ? (catégorie "corps")     — 8 parties du corps × N langues
  */
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import { phrasesAdminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import FileUploadField from '../components/FileUploadField';
@@ -852,6 +853,7 @@ export default function PhrasesSOSPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="phrases-sos" />
     </div>
   );
 }

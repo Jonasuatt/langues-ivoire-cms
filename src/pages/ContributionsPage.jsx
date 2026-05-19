@@ -7,6 +7,7 @@
  *  3. Approuver (→ publiée dans le dictionnaire) ou Rejeter (avec raison optionnelle)
  */
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import { contributionsAPI, languagesAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
 import { useAuth } from '../contexts/AuthContext';
@@ -75,7 +76,14 @@ function ModalDetail({ contrib, onClose, onModerate }) {
   if (!contrib) return null;
 
   const type  = TYPE_LABELS[contrib.type] || { label: contrib.type, color: 'bg-gray-100 text-gray-600' };
-  const c     = contrib.contenu || {};
+  // contenu peut être un objet JSON ou une chaîne JSON selon l'API
+  const c = (() => {
+    try {
+      if (!contrib.contenu) return {};
+      if (typeof contrib.contenu === 'string') return JSON.parse(contrib.contenu);
+      return contrib.contenu;
+    } catch { return {}; }
+  })();
   const isPending = contrib.status === 'PENDING';
 
   const handleApprove = async () => {
@@ -486,7 +494,13 @@ export default function ContributionsPage() {
         <div className="space-y-3">
           {contributions.map(c => {
             const type = TYPE_LABELS[c.type] || { label: c.type, color: 'bg-gray-100 text-gray-600' };
-            const cont = c.contenu || {};
+            const cont = (() => {
+              try {
+                if (!c.contenu) return {};
+                if (typeof c.contenu === 'string') return JSON.parse(c.contenu);
+                return c.contenu;
+              } catch { return {}; }
+            })();
             const hasAudio = cont.audioUrl || cont.audioUrlFr;
             const hasImage = cont.imageUrl || c.imageUrl;
 
@@ -588,6 +602,7 @@ export default function ContributionsPage() {
         onClose={() => setSelected(null)}
         onModerate={moderate}
       />
+      <PageHelp pageId="contributions" />
     </div>
   );
 }

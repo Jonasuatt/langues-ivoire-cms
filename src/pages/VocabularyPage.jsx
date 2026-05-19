@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { dictionaryAPI, languagesAPI } from '../services/api';
 import FileUploadField from '../components/FileUploadField';
 import { MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline';
@@ -367,6 +368,7 @@ export default function VocabularyPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="vocabulaire" />
     </div>
   );
 }

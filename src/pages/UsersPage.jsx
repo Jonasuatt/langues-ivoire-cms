@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import { adminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -611,6 +612,7 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="users" />
     </div>
   );
 }

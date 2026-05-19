@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import { tutorsAPI, languagesAPI } from '../services/api';
 import FileUploadField from '../components/FileUploadField';
 import { PlusIcon, PencilIcon, TrashIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
@@ -306,6 +307,7 @@ export default function TutorsPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="tuteurs" />
     </div>
   );
 }

@@ -1,5 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useEffect, useState } from 'react';
+import { supportAPI } from '../services/api';
 import {
   HomeIcon, BookOpenIcon, AcademicCapIcon, SparklesIcon, VideoCameraIcon,
   ChatBubbleLeftRightIcon, CpuChipIcon, MicrophoneIcon,
@@ -32,6 +34,7 @@ const NAV_SECTIONS = [
     items: [
       { to: '/', label: 'Tableau de bord', icon: HomeIcon, exact: true },
       { to: '/dictionary', label: 'Dictionnaire', icon: LanguageIcon },
+      { to: '/alphabet-langues', label: 'Alphabet des Langues', icon: LanguageIcon },
       { to: '/conjugation', label: 'Conjugaison', icon: BookOpenIcon },
       { to: '/vocabulary', label: 'Vocabulaire', icon: BookOpenIcon },
       { to: '/lessons', label: 'Leçons', icon: AcademicCapIcon },
@@ -101,10 +104,23 @@ const NAV_SECTIONS = [
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+
+  // Charge le nombre de messages non-lus (OUVERT) en polling toutes les 60s
+  useEffect(() => {
+    const loadUnread = () => {
+      supportAPI.getAll({ statut: 'OUVERT', limit: 1 })
+        .then(r => setUnreadMessages(r.data.total ?? r.data.data?.length ?? 0))
+        .catch(() => {});
+    };
+    loadUnread();
+    const timer = setInterval(loadUnread, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -147,7 +163,12 @@ export default function Layout() {
                       }
                     >
                       <Icon className="w-4 h-4 flex-shrink-0" />
-                      {label}
+                      <span className="flex-1">{label}</span>
+                      {to === '/messages' && unreadMessages > 0 && (
+                        <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+                          {unreadMessages > 99 ? '99+' : unreadMessages}
+                        </span>
+                      )}
                     </NavLink>
                   ))}
               </div>

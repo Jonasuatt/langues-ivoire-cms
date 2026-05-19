@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import { supportAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import {
@@ -31,6 +32,7 @@ export default function MessagesPage() {
   const [newStatut, setNewStatut] = useState('EN_COURS');
   const [sending, setSending]     = useState(false);
   const [search, setSearch]       = useState('');
+  const replyRef = useRef(null);
 
   /* ── Chargement des counts pour les 3 onglets ── */
   const loadCounts = useCallback(() => {
@@ -58,10 +60,13 @@ export default function MessagesPage() {
   useEffect(() => { loadCounts(); }, [loadCounts]);
   useEffect(() => { load(); setSearch(''); }, [statut]);
 
-  const openThread = (msg) => {
+  const openThread = (msg, scrollToReply = false) => {
     setSelected(msg);
     setReplyText('');
     setNewStatut(msg.statut === 'OUVERT' ? 'EN_COURS' : msg.statut === 'RESOLU' ? 'RESOLU' : msg.statut);
+    if (scrollToReply) {
+      setTimeout(() => replyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    }
   };
 
   const sendReply = async () => {
@@ -249,13 +254,20 @@ export default function MessagesPage() {
                     </div>
                     <p className="font-medium text-gray-800 mt-1 text-sm">{msg.sujet}</p>
                     <p className="text-xs text-gray-500 truncate mt-0.5">{msg.corps}</p>
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
                       <span className="text-xs text-gray-400">{formatDate(msg.createdAt)}</span>
                       {msg.reponses?.length > 0 && (
                         <span className={`text-xs font-medium flex items-center gap-1 ${isResolu ? 'text-green-600' : 'text-primary-600'}`}>
                           <ChatBubbleLeftEllipsisIcon className="w-3 h-3" />
                           {msg.reponses.length} réponse{msg.reponses.length > 1 ? 's' : ''}
                         </span>
+                      )}
+                      {isResolu && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openThread(msg, true); }}
+                          className="text-xs text-orange-600 hover:text-orange-800 font-medium flex items-center gap-1 hover:underline">
+                          ↩ Continuer
+                        </button>
                       )}
                     </div>
                   </div>
@@ -343,6 +355,7 @@ export default function MessagesPage() {
                 {selected.statut === 'RESOLU' ? 'Ajouter un commentaire de suivi' : 'Votre réponse'}
               </label>
               <textarea
+                ref={replyRef}
                 value={replyText}
                 onChange={e => setReplyText(e.target.value)}
                 rows={4}
@@ -395,6 +408,7 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
+      <PageHelp pageId="messages" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import { culturalAPI, languagesAPI } from '../services/api';
 import api from '../services/api';
 import {
@@ -685,6 +686,7 @@ export default function CulturalPage() {
         </div>
       )}
 
+      <PageHelp pageId="cultural" />
     </div>
   );
 }

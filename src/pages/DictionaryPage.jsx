@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { dictionaryAPI, languagesAPI, uploadAPI } from '../services/api';
 import CategorySelect from '../components/CategorySelect';
 import FileUploadField from '../components/FileUploadField';
@@ -578,6 +579,7 @@ export default function DictionaryPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="dictionnaire" />
     </div>
   );
 }

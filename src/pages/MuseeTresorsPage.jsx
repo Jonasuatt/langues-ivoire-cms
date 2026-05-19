@@ -4,6 +4,7 @@
  * Chaque trésor = un CulturalItem de type TRESOR.
  */
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import {
   PlusIcon, PencilIcon, TrashIcon,
@@ -507,6 +508,7 @@ export default function MuseeTresorsPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="musee-tresors" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI, uploadAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
 import FileUploadField from '../components/FileUploadField';
@@ -974,6 +975,7 @@ export default function VoixAudioPage() {
           onDeleted={() => { loadItems(); loadStats(); setDeleteItem(null); }}
         />
       )}
+      <PageHelp pageId="voix-audio" />
     </div>
   );
 }

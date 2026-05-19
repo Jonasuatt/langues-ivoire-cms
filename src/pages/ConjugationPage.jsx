@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import LanguageSelect from '../components/LanguageSelect';
@@ -871,6 +872,7 @@ export default function ConjugationPage() {
         </div>
       )}
 
+      <PageHelp pageId="conjugaison" />
     </div>
   );
 }

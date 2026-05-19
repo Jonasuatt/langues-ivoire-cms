@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import { audioContribAPI, languagesAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
 import CategorySelect from '../components/CategorySelect';
@@ -752,6 +753,7 @@ export default function IALinguistiquePage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="ia-linguistique" />
     </div>
   );
 }
