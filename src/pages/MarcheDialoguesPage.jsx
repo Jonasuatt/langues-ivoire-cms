@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MarcheDialoguesPage — Scénarios de négociation au Marché
  * Alimente MarcheScreen.js sur le mobile.
  * Un document MarcheDialogue par langue.
@@ -47,7 +47,7 @@ export default function MarcheDialoguesPage() {
   };
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
+    languagesAPI.getAllAdmin().then(({ data }) => setLanguages(data)).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [filterLang]);

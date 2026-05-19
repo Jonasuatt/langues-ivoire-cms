@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ArbreVocabulairePage — Vocabulaire familial (Arbre à Palabres)
  * Alimente ArbresScreen.js sur le mobile.
  * Utilise UsefulPhrase avec categorie='famille' et contexte=membreId.
@@ -55,7 +55,7 @@ export default function ArbreVocabulairePage() {
   };
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
+    languagesAPI.getAllAdmin().then(({ data }) => setLanguages(data)).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [filterLang, filterMembre]);

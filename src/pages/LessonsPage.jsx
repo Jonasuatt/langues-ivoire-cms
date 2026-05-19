@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import PageHelp from '../components/PageHelp';
 import { lessonsAPI, languagesAPI } from '../services/api';
 import api from '../services/api';
@@ -23,7 +23,7 @@ export default function LessonsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => {
+    languagesAPI.getAllAdmin().then(({ data }) => {
       setLanguages(data);
       if (data.length) { setSelectedLang(data[0].code); setSelectedLangId(data[0].id); }
     });

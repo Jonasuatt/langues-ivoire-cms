@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+﻿import { useEffect, useState, useRef, useCallback } from 'react';
 import PageHelp from '../components/PageHelp';
 import api, { languagesAPI, uploadAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
@@ -702,7 +702,7 @@ export default function VoixAudioPage() {
   useEffect(() => { loadStats(); }, [loadStats]);
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
+    languagesAPI.getAllAdmin().then(({ data }) => setLanguages(data)).catch(() => {});
   }, []);
 
   const resetFilters = () => {

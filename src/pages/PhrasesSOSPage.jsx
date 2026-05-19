@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PhrasesSOSPage — Gestion du module S.O.S. LANGUES
  *
  * Deux onglets :
@@ -185,7 +185,7 @@ export default function PhrasesSOSPage() {
 
   // ─── Chargement initial ───────────────────────────────────────────────────
   useEffect(() => {
-    languagesAPI.getAll()
+    languagesAPI.getAllAdmin()
       .then(({ data }) => {
         setLanguages(data);
         const m = {};

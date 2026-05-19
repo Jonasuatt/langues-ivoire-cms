@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import PageHelp from '../components/PageHelp';
 import api, { dictionaryAPI, languagesAPI, uploadAPI } from '../services/api';
 import CategorySelect from '../components/CategorySelect';
@@ -91,7 +91,7 @@ export default function DictionaryPage() {
   const LIMIT = 20;
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => {
+    languagesAPI.getAllAdmin().then(({ data }) => {
       setLanguages(data);
       if (data.length) setSelectedLang(data[0].code);
     });
