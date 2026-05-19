@@ -29,6 +29,8 @@ export const authAPI = {
 
 export const languagesAPI = {
   getAll: () => api.get('/languages'),
+  getAllAdmin: () => api.get('/languages/admin/all'),
+  activate: (id) => api.patch(`/languages/${id}/activate`),
   create: (data) => api.post('/languages', data),
   update: (id, data) => api.patch(`/languages/${id}`, data),
   delete: (id) => api.delete(`/languages/${id}`),
