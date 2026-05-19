@@ -23,6 +23,7 @@ import {
   Legend, RadialBarChart, RadialBar,
 } from 'recharts';
 import PageHelp from '../components/PageHelp';
+import { CarteCI } from './LanguesPage';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 const MOCK_ACTIVITY = [
@@ -274,8 +275,9 @@ export default function PartenairePage() {
   const [certs,     setCerts]     = useState([]);
   const [tutors,    setTutors]    = useState([]);
   const [members,   setMembers]   = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [loadedAt,  setLoadedAt]  = useState(null);
+  const [loading,     setLoading]     = useState(true);
+  const [loadedAt,    setLoadedAt]    = useState(null);
+  const [selectedLangId, setSelectedLangId] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -593,6 +595,142 @@ export default function PartenairePage() {
           <p className="text-xs text-gray-400 text-center mt-4">
             Benchmarks secteur EdTech · J+1: 50–70% · J+7: 35–50% · J+30: 20–35%
           </p>
+        </div>
+
+        {/* ── CARTE DE CÔTE D'IVOIRE ───────────────────────────────────────── */}
+        <div className="print-break">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-black text-gray-900">Couverture Géographique</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {languages.length} langue{languages.length > 1 ? 's' : ''} documentée{languages.length > 1 ? 's' : ''} sur la carte de Côte d'Ivoire
+              </p>
+            </div>
+            <span className="bg-green-50 text-green-700 text-sm font-bold px-4 py-2 rounded-xl border border-green-200">
+              📍 {languages.filter(l => l.lat && l.lng).length} géolocalisée{languages.filter(l => l.lat && l.lng).length > 1 ? 's' : ''}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Carte interactive */}
+            <div
+              className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+              style={{ height: 480 }}
+            >
+              {loading ? (
+                <Skeleton className="w-full h-full rounded-2xl" />
+              ) : (
+                <CarteCI
+                  langues={languages}
+                  selectedId={selectedLangId}
+                  onMarkerClick={(lang) =>
+                    setSelectedLangId(lang.id === selectedLangId ? null : lang.id)
+                  }
+                  style={{ width: '100%', height: '100%' }}
+                />
+              )}
+            </div>
+
+            {/* Liste latérale des langues */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col" style={{ maxHeight: 480 }}>
+              <h3 className="font-black text-gray-900 text-sm mb-1">Langues documentées</h3>
+              <p className="text-xs text-gray-400 mb-3">Cliquez pour localiser sur la carte</p>
+
+              <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
+                {loading ? (
+                  [1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-12" />)
+                ) : languages.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-6">Aucune langue configurée</p>
+                ) : (
+                  languages.map((lang, i) => {
+                    const isSelected = lang.id === selectedLangId;
+                    const hasCoords  = !!(lang.lat && lang.lng);
+                    return (
+                      <button
+                        key={lang.id}
+                        onClick={() => setSelectedLangId(isSelected ? null : lang.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${
+                          isSelected
+                            ? 'border-primary-300 bg-primary-50 shadow-sm'
+                            : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0"
+                          style={{ background: lang.couleur || LANG_COLORS[i % LANG_COLORS.length] }}
+                        >
+                          {lang.nom?.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm font-bold truncate ${isSelected ? 'text-primary-700' : 'text-gray-800'}`}>
+                            {lang.nom}
+                          </p>
+                          {lang.region && (
+                            <p className="text-xs text-gray-400 truncate">{lang.region}</p>
+                          )}
+                        </div>
+                        <span
+                          className={`w-2 h-2 rounded-full flex-shrink-0 ${hasCoords ? 'bg-green-400' : 'bg-gray-200'}`}
+                          title={hasCoords ? 'Géolocalisée' : 'Non géolocalisée'}
+                        />
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Légende familles linguistiques */}
+              <div className="mt-4 pt-4 border-t border-gray-100 flex-shrink-0">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Familles linguistiques</p>
+                <div className="grid grid-cols-2 gap-1">
+                  {[
+                    { label: 'Akan',       color: '#D4A017' },
+                    { label: 'Krou',       color: '#2E7D32' },
+                    { label: 'Gur',        color: '#E65100' },
+                    { label: 'Mandé Nord', color: '#1565C0' },
+                    { label: 'Mandé Sud',  color: '#6A1B9A' },
+                    { label: 'Véhiculaire',color: '#C62828' },
+                  ].map(f => (
+                    <div key={f.label} className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: f.color }} />
+                      {f.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Info sélection */}
+          {selectedLangId && (() => {
+            const lang = languages.find(l => l.id === selectedLangId);
+            if (!lang) return null;
+            return (
+              <div className="mt-4 bg-primary-50 border border-primary-200 rounded-2xl px-5 py-4 flex items-center gap-4">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0"
+                  style={{ background: lang.couleur || '#0B3D2E' }}
+                >
+                  {lang.nom?.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-primary-900 text-lg">{lang.nom}</p>
+                  <div className="flex flex-wrap gap-3 mt-1 text-xs text-primary-700">
+                    {lang.region    && <span>📍 {lang.region}</span>}
+                    {lang.code      && <span>🔤 Code : <strong>{lang.code}</strong></span>}
+                    {lang.locuteurs && <span>👥 ~{Number(lang.locuteurs).toLocaleString('fr-FR')} locuteurs</span>}
+                    {lang.famille   && <span>🌿 Famille : {lang.famille}</span>}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedLangId(null)}
+                  className="text-xs text-primary-500 hover:text-primary-800 font-medium flex-shrink-0"
+                >
+                  ✕ Fermer
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── ÉQUIPE ÉDITORIALE ─────────────────────────────────────────────── */}
