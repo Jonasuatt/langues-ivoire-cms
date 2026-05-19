@@ -22,6 +22,7 @@ const ETHNIES = [
   { value: 'gouro',   label: '🦁 Gouro'   },
   { value: 'guere',   label: '🌊 Guéré'   },
   { value: 'nouchi',  label: '🎧 Nouchi'  },
+  { value: 'yacouba', label: '🌲 Yacouba' },
 ];
 
 const TIER_INFO = [

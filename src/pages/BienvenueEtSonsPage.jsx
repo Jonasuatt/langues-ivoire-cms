@@ -4,10 +4,11 @@ import {
   SpeakerWaveIcon, MusicalNoteIcon, ArrowUpTrayIcon,
   CheckCircleIcon, ExclamationCircleIcon, PlayCircleIcon,
   StopCircleIcon, TrashIcon, PencilSquareIcon,
-  ArrowPathIcon, FunnelIcon, MagnifyingGlassIcon,
+  ArrowPathIcon, FunnelIcon, MagnifyingGlassIcon, PlusIcon,
 } from '@heroicons/react/24/outline';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
+import FileUploadField from '../components/FileUploadField';
 
 // ─── Messages par défaut (fallback si aucun message en base) ──────────────────
 const DEFAULT_MESSAGES = {
@@ -423,6 +424,9 @@ export default function BienvenueEtSonsPage() {
   const [loading, setLoading]       = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter]         = useState('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({ langId: '', message: '', audioUrl: '' });
+  const [createSaving, setCreateSaving] = useState(false);
 
   useEffect(() => {
     languagesAPI.getAll()
@@ -437,6 +441,26 @@ export default function BienvenueEtSonsPage() {
 
   const handleReset = (updated) => {
     setLanguages(prev => prev.map(l => l.id === updated.id ? { ...l, welcomeMessage: null, traditionalAudioUrl: null } : l));
+  };
+
+  const handleCreateMessage = async () => {
+    if (!createForm.langId) { toast.error('Sélectionnez une langue'); return; }
+    setCreateSaving(true);
+    try {
+      const lang = languages.find(l => l.id === createForm.langId);
+      if (!lang) throw new Error('Langue introuvable');
+      await languagesAPI.update(createForm.langId, {
+        welcomeMessage: createForm.message || null,
+        traditionalAudioUrl: createForm.audioUrl || null,
+      });
+      toast.success(`Message créé pour ${lang.nom} !`);
+      setShowCreateModal(false);
+      setCreateForm({ langId: '', message: '', audioUrl: '' });
+      // Recharger
+      languagesAPI.getAll().then(({ data }) => setLanguages(Array.isArray(data) ? data : data.data || [])).catch(() => {});
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la sauvegarde');
+    } finally { setCreateSaving(false); }
   };
 
   // ── Filtrage ──
@@ -466,16 +490,21 @@ export default function BienvenueEtSonsPage() {
     <div className="max-w-4xl mx-auto space-y-6 p-6">
 
       {/* ── En-tête ── */}
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-purple-100 rounded-xl flex-shrink-0 mt-0.5">
-          <MusicalNoteIcon className="w-6 h-6 text-purple-600" />
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-purple-100 rounded-xl flex-shrink-0 mt-0.5">
+            <MusicalNoteIcon className="w-6 h-6 text-purple-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Bienvenue & Sons</h1>
+            <p className="text-sm text-gray-500">
+              Gérez le son traditionnel et le message lu à la sélection de chaque langue dans l'app.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Bienvenue & Sons</h1>
-          <p className="text-sm text-gray-500">
-            Gérez le son traditionnel et le message lu à la sélection de chaque langue dans l'app.
-          </p>
-        </div>
+        <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2 flex-shrink-0">
+          <PlusIcon className="w-4 h-4" /> Nouveau message
+        </button>
       </div>
 
       {/* ── Stats ── */}
@@ -559,6 +588,44 @@ export default function BienvenueEtSonsPage() {
           {filtered.map(lang => (
             <LangCard key={lang.id} lang={lang} onSaved={handleSaved} onReset={handleReset} />
           ))}
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-bold text-gray-900 mb-5">Nouveau message de bienvenue</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Langue *</label>
+                <select className="input w-full" value={createForm.langId}
+                  onChange={e => setCreateForm(f => ({ ...f, langId: e.target.value }))}>
+                  <option value="">— Sélectionner une langue —</option>
+                  {languages.map(l => (
+                    <option key={l.id} value={l.id}>{l.nom}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message de bienvenue</label>
+                <textarea className="input resize-none" rows={4} value={createForm.message}
+                  onChange={e => setCreateForm(f => ({ ...f, message: e.target.value }))}
+                  placeholder="Texte du message de bienvenue dans la langue locale..." />
+              </div>
+              <FileUploadField
+                type="audio"
+                label="🎵 Son traditionnel (optionnel)"
+                value={createForm.audioUrl}
+                onChange={url => setCreateForm(f => ({ ...f, audioUrl: url }))}
+              />
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowCreateModal(false)} className="btn-secondary flex-1">Annuler</button>
+              <button onClick={handleCreateMessage} disabled={createSaving} className="btn-primary flex-1 justify-center">
+                {createSaving ? 'Sauvegarde…' : 'Créer le message'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

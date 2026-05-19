@@ -26,6 +26,7 @@ const SOS_LANGUAGES = [
   { code: 'gouro',   name: 'Gouro',   flag: '🎨' },
   { code: 'guere',   name: 'Guéré',   flag: '🌳' },
   { code: 'nouchi',  name: 'Nouchi',  flag: '🌆' },
+  { code: 'yacouba', name: 'Yacouba', flag: '🌲' },
 ];
 
 // ─── Catégories d'emojis pour le sélecteur ───────────────────────────────────
