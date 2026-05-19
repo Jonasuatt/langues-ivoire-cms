@@ -4,6 +4,7 @@
  * Utilise UsefulPhrase avec categorie='famille' et contexte=membreId.
  */
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -396,6 +397,7 @@ export default function ArbreVocabulairePage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="arbre-vocabulaire" />
     </div>
   );
 }

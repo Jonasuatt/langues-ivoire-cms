@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import { CheckIcon, ClipboardDocumentIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 // ─── Données complètes — tous les caractères des langues ivoiriennes ────────
@@ -533,6 +534,7 @@ function GroupCard({ groupe, copied, onCopy }) {
           })}
         </div>
       </div>
+      <PageHelp pageId="alphabet" />
     </div>
   );
 }

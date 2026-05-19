@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { uploadAPI } from '../services/api';
 import {
   BookOpenIcon, PlusIcon, TrashIcon, PencilIcon,
@@ -939,6 +940,7 @@ export default function TextContentPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="textes-recits" />
     </div>
   );
 }

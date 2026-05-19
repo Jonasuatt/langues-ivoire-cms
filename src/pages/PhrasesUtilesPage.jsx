@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import { phrasesAdminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatBubbleLeftRightIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
@@ -263,6 +264,7 @@ export default function PhrasesUtilesPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="phrases-utiles" />
     </div>
   );
 }

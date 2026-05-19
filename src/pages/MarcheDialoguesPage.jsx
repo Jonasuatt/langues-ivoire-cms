@@ -4,6 +4,7 @@
  * Un document MarcheDialogue par langue.
  */
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -459,6 +460,7 @@ export default function MarcheDialoguesPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="marche-dialogues" />
     </div>
   );
 }

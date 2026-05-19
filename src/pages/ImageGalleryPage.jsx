@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { uploadAPI } from '../services/api';
 import FileUploadField from '../components/FileUploadField';
 import {
@@ -821,6 +822,7 @@ export default function ImageGalleryPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="image-galleries" />
     </div>
   );
 }

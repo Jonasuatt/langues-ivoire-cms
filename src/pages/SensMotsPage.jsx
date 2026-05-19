@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import api from '../services/api';
 import FileUploadField from '../components/FileUploadField';
 import {
@@ -379,6 +380,7 @@ export default function SensMotsPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="sens-mots" />
     </div>
   );
 }

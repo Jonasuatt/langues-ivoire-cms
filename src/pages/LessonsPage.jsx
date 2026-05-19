@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import { lessonsAPI, languagesAPI } from '../services/api';
 import api from '../services/api';
 import { PlusIcon, AcademicCapIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -214,6 +215,7 @@ export default function LessonsPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="lecons" />
     </div>
   );
 }

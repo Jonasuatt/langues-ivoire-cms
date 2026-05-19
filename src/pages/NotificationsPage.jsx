@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import { notificationsAdminAPI, adminAPI, uploadAPI } from '../services/api';
 import {
   BellIcon, PaperAirplaneIcon, ClockIcon, UsersIcon,
@@ -755,6 +756,7 @@ export default function NotificationsPage() {
       {detailNotif && (
         <ModalDetail notif={detailNotif} onClose={() => setDetailNotif(null)} />
       )}
+      <PageHelp pageId="notifications" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import { languagesAPI, uploadAPI } from '../services/api';
 import {
   SpeakerWaveIcon, MusicalNoteIcon, ArrowUpTrayIcon,
@@ -628,6 +629,7 @@ export default function BienvenueEtSonsPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="bienvenue-sons" />
     </div>
   );
 }

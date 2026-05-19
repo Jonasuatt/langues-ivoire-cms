@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import {
   GlobeAltIcon, CheckCircleIcon, XCircleIcon,
   MapPinIcon, PlusIcon, PencilIcon, BookOpenIcon,
@@ -1313,6 +1314,7 @@ export default function LanguesPage() {
           onSelect={handleCatalogueSelect}
         />
       )}
+      <PageHelp pageId="langues" />
     </div>
   );
 }

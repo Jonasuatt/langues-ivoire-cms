@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import { videosAPI, languagesAPI, uploadAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, PlayIcon, LinkIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -340,6 +341,7 @@ export default function VideosPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="videos" />
     </div>
   );
 }
