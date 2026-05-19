@@ -9,6 +9,7 @@ import { useEffect, useState, useRef } from 'react';
 import { phrasesAdminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import FileUploadField from '../components/FileUploadField';
+import QuadAudioField from '../components/QuadAudioField';
 import {
   ExclamationTriangleIcon, PlusIcon, PencilIcon, TrashIcon,
   CheckCircleIcon, XCircleIcon, ChevronDownIcon, ChevronUpIcon,
@@ -51,8 +52,8 @@ const BODY_PARTS = [
   { id: 'pied',     label: 'Pied',     emoji: '🦶', fr: "J'ai mal au pied." },
 ];
 
-const EMPTY_URGENCE = { languageId: '', phrase: '', transcription: '', traduction: '', contexte: '🆘', audioUrl: '', genreLocuteur: '', status: 'PUBLISHED' };
-const EMPTY_CORPS   = { languageId: '', bodyPartId: 'tete', phrase: '', transcription: '', audioUrl: '', genreLocuteur: '', status: 'PUBLISHED' };
+const EMPTY_URGENCE = { languageId: '', phrase: '', transcription: '', traduction: '', contexte: '🆘', audioUrl: '', audioUrlF: '', audioUrlFr: '', audioUrlFrF: '', genreLocuteur: '', status: 'PUBLISHED' };
+const EMPTY_CORPS   = { languageId: '', bodyPartId: 'tete', phrase: '', transcription: '', audioUrl: '', audioUrlF: '', audioUrlFr: '', audioUrlFrF: '', genreLocuteur: '', status: 'PUBLISHED' };
 
 // ─── GenrePicker ─────────────────────────────────────────────────────────────
 function GenrePicker({ value, onChange }) {
@@ -226,6 +227,7 @@ export default function PhrasesSOSPage() {
     setUrgenceForm({ languageId: p.languageId || '', phrase: p.phrase || '',
       transcription: p.transcription || '', traduction: p.traduction || '',
       contexte: p.contexte || '🆘', audioUrl: p.audioUrl || '',
+      audioUrlF: p.audioUrlF || '', audioUrlFr: p.audioUrlFr || '', audioUrlFrF: p.audioUrlFrF || '',
       genreLocuteur: p.genreLocuteur || '', status: p.status || 'PUBLISHED' });
     setSelectedLangU(SOS_LANGUAGES.find(l => l.code === p.language?.code));
     setShowUrgenceModal(true);
@@ -244,6 +246,9 @@ export default function PhrasesSOSPage() {
       categorie: 'urgence',
       contexte: urgenceForm.contexte || '🆘',
       audioUrl: urgenceForm.audioUrl.trim() || null,
+      audioUrlF: urgenceForm.audioUrlF.trim() || null,
+      audioUrlFr: urgenceForm.audioUrlFr.trim() || null,
+      audioUrlFrF: urgenceForm.audioUrlFrF.trim() || null,
       genreLocuteur: urgenceForm.genreLocuteur || null,
       status: urgenceForm.status,
     };
@@ -276,7 +281,8 @@ export default function PhrasesSOSPage() {
     setEditCorpsItem(p);
     setCorpsForm({ languageId: p.languageId || '', bodyPartId: p.contexte || 'tete',
       phrase: p.phrase || '', transcription: p.transcription || '',
-      audioUrl: p.audioUrl || '', genreLocuteur: p.genreLocuteur || '', status: p.status || 'PUBLISHED' });
+      audioUrl: p.audioUrl || '', audioUrlF: p.audioUrlF || '', audioUrlFr: p.audioUrlFr || '', audioUrlFrF: p.audioUrlFrF || '',
+      genreLocuteur: p.genreLocuteur || '', status: p.status || 'PUBLISHED' });
     setSelectedBP(bp);
     setSelectedLangC(SOS_LANGUAGES.find(l => l.code === p.language?.code));
     setShowCorpsModal(true);
@@ -294,6 +300,9 @@ export default function PhrasesSOSPage() {
       categorie: 'corps',
       contexte: corpsForm.bodyPartId,
       audioUrl: corpsForm.audioUrl.trim() || null,
+      audioUrlF: corpsForm.audioUrlF.trim() || null,
+      audioUrlFr: corpsForm.audioUrlFr.trim() || null,
+      audioUrlFrF: corpsForm.audioUrlFrF.trim() || null,
       genreLocuteur: corpsForm.genreLocuteur || null,
       status: corpsForm.status,
     };
@@ -704,8 +713,13 @@ export default function PhrasesSOSPage() {
               </div>
 
               {/* Audio */}
-              <FileUploadField type="audio" label="Fichier audio" value={urgenceForm.audioUrl}
-                onChange={url => setUrgenceForm({ ...urgenceForm, audioUrl: url })}/>
+              <QuadAudioField
+                audioUrl={urgenceForm.audioUrl}
+                audioUrlF={urgenceForm.audioUrlF || ''}
+                audioUrlFr={urgenceForm.audioUrlFr || ''}
+                audioUrlFrF={urgenceForm.audioUrlFrF || ''}
+                onChange={(field, url) => setUrgenceForm(f => ({ ...f, [field]: url }))}
+              />
 
               {/* Genre */}
               <GenrePicker value={urgenceForm.genreLocuteur}
@@ -805,8 +819,13 @@ export default function PhrasesSOSPage() {
               </div>
 
               {/* Audio */}
-              <FileUploadField type="audio" label="Fichier audio" value={corpsForm.audioUrl}
-                onChange={url => setCorpsForm({ ...corpsForm, audioUrl: url })}/>
+              <QuadAudioField
+                audioUrl={corpsForm.audioUrl}
+                audioUrlF={corpsForm.audioUrlF || ''}
+                audioUrlFr={corpsForm.audioUrlFr || ''}
+                audioUrlFrF={corpsForm.audioUrlFrF || ''}
+                onChange={(field, url) => setCorpsForm(f => ({ ...f, [field]: url }))}
+              />
 
               {/* Genre */}
               <GenrePicker value={corpsForm.genreLocuteur}
