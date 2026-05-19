@@ -234,37 +234,77 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Modules de contenu — groupés par section */}
+      {/* Modules de contenu — filtrés selon le rôle et les modules attribués */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-5">Modules de contenu</h2>
-        <div className="space-y-6">
-          {MODULE_SECTIONS
-            .filter(section => !section.adminOnly || isAdmin)
-            .map(section => (
-              <div key={section.label}>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={`w-2.5 h-2.5 rounded-full ${section.dot}`} />
-                  <h3 className={`text-xs font-bold uppercase tracking-widest ${section.color}`}>
-                    {section.label}
-                  </h3>
-                  <span className="text-xs text-gray-400">({section.items.length})</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {section.items.map(m => (
-                    <ModuleCard
-                      key={m.key}
-                      emoji={m.emoji}
-                      label={m.label}
-                      color={m.color}
-                      value={stats?.modules?.[m.key]}
-                      unit={m.unit}
-                      to={m.to}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold text-gray-900">Modules de contenu</h2>
+          {!isAdmin && user?.modules?.length > 0 && (
+            <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+              {user.modules.length} module{user.modules.length > 1 ? 's' : ''} attribué{user.modules.length > 1 ? 's' : ''}
+            </span>
+          )}
         </div>
+        {(() => {
+          // Partenaires : afficher uniquement le module Partenaire
+          if (user?.role === 'PARTNER') return (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center">
+              <p className="text-4xl mb-2">🤝</p>
+              <p className="text-base font-bold text-emerald-800">Tableau de bord Partenaires</p>
+              <p className="text-sm text-emerald-600 mt-1 mb-4">Consultez vos statistiques, performances et indicateurs clés.</p>
+              <Link to="/partenaire" className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-colors">
+                Accéder au tableau Partenaire →
+              </Link>
+            </div>
+          );
+
+          // Filtre par modules assignés pour Éditeur/Contributeur
+          const userModules = user?.modules ?? [];
+          const sections = MODULE_SECTIONS
+            .filter(section => !section.adminOnly || isAdmin)
+            .map(section => ({
+              ...section,
+              items: isAdmin
+                ? section.items
+                : section.items.filter(m => userModules.includes(m.key)),
+            }))
+            .filter(section => section.items.length > 0);
+
+          if (sections.length === 0) return (
+            <div className="text-center py-10 text-gray-400">
+              <p className="text-2xl mb-2">📋</p>
+              <p className="text-sm">Aucun module attribué. Contactez votre administrateur.</p>
+            </div>
+          );
+
+          return (
+            <div className="space-y-6">
+              {sections.map(section => (
+                <div key={section.label}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`w-2.5 h-2.5 rounded-full ${section.dot}`} />
+                    <h3 className={`text-xs font-bold uppercase tracking-widest ${section.color}`}>
+                      {section.label}
+                    </h3>
+                    <span className="text-xs text-gray-400">({section.items.length})</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {section.items.map(m => (
+                      <ModuleCard
+                        key={m.key}
+                        emoji={m.emoji}
+                        label={m.label}
+                        color={m.color}
+                        value={stats?.modules?.[m.key]}
+                        unit={m.unit}
+                        to={m.to}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Graphique + Contributions */}

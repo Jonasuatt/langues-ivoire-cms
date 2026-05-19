@@ -38,6 +38,7 @@ import MarcheDialoguesPage from './pages/MarcheDialoguesPage';
 import CarteCIPage from './pages/CarteCIPage';
 import AlphabetPage from './pages/AlphabetPage';
 import SensMotsPage from './pages/SensMotsPage';
+import PartenairePage from './pages/PartenairePage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -53,7 +54,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
-        <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR']}><Layout /></ProtectedRoute>}>
+        <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR', 'PARTNER']}><Layout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="dictionary" element={<DictionaryPage />} />
           <Route path="conjugation" element={<ConjugationPage />} />
@@ -88,6 +89,7 @@ export default function App() {
           <Route path="marche-dialogues" element={<MarcheDialoguesPage />} />
           <Route path="alphabet-langues" element={<AlphabetPage />} />
           <Route path="finance" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><FinancePage /></ProtectedRoute>} />
+          <Route path="partenaire" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'PARTNER']}><PartenairePage /></ProtectedRoute>} />
           <Route path="guide" element={<UserGuidePage />} />
           {/* Admin only */}
           <Route path="users" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><UsersPage /></ProtectedRoute>} />

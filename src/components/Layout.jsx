@@ -10,22 +10,24 @@ import {
   HeartIcon, BuildingLibraryIcon, UsersIcon,
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
   LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
-  BanknotesIcon, MapPinIcon,
+  BanknotesIcon, MapPinIcon, PresentationChartLineIcon,
 } from '@heroicons/react/24/outline';
 
 export const ROLE_LABELS = {
-  USER: 'Utilisateur',
+  USER:        'Utilisateur',
   CONTRIBUTOR: 'Contributeur',
-  EDITOR: 'Éditeur',
-  ADMIN: 'Administrateur',
+  EDITOR:      'Éditeur',
+  PARTNER:     'Partenaire',
+  ADMIN:       'Administrateur',
   SUPER_ADMIN: 'Super-Administrateur',
 };
 
 export const ROLE_COLORS = {
-  USER: 'bg-gray-100 text-gray-600',
+  USER:        'bg-gray-100 text-gray-600',
   CONTRIBUTOR: 'bg-blue-100 text-blue-700',
-  EDITOR: 'bg-purple-100 text-purple-700',
-  ADMIN: 'bg-red-100 text-red-700',
+  EDITOR:      'bg-purple-100 text-purple-700',
+  PARTNER:     'bg-emerald-100 text-emerald-700',
+  ADMIN:       'bg-red-100 text-red-700',
   SUPER_ADMIN: 'bg-amber-100 text-amber-800',
 };
 
@@ -80,6 +82,13 @@ const NAV_SECTIONS = [
     ],
   },
   {
+    group: 'PARTENAIRES',
+    partnerOrAdmin: true,
+    items: [
+      { to: '/partenaire', label: 'Tableau Partenaires', icon: PresentationChartLineIcon, partnerOrAdmin: true },
+    ],
+  },
+  {
     group: 'FINANCE',
     adminOnly: true,
     items: [
@@ -109,6 +118,7 @@ export default function Layout() {
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const isPartnerOrAdmin = isAdmin || user?.role === 'PARTNER';
 
   // Charge le nombre de messages non-lus (OUVERT) en polling toutes les 60s
   useEffect(() => {
@@ -139,7 +149,10 @@ export default function Layout() {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
-          {NAV_SECTIONS.filter(section => !section.adminOnly || isAdmin).map((section, sIdx) => (
+          {NAV_SECTIONS.filter(section =>
+            (!section.adminOnly || isAdmin) &&
+            (!section.partnerOrAdmin || isPartnerOrAdmin)
+          ).map((section, sIdx) => (
             <div key={sIdx}>
               {section.group && (
                 <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-white/50">
@@ -148,7 +161,7 @@ export default function Layout() {
               )}
               <div className="space-y-0.5">
                 {section.items
-                  .filter(item => !item.adminOnly || isAdmin)
+                  .filter(item => (!item.adminOnly || isAdmin) && (!item.partnerOrAdmin || isPartnerOrAdmin))
                   .map(({ to, label, icon: Icon, exact }) => (
                     <NavLink
                       key={to}
