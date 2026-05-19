@@ -332,7 +332,25 @@ export default function PartenairePage() {
   const nameCount  = tutors.reduce((acc, t) => { acc[t.nomAvatar] = (acc[t.nomAvatar] || 0) + 1; return acc; }, {});
   const iaNames    = new Set(Object.entries(nameCount).filter(([, v]) => v > 1).map(([k]) => k));
   const iaAgents   = [...new Map(tutors.filter(t => iaNames.has(t.nomAvatar)).map(t => [t.nomAvatar, t])).values()];
-  const cultTutors = [...new Map(tutors.filter(t => !iaNames.has(t.nomAvatar)).map(t => [t.nomAvatar, t])).values()];
+
+  // Tuteurs culturels — tous (M + F), pas de déduplication
+  const allCultTutors = tutors.filter(t => !iaNames.has(t.nomAvatar));
+
+  // Grouper par langue, trier chaque groupe : M avant F, puis alphabétique
+  const cultTutorsByLang = allCultTutors.reduce((acc, t) => {
+    const key = t.language?.nom || 'Sans langue';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(t);
+    return acc;
+  }, {});
+  Object.values(cultTutorsByLang).forEach(group =>
+    group.sort((a, b) => {
+      if (a.genre !== b.genre) return a.genre === 'M' ? -1 : 1;
+      return (a.nomAvatar || '').localeCompare(b.nomAvatar || '', 'fr');
+    })
+  );
+  // Langues triées alphabétiquement
+  const cultLangNames = Object.keys(cultTutorsByLang).sort((a, b) => a.localeCompare(b, 'fr'));
 
   const editors      = members.filter(m => m.role === 'EDITOR' || m.role === 'ADMIN' || m.role === 'SUPER_ADMIN');
   const contributors = members.filter(m => m.role === 'CONTRIBUTOR');
@@ -899,7 +917,7 @@ export default function PartenairePage() {
             )}
           </div>
 
-          {/* ── Tuteurs Culturels (grille portraits) ── */}
+          {/* ── Tuteurs Culturels groupés par langue ── */}
           <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
@@ -907,57 +925,68 @@ export default function PartenairePage() {
               </div>
               <div>
                 <h3 className="font-black text-gray-900 text-sm">Tuteurs Culturels</h3>
-                <p className="text-xs text-gray-500">Un tuteur masculin et féminin par langue</p>
+                <p className="text-xs text-gray-500">Tuteur masculin &amp; féminin par langue · triés alphabétiquement</p>
               </div>
               <span className="ml-auto text-xs font-bold bg-violet-100 text-violet-700 px-3 py-1 rounded-full border border-violet-200">
-                {cultTutors.length} tuteur{cultTutors.length > 1 ? 's' : ''}
+                {allCultTutors.length} tuteur{allCultTutors.length > 1 ? 's' : ''} · {cultLangNames.length} langue{cultLangNames.length > 1 ? 's' : ''}
               </span>
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-36 rounded-2xl" />)}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[1,2,3,4].map(i => <Skeleton key={i} className="h-52 rounded-2xl" />)}
               </div>
-            ) : cultTutors.length === 0 ? (
+            ) : cultLangNames.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">Aucun tuteur culturel configuré</p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {cultTutors.map(t => {
-                  const portrait = getAvatarPortrait(t.nomAvatar);
-                  const isFemale = t.genre === 'F';
-                  const initials = t.nomAvatar?.slice(0, 2).toUpperCase() ?? '??';
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {cultLangNames.map(langName => {
+                  const group = cultTutorsByLang[langName];
                   return (
-                    <div key={t.id ?? t.nomAvatar}
-                      className={`rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border ${
-                        isFemale ? 'border-pink-200' : 'border-blue-200'
-                      }`}>
-                      {/* Portrait */}
-                      <div className={`relative h-32 flex items-center justify-center ${
-                        isFemale ? 'bg-gradient-to-b from-pink-100 to-pink-200' : 'bg-gradient-to-b from-blue-100 to-blue-200'
-                      }`}>
-                        {portrait ? (
-                          <img
-                            src={portrait}
-                            alt={t.nomAvatar}
-                            className="h-full w-full object-cover object-top"
-                          />
-                        ) : (
-                          <span className={`text-3xl font-black ${isFemale ? 'text-pink-400' : 'text-blue-400'}`}>
-                            {initials}
-                          </span>
-                        )}
-                        <span className={`absolute top-1.5 right-1.5 text-[9px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow ${
-                          isFemale ? 'bg-pink-500 text-white' : 'bg-blue-500 text-white'
-                        }`}>
-                          {isFemale ? '♀' : '♂'}
-                        </span>
+                    <div key={langName} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all hover:-translate-y-0.5">
+                      {/* En-tête langue */}
+                      <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-3 py-2 text-center">
+                        <p className="text-white font-black text-xs tracking-wide">{langName}</p>
                       </div>
-                      {/* Nom + langue */}
-                      <div className="bg-white px-2 py-2 text-center">
-                        <p className="font-bold text-gray-900 text-xs leading-tight truncate">{t.nomAvatar}</p>
-                        {t.language?.nom && (
-                          <p className="text-[10px] text-gray-400 mt-0.5 truncate">{t.language.nom}</p>
-                        )}
+
+                      {/* Portraits du groupe */}
+                      <div className={`grid gap-0 ${group.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        {group.map(t => {
+                          const portrait = getAvatarPortrait(t.nomAvatar);
+                          const isFemale = t.genre === 'F';
+                          const initials = t.nomAvatar?.slice(0, 2).toUpperCase() ?? '??';
+                          return (
+                            <div key={t.id ?? t.nomAvatar} className="flex flex-col">
+                              {/* Portrait */}
+                              <div className={`relative h-28 flex items-center justify-center ${
+                                isFemale
+                                  ? 'bg-gradient-to-b from-pink-100 to-pink-200'
+                                  : 'bg-gradient-to-b from-blue-100 to-blue-200'
+                              }`}>
+                                {portrait ? (
+                                  <img
+                                    src={portrait}
+                                    alt={t.nomAvatar}
+                                    className="h-full w-full object-cover object-top"
+                                  />
+                                ) : (
+                                  <span className={`text-2xl font-black ${isFemale ? 'text-pink-400' : 'text-blue-400'}`}>
+                                    {initials}
+                                  </span>
+                                )}
+                                <span className={`absolute top-1 right-1 text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm ${
+                                  isFemale ? 'bg-pink-500 text-white' : 'bg-blue-500 text-white'
+                                }`}>
+                                  {isFemale ? '♀' : '♂'}
+                                </span>
+                              </div>
+                              {/* Nom */}
+                              <div className="px-1.5 py-1.5 text-center bg-white">
+                                <p className="text-[11px] font-bold text-gray-800 leading-tight truncate">{t.nomAvatar}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
