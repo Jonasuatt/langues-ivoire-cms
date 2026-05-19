@@ -372,7 +372,7 @@ export default function CarteCIPage() {
 
         </div>
       </div>
-      <PageHelp pageId="carte-ci" />
+      <PageHelp pageId="carte" />
     </div>
   );
 }

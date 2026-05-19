@@ -307,7 +307,7 @@ export default function TutorsPage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="tuteurs" />
+      <PageHelp pageId="tuteurs-ia" />
     </div>
   );
 }

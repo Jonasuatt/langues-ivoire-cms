@@ -629,7 +629,7 @@ export default function BienvenueEtSonsPage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="bienvenue-sons" />
+      <PageHelp pageId="bienvenue" />
     </div>
   );
 }

@@ -612,7 +612,7 @@ export default function UsersPage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="users" />
+      <PageHelp pageId="utilisateurs" />
     </div>
   );
 }

@@ -380,7 +380,7 @@ export default function SensMotsPage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="sens-mots" />
+      <PageHelp pageId="sens-des-mots" />
     </div>
   );
 }

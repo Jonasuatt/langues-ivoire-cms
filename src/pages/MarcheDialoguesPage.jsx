@@ -460,7 +460,7 @@ export default function MarcheDialoguesPage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="marche-dialogues" />
+      <PageHelp pageId="marche" />
     </div>
   );
 }

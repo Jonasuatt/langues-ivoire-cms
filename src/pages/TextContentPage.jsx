@@ -940,7 +940,7 @@ export default function TextContentPage() {
           </div>
         </div>
       )}
-      <PageHelp pageId="textes-recits" />
+      <PageHelp pageId="textes" />
     </div>
   );
 }
