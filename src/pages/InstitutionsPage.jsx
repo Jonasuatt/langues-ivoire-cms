@@ -3,12 +3,13 @@
  * Gestion des partenaires et institutions — Langues Ivoire CMS
  * CRUD complet : nom, logo, description, site web, activation / retrait
  */
-import { useState, useEffect, useCallback } from 'react';
-import { institutionsAPI } from '../services/api';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { institutionsAPI, uploadAPI } from '../services/api';
 import {
   PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon,
   PauseCircleIcon, MagnifyingGlassIcon, BuildingLibraryIcon,
   XMarkIcon, GlobeAltIcon, ArrowUpIcon, ArrowDownIcon,
+  ArrowUpTrayIcon, PhotoIcon,
 } from '@heroicons/react/24/outline';
 import PageHelp from '../components/PageHelp';
 
@@ -40,8 +41,46 @@ function PartenaireForm({ initial, onSave, onClose, loading }) {
     pays: initial?.pays || '',
     ordre: initial?.ordre ?? 0,
   });
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  const fileRef = useRef(null);
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml', 'image/gif'];
+    if (!allowed.includes(file.type)) {
+      setUploadError('Format non supporté. Utilisez PNG, JPG, WEBP, SVG ou GIF.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Fichier trop lourd (max 5 Mo).');
+      return;
+    }
+    setUploadError('');
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await uploadAPI.uploadImage(fd);
+      const url = res.data?.url || res.data?.secure_url || res.data?.imageUrl;
+      if (!url) throw new Error('URL manquante dans la réponse');
+      set('logoUrl', url);
+    } catch (e) {
+      setUploadError('Échec de l\'upload : ' + (e.response?.data?.error || e.message));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -62,25 +101,105 @@ function PartenaireForm({ initial, onSave, onClose, loading }) {
         />
       </div>
 
+      {/* ── Logo ── */}
       <div>
-        <label className="block text-xs font-bold text-gray-600 mb-1">Logo URL</label>
+        <label className="block text-xs font-bold text-gray-600 mb-2">Logo</label>
+
+        {/* Zone de preview / drag-and-drop */}
+        <div
+          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          className={`relative rounded-2xl border-2 border-dashed transition-all ${
+            dragOver ? 'border-primary-400 bg-primary-50' : 'border-gray-200 bg-gray-50'
+          }`}
+        >
+          {form.logoUrl ? (
+            /* Aperçu du logo */
+            <div className="flex items-center gap-4 p-4">
+              <div className="w-20 h-20 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <img
+                  src={form.logoUrl}
+                  alt="Logo"
+                  className="w-full h-full object-contain p-1"
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-green-700 font-bold mb-0.5">✅ Logo importé</p>
+                <p className="text-xs text-gray-400 break-all line-clamp-2">{form.logoUrl}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { set('logoUrl', ''); if (fileRef.current) fileRef.current.value = ''; }}
+                className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-xl transition-colors flex-shrink-0"
+                title="Supprimer le logo"
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            /* Zone vide — invite upload */
+            <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+              {uploading ? (
+                <>
+                  <div className="w-10 h-10 border-3 border-primary-400 border-t-transparent rounded-full animate-spin mb-3" />
+                  <p className="text-sm font-semibold text-primary-600">Envoi en cours…</p>
+                </>
+              ) : (
+                <>
+                  <PhotoIcon className="w-12 h-12 text-gray-300 mb-3" />
+                  <p className="text-sm font-semibold text-gray-600">
+                    Glissez un fichier ici ou{' '}
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="text-primary-600 underline hover:text-primary-700"
+                    >
+                      parcourez
+                    </button>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP, SVG · max 5 Mo</p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Input fichier caché */}
         <input
-          type="url"
-          value={form.logoUrl}
-          onChange={e => set('logoUrl', e.target.value)}
-          placeholder="https://... (URL Cloudinary ou externe)"
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 outline-none"
+          ref={fileRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+          className="hidden"
+          onChange={e => handleFile(e.target.files?.[0])}
         />
-        {form.logoUrl && (
-          <div className="mt-2 flex items-center gap-3 p-2 bg-gray-50 rounded-xl border border-gray-100">
-            <img
-              src={form.logoUrl}
-              alt="Aperçu"
-              className="w-12 h-12 object-contain rounded-lg bg-white border border-gray-200 flex-shrink-0"
-              onError={e => { e.target.style.display = 'none'; }}
-            />
-            <p className="text-xs text-gray-500 break-all">{form.logoUrl}</p>
-          </div>
+
+        {/* Boutons d'action logo */}
+        <div className="flex items-center gap-2 mt-2">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="inline-flex items-center gap-1.5 text-xs font-bold bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            <ArrowUpTrayIcon className="w-3.5 h-3.5" />
+            {uploading ? 'Envoi…' : 'Importer depuis le PC'}
+          </button>
+          <span className="text-xs text-gray-300">ou</span>
+          <input
+            type="url"
+            value={form.logoUrl}
+            onChange={e => set('logoUrl', e.target.value)}
+            placeholder="Coller une URL…"
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-primary-400 outline-none"
+          />
+        </div>
+
+        {uploadError && (
+          <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+            ⚠️ {uploadError}
+          </p>
         )}
       </div>
 
