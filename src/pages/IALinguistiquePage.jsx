@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+﻿import { useEffect, useState, useRef, useCallback } from 'react';
 import PageHelp from '../components/PageHelp';
 import { audioContribAPI, languagesAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
@@ -111,7 +111,7 @@ export default function IALinguistiquePage() {
   };
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => {
+    languagesAPI.getAllAdmin().then(({ data }) => {
       setLanguages(data);
       if (data.length) {
         setAddForm(f => ({ ...f, languageId: data[0].id }));

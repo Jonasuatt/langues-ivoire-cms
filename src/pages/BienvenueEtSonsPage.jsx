@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import PageHelp from '../components/PageHelp';
 import { languagesAPI, uploadAPI } from '../services/api';
 import {
@@ -430,7 +430,7 @@ export default function BienvenueEtSonsPage() {
   const [createSaving, setCreateSaving] = useState(false);
 
   useEffect(() => {
-    languagesAPI.getAll()
+    languagesAPI.getAllAdmin()
       .then(({ data }) => setLanguages(Array.isArray(data) ? data : data.languages || []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -458,7 +458,7 @@ export default function BienvenueEtSonsPage() {
       setShowCreateModal(false);
       setCreateForm({ langId: '', message: '', audioUrl: '' });
       // Recharger
-      languagesAPI.getAll().then(({ data }) => setLanguages(Array.isArray(data) ? data : data.data || [])).catch(() => {});
+      languagesAPI.getAllAdmin().then(({ data }) => setLanguages(Array.isArray(data) ? data : data.data || [])).catch(() => {});
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur lors de la sauvegarde');
     } finally { setCreateSaving(false); }

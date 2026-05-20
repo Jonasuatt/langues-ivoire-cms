@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import PageHelp from '../components/PageHelp';
 import { phrasesAdminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -63,7 +63,7 @@ export default function PhrasesUtilesPage() {
   const [saving, setSaving] = useState(false);
   const LIMIT = 20;
 
-  useEffect(() => { languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {}); }, []);
+  useEffect(() => { languagesAPI.getAllAdmin().then(({ data }) => setLanguages(data)).catch(() => {}); }, []);
 
   const load = () => {
     setLoading(true);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon, PhotoIcon } from '@heroicons/react/24/outline';
@@ -55,7 +55,7 @@ export default function PremierSecoursPage() {
   };
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
+    languagesAPI.getAllAdmin().then(({ data }) => setLanguages(data)).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [filterSituation, filterLang]);

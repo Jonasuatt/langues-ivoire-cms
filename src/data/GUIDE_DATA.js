@@ -9,6 +9,8 @@ export const GUIDE_SECTIONS = [
   { id: 'communaute', label: 'Communauté', color: 'orange' },
   { id: 'ia', label: 'Intelligence Artificielle', color: 'cyan' },
   { id: 'app', label: 'Paramètres Application', color: 'green' },
+  { id: 'education', label: 'Éducation & Vie Pratique', color: 'teal' },
+  { id: 'partenaires', label: 'Partenaires', color: 'emerald' },
   { id: 'finance', label: 'Finance', color: 'amber' },
   { id: 'admin', label: 'Administration', color: 'gray' },
 ];
@@ -1306,6 +1308,237 @@ export const GUIDE_MODULES = [
     workflows: [],
     tip: 'Rendez-vous sur un marché local avec un enregistreur pour capter des échanges authentiques. Les expressions de marchandage réel sont bien plus vivantes que des répliques inventées.',
     warnings: [],
+    audioNaming: null,
+  },
+
+  // ─────────────────────────────────────────────
+  // SECTION : ÉDUCATION & VIE PRATIQUE
+  // ─────────────────────────────────────────────
+  {
+    id: 'mathematique',
+    route: '/mathematiques',
+    section: 'education',
+    icon: '🔢',
+    title: 'Module Mathématique',
+    subtitle: 'Calculs et chiffres en langues locales',
+    color: 'cyan',
+    roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Le module Mathématique permet de créer et gérer des exercices de calcul mental enseignés dans les langues ethniques ivoiriennes : comptage de 0 à 10, additions, soustractions, tables de multiplication, et distinction nombres pairs / impairs. Chaque contenu peut être universel (sans langue) ou spécifique à une langue.',
+    objectifs: [
+      'Publier les chiffres de 0 à 10 dans chaque langue locale',
+      'Créer des exercices d\'addition et de soustraction avec les mots natifs',
+      'Mettre à disposition les tables de multiplication (×2, ×3, ×5, ×10)',
+      'Distinguer visuellement les nombres pairs et impairs dans chaque langue',
+    ],
+    features: [
+      '6 types de contenus : Comptage, Addition, Soustraction, Multiplication, Division, Pairs/Impairs',
+      'Association optionnelle à une langue (ou contenu universel)',
+      'Système de niveaux A1 → B2 et de points XP',
+      'Éditeur JSON intégré pour structurer les exercices',
+      'Affichage du contenu JSON en accordéon sur chaque fiche',
+      'Filtres par type et par langue',
+      'Activation / désactivation individuelle des contenus',
+    ],
+    steps: [
+      {
+        title: 'Choisir le type d\'exercice',
+        desc: 'Cliquer sur "+ Nouveau contenu". Sélectionner le type dans la liste : Comptage, Addition, Soustraction, Multiplication, Division ou Pairs/Impairs.',
+        warning: null,
+      },
+      {
+        title: 'Associer une langue (ou non)',
+        desc: 'Sélectionner la langue concernée dans le menu déroulant. Laisser "— Sans langue (universel) —" pour les tables de multiplication ou autres contenus indépendants de la langue.',
+        warning: null,
+      },
+      {
+        title: 'Rédiger le contenu JSON',
+        desc: 'Le champ "Contenu JSON" structure les données de l\'exercice : liste de chiffres avec leur mot et transcription, liste d\'exercices QCM ou de calculs. Respectez le format JSON valide (accolades, guillemets doubles, virgules).',
+        warning: 'Un JSON mal formé empêche l\'enregistrement. Vérifiez la syntaxe avec un validateur JSON si vous avez un doute.',
+      },
+      {
+        title: 'Définir XP et ordre',
+        desc: 'Renseigner les points XP (20 par défaut pour comptage, 30 pour multiplication) et l\'ordre d\'affichage (0 = premier affiché dans l\'app mobile).',
+        warning: null,
+      },
+      {
+        title: 'Vérifier et activer',
+        desc: 'Depuis la liste, cliquer sur la flèche ▼ pour voir le JSON rendu. Si correct, le contenu est déjà actif par défaut. Utiliser le bouton ⏸ pour désactiver temporairement.',
+        warning: null,
+      },
+    ],
+    workflows: [
+      {
+        title: 'Ajouter les chiffres d\'une nouvelle langue',
+        steps: [
+          'Créer un contenu de type COMPTAGE associé à la langue',
+          'Renseigner dans le JSON : tableau "chiffres" avec { valeur, mot, transcription } pour 0 à 10',
+          'Ajouter 5 exercices QCM dans le tableau "exercices"',
+          'Vérifier l\'aperçu JSON dans la liste',
+          'Créer ensuite un contenu ADDITION et un contenu PAIR_IMPAIR pour compléter la langue',
+        ],
+      },
+    ],
+    tip: 'Demandez à un locuteur natif de valider la prononciation des chiffres avant de publier. La transcription phonétique est essentielle pour les utilisateurs non familiers avec la langue.',
+    warnings: [
+      'Le format JSON doit être strictement valide : pas de virgule en fin de liste, guillemets doubles uniquement.',
+      'Les tables de multiplication doivent être créées en contenu universel (sans langue) pour éviter la duplication.',
+    ],
+    audioNaming: null,
+  },
+
+  {
+    id: 'monnaie',
+    route: '/monnaie',
+    section: 'education',
+    icon: '💰',
+    title: 'Module Monnaie FCFA',
+    subtitle: 'Pièces, billets et calculs du marché',
+    color: 'amber',
+    roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Le module Monnaie FCFA permet de créer des exercices pratiques de gestion de l\'argent : reconnaître visuellement les pièces (5 à 200 FCFA) et les billets (500 à 10 000 FCFA), calculer des sommes, rendre la monnaie au marché, et pratiquer les transactions commerciales en langue locale (notamment en Dioula, langue véhiculaire des marchés ivoiriens).',
+    objectifs: [
+      'Apprendre à reconnaître toutes les coupures FCFA',
+      'Pratiquer les additions de pièces et billets',
+      'Calculer la monnaie à rendre dans des scènes de marché réalistes',
+      'Enrichir avec le vocabulaire commercial en langues locales',
+    ],
+    features: [
+      '4 types : Reconnaissance, Calcul, Rendu monnaie, Conversion',
+      'Référence visuelle des 11 coupures FCFA intégrée dans la page',
+      'Bouton "Charger exemple JSON" selon le type sélectionné',
+      'Contenu universel (FCFA, indépendant de la langue) ou lié à une langue',
+      'Filtres par type de contenu',
+      'Activation / désactivation individuelle',
+    ],
+    steps: [
+      {
+        title: 'Sélectionner le type d\'exercice',
+        desc: 'Cliquer sur "+ Nouveau contenu" et choisir : Reconnaissance (identifier une coupure), Calcul (additionner des pièces), Rendu monnaie (calculer ce qu\'on rend), ou Conversion.',
+        warning: null,
+      },
+      {
+        title: 'Charger l\'exemple JSON',
+        desc: 'Cliquer sur "Charger exemple" dans le formulaire pour obtenir un modèle JSON adapté au type choisi. Modifier ensuite les valeurs selon les exercices souhaités.',
+        warning: null,
+      },
+      {
+        title: 'Adapter les exercices au marché local',
+        desc: 'Pour les exercices de rendu de monnaie, utiliser des prix réalistes tirés du marché ivoirien (pain à 150 F, eau à 300 F, oranges à 750 F...). Pour les contenus en langue, ajouter le vocabulaire commercial dans le champ JSON.',
+        warning: null,
+      },
+      {
+        title: 'Activer et vérifier',
+        desc: 'Les nouveaux contenus sont actifs par défaut. Vérifier via le bouton ▼ que le JSON est bien structuré. Désactiver les contenus incomplets avec le bouton ⏸.',
+        warning: null,
+      },
+    ],
+    workflows: [
+      {
+        title: 'Créer un exercice de marché en Dioula',
+        steps: [
+          'Créer un contenu de type CALCUL associé à la langue Dioula',
+          'Charger l\'exemple JSON et remplacer par les mots en Dioula',
+          'Ajouter un tableau "vocabulaire" : { francais, dioula, transcription }',
+          'Ajouter un tableau "dialogue" simulant un échange au marché',
+          'Définir les points XP à 35 pour refléter la complexité',
+        ],
+      },
+    ],
+    tip: 'La carte de référence FCFA en haut de la page est toujours visible. Utilisez-la pour vérifier les valeurs avant de saisir vos exercices. Les billets les plus utilisés au marché sont 500, 1 000 et 2 000 FCFA.',
+    warnings: [
+      'Créez les contenus de base (Reconnaissance, Calcul, Rendu monnaie) en mode universel avant d\'ajouter des variantes en langue.',
+      'Les valeurs de monnaie dans le JSON doivent être des nombres (pas des chaînes de caractères) pour que le calcul de l\'app soit correct.',
+    ],
+    audioNaming: null,
+  },
+
+  // ─────────────────────────────────────────────
+  // SECTION : PARTENAIRES
+  // ─────────────────────────────────────────────
+  {
+    id: 'institutions',
+    route: '/institutions',
+    section: 'partenaires',
+    icon: '🤝',
+    title: 'Institutions & Partenaires',
+    subtitle: 'Gestion des partenaires institutionnels',
+    color: 'green',
+    roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Ce module permet de gérer la liste des organisations, institutions et entreprises partenaires qui accompagnent le projet Langues Ivoire. Les partenaires actifs sont affichés dans la section Profil de l\'application mobile. Chaque partenaire peut être désactivé temporairement si ses engagements ne sont pas respectés, ou supprimé définitivement.',
+    objectifs: [
+      'Publier et maintenir la liste des partenaires institutionnels du projet',
+      'Afficher les logos, descriptions et liens dans l\'application mobile',
+      'Retirer rapidement un partenaire en cas de manquement à ses engagements',
+      'Contrôler l\'ordre d\'affichage des partenaires dans l\'app',
+    ],
+    features: [
+      'Création : nom, logo (upload PC ou URL), description, site web, catégorie, pays',
+      'Import de logo depuis le PC par glisser-déposer ou bouton parcourir',
+      'Aperçu du logo en temps réel dans le formulaire',
+      'Activation / désactivation (retrait sans suppression)',
+      'Suppression définitive avec confirmation',
+      'Réordonnancement ↑↓ pour contrôler l\'ordre d\'affichage mobile',
+      'Badge "⭐ Premier affiché" pour le partenaire en position 0',
+    ],
+    steps: [
+      {
+        title: 'Ajouter un partenaire',
+        desc: 'Cliquer sur "+ Ajouter un partenaire". Saisir le nom de l\'institution. Le nom est le seul champ obligatoire.',
+        warning: null,
+      },
+      {
+        title: 'Importer le logo',
+        desc: 'Glisser le fichier logo depuis le PC dans la zone pointillée, ou cliquer sur "Importer depuis le PC" pour ouvrir le sélecteur de fichiers. Formats acceptés : PNG, JPG, WEBP, SVG, GIF (max 5 Mo). Le logo est automatiquement envoyé sur Cloudinary et l\'URL est enregistrée.',
+        warning: null,
+      },
+      {
+        title: 'Rédiger la description',
+        desc: 'Écrire une description claire du rôle du partenaire dans le projet : type d\'organisation, nature du partenariat, contribution au projet Langues Ivoire.',
+        warning: null,
+      },
+      {
+        title: 'Définir l\'ordre d\'affichage',
+        desc: 'Utiliser les boutons ↑↓ pour changer la position du partenaire dans la liste. Le premier de la liste (ordre 0) apparaît en tête dans l\'application mobile.',
+        warning: null,
+      },
+      {
+        title: 'Désactiver en cas de manquement',
+        desc: 'Si un partenaire ne respecte pas ses engagements, cliquer sur le bouton ⏸ (Désactiver). Le partenaire disparaît de l\'app mobile mais reste dans la base de données pour référence. Réactiver à tout moment avec ✅.',
+        warning: 'La désactivation est préférable à la suppression définitive car elle préserve l\'historique du partenariat.',
+      },
+    ],
+    workflows: [
+      {
+        title: 'Ajouter un nouveau partenaire institutionnel',
+        steps: [
+          'Obtenir le logo officiel de l\'institution (PNG ou SVG de haute qualité)',
+          'Créer la fiche partenaire avec nom, catégorie et pays',
+          'Importer le logo depuis le PC via drag-and-drop',
+          'Rédiger une description de 2 à 4 phrases sur le rôle du partenaire',
+          'Ajouter le site web officiel',
+          'Positionner avec ↑↓ selon l\'ordre de priorité convenu',
+          'Vérifier l\'affichage dans l\'app mobile (section Profil)',
+        ],
+      },
+      {
+        title: 'Retirer un partenaire en cas de litige',
+        steps: [
+          'Localiser le partenaire dans la liste',
+          'Cliquer sur ⏸ Désactiver — il disparaît immédiatement de l\'app mobile',
+          'Documenter la raison du retrait (en dehors du CMS : email, note interne)',
+          'Si le litige est résolu, cliquer sur ✅ Réactiver',
+          'Si définitivement terminé, cliquer sur 🗑 Supprimer avec confirmation',
+        ],
+      },
+    ],
+    tip: 'Classez le premier partenaire fondateur (Anthropic / Claude AI) toujours en position 0. Pour les autres, ordonnez par date d\'engagement ou par niveau de contribution au projet.',
+    warnings: [
+      'La suppression définitive est irréversible. Préférez la désactivation pour conserver l\'historique.',
+      'Un logo de mauvaise qualité (pixelisé ou trop petit) nuit à l\'image de l\'application. Utilisez des logos vectoriels (SVG) ou PNG haute résolution (min 200×200 px).',
+    ],
     audioNaming: null,
   },
 

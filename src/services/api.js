@@ -48,6 +48,8 @@ export const contributionsAPI = {
 
 export const lessonsAPI = {
   getByLanguage: (langue) => api.get(`/lessons/language/${langue}`),
+  getAllAdmin: (params) => api.get('/lessons/admin/all', { params }),
+  activate: (id) => api.patch(`/lessons/${id}/activate`),
   create: (data) => api.post('/lessons', data),
   update: (id, data) => api.patch(`/lessons/${id}`, data),
 };
@@ -198,6 +200,33 @@ export const imageGalleryAPI = {
   delete: (id) => api.delete(`/image-galleries/${id}`),
   addImage: (galleryId, data) => api.post(`/image-galleries/${galleryId}/images`, data),
   deleteImage: (galleryId, imageId) => api.delete(`/image-galleries/${galleryId}/images/${imageId}`),
+};
+
+export const mathAPI = {
+  getAll: (params) => api.get('/mathematiques/admin/all', { params }),
+  getPublic: (params) => api.get('/mathematiques', { params }),
+  create: (data) => api.post('/mathematiques', data),
+  update: (id, data) => api.patch(`/mathematiques/${id}`, data),
+  toggle: (id) => api.patch(`/mathematiques/${id}/toggle`),
+  delete: (id) => api.delete(`/mathematiques/${id}`),
+};
+
+export const monnaieAPI = {
+  getAll: (params) => api.get('/monnaie/admin/all', { params }),
+  getPublic: (params) => api.get('/monnaie', { params }),
+  create: (data) => api.post('/monnaie', data),
+  update: (id, data) => api.patch(`/monnaie/${id}`, data),
+  toggle: (id) => api.patch(`/monnaie/${id}/toggle`),
+  delete: (id) => api.delete(`/monnaie/${id}`),
+};
+
+export const institutionsAPI = {
+  getAll: () => api.get('/partenaires/admin/all'),
+  getPublic: () => api.get('/partenaires'),
+  create: (data) => api.post('/partenaires', data),
+  update: (id, data) => api.patch(`/partenaires/${id}`, data),
+  toggle: (id) => api.patch(`/partenaires/${id}/toggle`),
+  delete: (id) => api.delete(`/partenaires/${id}`),
 };
 
 export default api;
