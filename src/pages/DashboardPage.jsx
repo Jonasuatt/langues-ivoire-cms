@@ -10,10 +10,6 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 
-const MOCK_CHART = [
-  { name: 'Lun', users: 12 }, { name: 'Mar', users: 28 }, { name: 'Mer', users: 19 },
-  { name: 'Jeu', users: 35 }, { name: 'Ven', users: 42 }, { name: 'Sam', users: 38 }, { name: 'Dim', users: 25 },
-];
 
 const NIVEAU_LABELS = { A1: 'Débutant', A2: 'Élémentaire', B1: 'Intermédiaire', B2: 'Inter. avancé', C1: 'Avancé' };
 const NIVEAU_COLORS = {
@@ -71,6 +67,16 @@ const MODULE_SECTIONS = [
       { emoji: '🎯', label: 'Contributions',      color: 'bg-accent',      key: 'contributions', unit: 'soumises', to: '/contributions' },
       { emoji: '✉️', label: 'Messages',           color: 'bg-indigo-600',  key: 'messages',      unit: 'messages', to: '/messages' },
       { emoji: '🏆', label: 'Certificats',        color: 'bg-yellow-500',  key: 'certs',         unit: 'délivrés', to: '/certificates' },
+    ],
+  },
+  {
+    label: 'Éducation & Vie Pratique',
+    color: 'text-emerald-700',
+    dot: 'bg-emerald-500',
+    items: [
+      { emoji: '🔢', label: 'Mathématiques',   color: 'bg-emerald-600', key: 'math',        unit: 'contenus',  to: '/math' },
+      { emoji: '💵', label: 'Monnaie FCFA',    color: 'bg-yellow-600',  key: 'monnaie',     unit: 'contenus',  to: '/monnaie' },
+      { emoji: '🤝', label: 'Partenaires',     color: 'bg-teal-600',    key: 'partenaires', unit: 'partenaires',to: '/partenaires' },
     ],
   },
   {
@@ -207,7 +213,7 @@ export default function DashboardPage() {
       {/* KPIs principaux */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <StatCard title="Utilisateurs totaux" value={stats?.users?.total}
-          subtitle={`+${stats?.users?.activeD1 ?? 0} actifs aujourd'hui`} icon={UsersIcon} color="bg-primary-500" />
+          subtitle={`+${stats?.users?.newUsersD7 ?? 0} nouveaux cette semaine · ${stats?.users?.activeD1 ?? 0} actifs aujourd'hui`} icon={UsersIcon} color="bg-primary-500" />
         <StatCard title="Mots publiés" value={stats?.content?.totalWords}
           subtitle={`${stats?.content?.totalPhrases ?? 0} phrases SOS`} icon={BookOpenIcon} color="bg-blue-600" />
         <StatCard title="Contributions en attente" value={stats?.contributions?.pending}
@@ -312,7 +318,7 @@ export default function DashboardPage() {
         <div className="card">
           <h3 className="font-semibold text-gray-900 mb-4">Activité utilisateurs (7 jours)</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={MOCK_CHART}>
+            <LineChart data={stats?.dailyActivity ?? []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
@@ -353,6 +359,37 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Top langues + Utilisateurs actifs */}
+      {stats?.topLanguages?.length > 0 && (
+        <div className="card mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900">Top langues — leçons complétées</h3>
+            <Link to="/lessons" className="text-sm text-accent hover:underline">Voir les leçons →</Link>
+          </div>
+          <div className="space-y-3">
+            {stats.topLanguages.map((lang, i) => {
+              const max = stats.topLanguages[0]?.count || 1;
+              const pct = Math.round((lang.count / max) * 100);
+              return (
+                <div key={lang.code} className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
+                  <span className="text-lg">{lang.emoji}</span>
+                  <span className="text-sm font-semibold text-gray-800 w-28 truncate">{lang.nom}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-2.5">
+                    <div className="h-2.5 rounded-full bg-primary-400" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="text-sm font-bold text-gray-700 w-10 text-right">{lang.count}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 pt-3 border-t border-gray-100 flex gap-6 text-xs text-gray-400">
+            <span>Actifs J7 : <strong className="text-gray-700">{stats?.users?.activeD7 ?? '—'}</strong></span>
+            <span>Actifs J30 : <strong className="text-gray-700">{stats?.users?.activeD30 ?? '—'}</strong></span>
+          </div>
+        </div>
+      )}
 
       {/* Messages par statut + Certificats par niveau */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
