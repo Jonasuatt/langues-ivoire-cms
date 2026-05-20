@@ -74,9 +74,9 @@ const MODULE_SECTIONS = [
     color: 'text-emerald-700',
     dot: 'bg-emerald-500',
     items: [
-      { emoji: '🔢', label: 'Mathématiques',   color: 'bg-emerald-600', key: 'math',        unit: 'contenus',  to: '/math' },
-      { emoji: '💵', label: 'Monnaie FCFA',    color: 'bg-yellow-600',  key: 'monnaie',     unit: 'contenus',  to: '/monnaie' },
-      { emoji: '🤝', label: 'Partenaires',     color: 'bg-teal-600',    key: 'partenaires', unit: 'partenaires',to: '/partenaires' },
+      { emoji: '🔢', label: 'Mathématiques',   color: 'bg-emerald-600', key: 'math',        unit: 'contenus',   to: '/mathematiques' },
+      { emoji: '💵', label: 'Monnaie FCFA',    color: 'bg-yellow-600',  key: 'monnaie',     unit: 'contenus',   to: '/monnaie' },
+      { emoji: '🤝', label: 'Partenaires',     color: 'bg-teal-600',    key: 'partenaires', unit: 'partenaires', to: '/partenaire' },
     ],
   },
   {
