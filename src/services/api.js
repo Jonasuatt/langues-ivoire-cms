@@ -48,6 +48,8 @@ export const contributionsAPI = {
 
 export const lessonsAPI = {
   getByLanguage: (langue) => api.get(`/lessons/language/${langue}`),
+  getAllAdmin: (params) => api.get('/lessons/admin/all', { params }),
+  activate: (id) => api.patch(`/lessons/${id}/activate`),
   create: (data) => api.post('/lessons', data),
   update: (id, data) => api.patch(`/lessons/${id}`, data),
 };
