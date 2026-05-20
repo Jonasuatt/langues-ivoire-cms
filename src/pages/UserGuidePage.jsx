@@ -22,9 +22,11 @@ const COLOR_MAP = {
   orange: { bg: 'bg-orange-600', light: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', badge: 'bg-orange-100 text-orange-800', tab: 'bg-orange-600 text-white', tabInactive: 'text-orange-600 hover:bg-orange-50' },
   amber:  { bg: 'bg-amber-600',  light: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  badge: 'bg-amber-100 text-amber-800',  tab: 'bg-amber-600 text-white',  tabInactive: 'text-amber-600 hover:bg-amber-50' },
   cyan:   { bg: 'bg-cyan-600',   light: 'bg-cyan-50',   text: 'text-cyan-700',   border: 'border-cyan-200',   badge: 'bg-cyan-100 text-cyan-800',   tab: 'bg-cyan-600 text-white',   tabInactive: 'text-cyan-600 hover:bg-cyan-50' },
-  green:  { bg: 'bg-green-600',  light: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  badge: 'bg-green-100 text-green-800',  tab: 'bg-green-600 text-white',  tabInactive: 'text-green-600 hover:bg-green-50' },
-  slate:  { bg: 'bg-slate-600',  light: 'bg-slate-50',  text: 'text-slate-700',  border: 'border-slate-200',  badge: 'bg-slate-100 text-slate-800',  tab: 'bg-slate-600 text-white',  tabInactive: 'text-slate-600 hover:bg-slate-50' },
-  gray:   { bg: 'bg-gray-600',   light: 'bg-gray-50',   text: 'text-gray-700',   border: 'border-gray-200',   badge: 'bg-gray-100 text-gray-800',   tab: 'bg-gray-600 text-white',   tabInactive: 'text-gray-600 hover:bg-gray-50' },
+  green:    { bg: 'bg-green-600',    light: 'bg-green-50',    text: 'text-green-700',    border: 'border-green-200',    badge: 'bg-green-100 text-green-800',    tab: 'bg-green-600 text-white',    tabInactive: 'text-green-600 hover:bg-green-50' },
+  teal:     { bg: 'bg-teal-600',     light: 'bg-teal-50',     text: 'text-teal-700',     border: 'border-teal-200',     badge: 'bg-teal-100 text-teal-800',     tab: 'bg-teal-600 text-white',     tabInactive: 'text-teal-600 hover:bg-teal-50' },
+  emerald:  { bg: 'bg-emerald-600',  light: 'bg-emerald-50',  text: 'text-emerald-700',  border: 'border-emerald-200',  badge: 'bg-emerald-100 text-emerald-800',  tab: 'bg-emerald-600 text-white',  tabInactive: 'text-emerald-600 hover:bg-emerald-50' },
+  slate:    { bg: 'bg-slate-600',    light: 'bg-slate-50',    text: 'text-slate-700',    border: 'border-slate-200',    badge: 'bg-slate-100 text-slate-800',    tab: 'bg-slate-600 text-white',    tabInactive: 'text-slate-600 hover:bg-slate-50' },
+  gray:     { bg: 'bg-gray-600',     light: 'bg-gray-50',     text: 'text-gray-700',     border: 'border-gray-200',     badge: 'bg-gray-100 text-gray-800',     tab: 'bg-gray-600 text-white',     tabInactive: 'text-gray-600 hover:bg-gray-50' },
 };
 
 // ─── Parcours de formation par rôle ───────────────────────────────────────────
@@ -42,7 +44,7 @@ const ROLE_PATHS = {
     color: 'purple',
     icon: '📝',
     desc: 'Vous créez, modifiez et publiez le contenu sur tous les modules. Vous validez les contributions.',
-    modules: ['dashboard', 'dictionnaire', 'conjugaison', 'vocabulaire', 'lecons', 'cultural', 'textes-recits', 'image-galleries', 'sens-mots', 'videos', 'contributions', 'messages', 'certificats', 'ia-linguistique', 'voix-audio', 'tuteurs', 'test-agents', 'bienvenue-sons', 'langues', 'carte-ci', 'badges', 'phrases-sos', 'phrases-utiles', 'notifications', 'premiers-secours', 'civisme', 'musee-tresors', 'alphabet', 'arbre-vocabulaire', 'marche-dialogues'],
+    modules: ['dashboard', 'dictionnaire', 'conjugaison', 'vocabulaire', 'lecons', 'cultural', 'textes-recits', 'image-galleries', 'sens-mots', 'videos', 'contributions', 'messages', 'certificats', 'ia-linguistique', 'voix-audio', 'tuteurs', 'test-agents', 'bienvenue-sons', 'langues', 'carte-ci', 'badges', 'phrases-sos', 'phrases-utiles', 'notifications', 'premiers-secours', 'civisme', 'musee-tresors', 'alphabet', 'arbre-vocabulaire', 'marche-dialogues', 'mathematique', 'monnaie', 'institutions'],
     priority: ['dashboard', 'contributions', 'dictionnaire', 'voix-audio', 'messages'],
   },
   ADMIN: {
