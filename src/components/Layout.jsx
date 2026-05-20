@@ -11,6 +11,7 @@ import {
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
   LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
   BanknotesIcon, MapPinIcon, PresentationChartLineIcon,
+  CalculatorIcon,
 } from '@heroicons/react/24/outline';
 
 export const ROLE_LABELS = {
@@ -79,6 +80,8 @@ const NAV_SECTIONS = [
       { to: '/musee-tresors', label: 'Musée des Trésors', icon: SparklesIcon },
       { to: '/arbre-vocabulaire', label: 'Arbre à Palabres', icon: UserGroupIcon },
       { to: '/marche-dialogues', label: 'Au Marché', icon: ChatBubbleLeftRightIcon },
+      { to: '/mathematiques', label: 'Mathématiques', icon: CalculatorIcon },
+      { to: '/monnaie', label: 'Monnaie FCFA', icon: BanknotesIcon },
     ],
   },
   {
@@ -86,6 +89,7 @@ const NAV_SECTIONS = [
     partnerOrAdmin: true,
     items: [
       { to: '/partenaire', label: 'Tableau Partenaires', icon: PresentationChartLineIcon, partnerOrAdmin: true },
+      { to: '/institutions', label: 'Institutions & Partenaires', icon: BuildingLibraryIcon },
     ],
   },
   {

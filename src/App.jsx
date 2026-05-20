@@ -39,6 +39,9 @@ import CarteCIPage from './pages/CarteCIPage';
 import AlphabetPage from './pages/AlphabetPage';
 import SensMotsPage from './pages/SensMotsPage';
 import PartenairePage from './pages/PartenairePage';
+import MathematiquePage from './pages/MathematiquePage';
+import MonnaiePage from './pages/MonnaiePage';
+import InstitutionsPage from './pages/InstitutionsPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -88,6 +91,9 @@ export default function App() {
           <Route path="arbre-vocabulaire" element={<ArbreVocabulairePage />} />
           <Route path="marche-dialogues" element={<MarcheDialoguesPage />} />
           <Route path="alphabet-langues" element={<AlphabetPage />} />
+          <Route path="mathematiques" element={<MathematiquePage />} />
+          <Route path="monnaie" element={<MonnaiePage />} />
+          <Route path="institutions" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR']}><InstitutionsPage /></ProtectedRoute>} />
           <Route path="finance" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><FinancePage /></ProtectedRoute>} />
           <Route path="partenaire" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'PARTNER']}><PartenairePage /></ProtectedRoute>} />
           <Route path="guide" element={<UserGuidePage />} />

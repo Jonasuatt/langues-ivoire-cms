@@ -202,4 +202,31 @@ export const imageGalleryAPI = {
   deleteImage: (galleryId, imageId) => api.delete(`/image-galleries/${galleryId}/images/${imageId}`),
 };
 
+export const mathAPI = {
+  getAll: (params) => api.get('/mathematiques/admin/all', { params }),
+  getPublic: (params) => api.get('/mathematiques', { params }),
+  create: (data) => api.post('/mathematiques', data),
+  update: (id, data) => api.patch(`/mathematiques/${id}`, data),
+  toggle: (id) => api.patch(`/mathematiques/${id}/toggle`),
+  delete: (id) => api.delete(`/mathematiques/${id}`),
+};
+
+export const monnaieAPI = {
+  getAll: (params) => api.get('/monnaie/admin/all', { params }),
+  getPublic: (params) => api.get('/monnaie', { params }),
+  create: (data) => api.post('/monnaie', data),
+  update: (id, data) => api.patch(`/monnaie/${id}`, data),
+  toggle: (id) => api.patch(`/monnaie/${id}/toggle`),
+  delete: (id) => api.delete(`/monnaie/${id}`),
+};
+
+export const institutionsAPI = {
+  getAll: () => api.get('/partenaires/admin/all'),
+  getPublic: () => api.get('/partenaires'),
+  create: (data) => api.post('/partenaires', data),
+  update: (id, data) => api.patch(`/partenaires/${id}`, data),
+  toggle: (id) => api.patch(`/partenaires/${id}/toggle`),
+  delete: (id) => api.delete(`/partenaires/${id}`),
+};
+
 export default api;
