@@ -2,8 +2,8 @@
  * MonnaiePage.jsx
  * Gestion du Module Monnaie FCFA — Langues Ivoire CMS
  */
-import { useState, useEffect, useCallback } from 'react';
-import { monnaieAPI, languagesAPI } from '../services/api';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { monnaieAPI, languagesAPI, uploadAPI } from '../services/api';
 import {
   PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon,
   PauseCircleIcon, MagnifyingGlassIcon, BanknotesIcon,
@@ -45,6 +45,212 @@ function Modal({ title, onClose, children }) {
   );
 }
 
+// ─── Constructeur de contenu visuel (sans JSON) ─────────────────────────────
+const PIECES_VALS  = [5, 10, 25, 50, 100, 200];
+const BILLETS_VALS = [500, 1000, 2000, 5000, 10000];
+
+function MonnaieContenuBuilder({ type, contenu, onChange }) {
+  const c = contenu;
+  const inp   = 'border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none';
+  const inpSm = 'w-20 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-amber-400 outline-none';
+
+  const updateArr = (key, i, field, val) => {
+    const arr = [...(c[key] || [])]; arr[i] = { ...arr[i], [field]: val };
+    onChange({ ...c, [key]: arr });
+  };
+  const removeItem = (key, i) => onChange({ ...c, [key]: (c[key] || []).filter((_, idx) => idx !== i) });
+  const addItem    = (key, item) => onChange({ ...c, [key]: [...(c[key] || []), item] });
+
+  const Hint  = ({ text }) => <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 text-xs text-amber-800">{text}</div>;
+  const AddBtn = ({ onClick, label }) => <button type="button" onClick={onClick} className="text-xs font-semibold text-amber-600 hover:text-amber-800">＋ {label}</button>;
+  const DelBtn = ({ onClick }) => <button type="button" onClick={onClick} className="text-red-400 hover:text-red-600 text-xs px-1 flex-shrink-0">✕</button>;
+  const AutoNote = () => <p className="text-xs text-gray-400 italic">⚙️ Les mots en langue locale sont ajoutés automatiquement.</p>;
+
+  /* ── RECONNAISSANCE ── */
+  if (type === 'RECONNAISSANCE') {
+    const items = c.items || [];
+    const toggle = (valeur, typeItem) => {
+      const exists = items.some(it => it.valeur === valeur);
+      if (exists) {
+        onChange({ ...c, items: items.filter(it => it.valeur !== valeur) });
+      } else {
+        const label = valeur >= 1000 ? `${valeur.toLocaleString('fr-FR')} FCFA` : `${valeur} FCFA`;
+        const next = [...items, { valeur, label, type: typeItem }].sort((a, b) => a.valeur - b.valeur);
+        onChange({ ...c, items: next });
+      }
+    };
+    return (
+      <div className="space-y-4">
+        <Hint text="💡 Cochez les pièces et billets à inclure dans la leçon de reconnaissance." />
+        <div>
+          <p className="text-xs font-bold text-gray-600 mb-2">🪙 Pièces FCFA</p>
+          <div className="flex flex-wrap gap-2">
+            {PIECES_VALS.map(v => {
+              const sel = items.some(it => it.valeur === v);
+              return (
+                <button key={v} type="button" onClick={() => toggle(v, 'pièce')}
+                  className={`px-3 py-1.5 rounded-full text-sm font-bold border-2 transition-colors ${
+                    sel ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200 hover:border-amber-300'}`}>
+                  {v} F
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-bold text-gray-600 mb-2">💵 Billets FCFA</p>
+          <div className="flex flex-wrap gap-2">
+            {BILLETS_VALS.map(v => {
+              const sel = items.some(it => it.valeur === v);
+              return (
+                <button key={v} type="button" onClick={() => toggle(v, 'billet')}
+                  className={`px-3 py-1.5 rounded-full text-sm font-bold border-2 transition-colors ${
+                    sel ? 'bg-amber-800 text-white border-amber-800' : 'bg-white text-gray-600 border-gray-200 hover:border-amber-400'}`}>
+                  {v.toLocaleString('fr-FR')} F
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {items.length > 0 && (
+          <div className="bg-gray-50 rounded-xl p-3">
+            <p className="text-xs font-bold text-gray-500 mb-2">Sélection ({items.length})</p>
+            <div className="flex flex-wrap gap-1.5">
+              {items.map(it => (
+                <span key={it.valeur} className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                  it.type === 'billet' ? 'bg-amber-800 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                  {it.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        <AutoNote />
+      </div>
+    );
+  }
+
+  /* ── CALCUL ── */
+  if (type === 'CALCUL') {
+    const exercices = c.exercices || [];
+    return (
+      <div className="space-y-3">
+        <Hint text="💡 Entrez la question et les coupures utilisées. Le total se calcule automatiquement." />
+        <div className="space-y-2">
+          {exercices.map((ex, i) => {
+            const pieces = Array.isArray(ex.pieces) ? ex.pieces : [];
+            return (
+              <div key={i} className="flex flex-col gap-1.5 bg-gray-50 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 w-5">{i + 1}.</span>
+                  <input type="text" value={ex.question ?? ''} placeholder="Ex: Tu as 100 F et 200 F. Combien en tout ?"
+                    onChange={e => updateArr('exercices', i, 'question', e.target.value)}
+                    className={`flex-1 ${inp} text-xs`} />
+                  <DelBtn onClick={() => removeItem('exercices', i)} />
+                </div>
+                <div className="flex items-center gap-2 pl-6">
+                  <span className="text-xs text-gray-500 flex-shrink-0">Coupures (virgule) :</span>
+                  <input type="text" value={pieces.join(', ')} placeholder="100, 200, 50"
+                    onChange={e => {
+                      const vals = e.target.value.split(',').map(v => Number(v.trim())).filter(v => v > 0);
+                      const arr = [...exercices];
+                      arr[i] = { ...arr[i], pieces: vals, resultat: vals.reduce((s, v) => s + v, 0) };
+                      onChange({ ...c, exercices: arr });
+                    }}
+                    className={`flex-1 ${inp} text-xs`} />
+                  <span className="text-xs text-gray-400 flex-shrink-0">
+                    = <strong className="text-green-700">{ex.resultat ?? '?'} F</strong>
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <AddBtn onClick={() => addItem('exercices', { question: '', pieces: [], resultat: 0 })} label="Ajouter un exercice" />
+        <AutoNote />
+      </div>
+    );
+  }
+
+  /* ── RENDU_MONNAIE ── */
+  if (type === 'RENDU_MONNAIE') {
+    const exercices = c.exercices || [];
+    const update = (i, prix, donne) => {
+      const arr = [...exercices];
+      arr[i] = { ...arr[i], prix, donne, rendu: Math.max(0, donne - prix) };
+      onChange({ ...c, exercices: arr });
+    };
+    return (
+      <div className="space-y-3">
+        <Hint text="💡 Entrez le prix et la somme donnée — le rendu se calcule automatiquement." />
+        <div className="space-y-2">
+          {exercices.map((ex, i) => (
+            <div key={i} className="flex flex-col gap-1.5 bg-gray-50 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 w-5">{i + 1}.</span>
+                <input type="text" value={ex.question ?? ''} placeholder="Ex: Le pain coûte 150 F. Tu donnes 200 F. Combien te rend-on ?"
+                  onChange={e => updateArr('exercices', i, 'question', e.target.value)}
+                  className={`flex-1 ${inp} text-xs`} />
+                <DelBtn onClick={() => removeItem('exercices', i)} />
+              </div>
+              <div className="flex items-center gap-4 pl-6 flex-wrap">
+                <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                  Prix :
+                  <input type="number" value={ex.prix ?? ''} placeholder="150"
+                    onChange={e => update(i, Number(e.target.value), ex.donne ?? 0)}
+                    className={inpSm} />
+                  <span>F</span>
+                </label>
+                <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                  Donné :
+                  <input type="number" value={ex.donne ?? ''} placeholder="200"
+                    onChange={e => update(i, ex.prix ?? 0, Number(e.target.value))}
+                    className={inpSm} />
+                  <span>F</span>
+                </label>
+                <span className="text-xs text-gray-500">
+                  Rendu : <strong className="text-green-700">{ex.rendu ?? '?'} F</strong>
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <AddBtn onClick={() => addItem('exercices', { question: '', prix: 0, donne: 0, rendu: 0 })} label="Ajouter un exercice" />
+        <AutoNote />
+      </div>
+    );
+  }
+
+  /* ── CONVERSION ── */
+  if (type === 'CONVERSION') {
+    const exercices = c.exercices || [];
+    return (
+      <div className="space-y-3">
+        <Hint text="💡 Exercices de conversion entre coupures FCFA." />
+        <div className="space-y-2">
+          {exercices.map((ex, i) => (
+            <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+              <span className="text-xs text-gray-400 w-5">{i + 1}.</span>
+              <input type="text" value={ex.question ?? ''} placeholder="Ex: Combien de pièces de 100 F pour faire 500 F ?"
+                onChange={e => updateArr('exercices', i, 'question', e.target.value)}
+                className={`flex-1 ${inp} text-xs`} />
+              <input type="number" value={ex.resultat ?? ''} placeholder="Réponse"
+                onChange={e => updateArr('exercices', i, 'resultat', Number(e.target.value))}
+                className={inpSm} />
+              <span className="text-xs text-gray-400">F</span>
+              <DelBtn onClick={() => removeItem('exercices', i)} />
+            </div>
+          ))}
+        </div>
+        <AddBtn onClick={() => addItem('exercices', { question: '', resultat: 0 })} label="Ajouter un exercice" />
+      </div>
+    );
+  }
+
+  return <p className="text-xs text-gray-400 italic py-4 text-center">Sélectionnez un type pour configurer le contenu.</p>;
+}
+
+// ─── Formulaire principal ────────────────────────────────────────────────────
 function ContenuForm({ initial, languages, onSave, onClose, loading }) {
   const [form, setForm] = useState({
     languageId: initial?.languageId || '',
@@ -56,6 +262,7 @@ function ContenuForm({ initial, languages, onSave, onClose, loading }) {
     contenu: initial?.contenu ? JSON.stringify(initial.contenu, null, 2) : '{}',
   });
   const [jsonError, setJsonError] = useState('');
+  const [advancedMode, setAdvancedMode] = useState(false);
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -159,24 +366,39 @@ function ContenuForm({ initial, languages, onSave, onClose, loading }) {
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="text-xs font-bold text-gray-600">Contenu JSON</label>
-          <button
-            type="button"
-            onClick={() => { set('contenu', exampleJson[form.type] || '{}'); setJsonError(''); }}
-            className="text-xs text-primary-600 hover:underline"
-          >
-            Charger exemple
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-bold text-gray-600">Contenu</label>
+          <button type="button" onClick={() => setAdvancedMode(m => !m)}
+            className="text-xs text-gray-400 hover:text-gray-700 underline">
+            {advancedMode ? '← Formulaire simple' : '⚙️ Mode JSON avancé'}
           </button>
         </div>
-        <textarea
-          value={form.contenu}
-          onChange={e => { set('contenu', e.target.value); setJsonError(''); }}
-          rows={8}
-          spellCheck={false}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-primary-400 outline-none resize-y"
-        />
-        {jsonError && <p className="text-red-500 text-xs mt-1">{jsonError}</p>}
+        {advancedMode ? (
+          <div>
+            <div className="flex justify-end mb-1">
+              <button type="button"
+                onClick={() => { set('contenu', exampleJson[form.type] || '{}'); setJsonError(''); }}
+                className="text-xs text-amber-600 hover:underline">
+                Charger exemple
+              </button>
+            </div>
+            <textarea
+              value={form.contenu}
+              onChange={e => { set('contenu', e.target.value); setJsonError(''); }}
+              rows={8} spellCheck={false}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-amber-400 outline-none resize-y"
+            />
+            {jsonError && <p className="text-red-500 text-xs mt-1">{jsonError}</p>}
+          </div>
+        ) : (
+          <div className="border border-gray-100 rounded-xl p-3 bg-gray-50/50 min-h-[80px]">
+            <MonnaieContenuBuilder
+              type={form.type}
+              contenu={(() => { try { return JSON.parse(form.contenu) || {}; } catch { return {}; } })()}
+              onChange={(obj) => { set('contenu', JSON.stringify(obj, null, 2)); setJsonError(''); }}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
@@ -193,8 +415,102 @@ function ContenuForm({ initial, languages, onSave, onClose, loading }) {
   );
 }
 
-function ContenuCard({ item, onEdit, onToggle, onDelete }) {
+/**
+ * Panneau d'import audio par exercice (Monnaie)
+ */
+function AudioUploadPanel({ item, onUpdate }) {
+  const contenu = item.contenu || {};
+  const inputRef = useRef(null);
+  const [target, setTarget] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [statuses, setStatuses] = useState({});
+
+  const startUpload = (arrayKey, idx, field) => {
+    setTarget({ arrayKey, idx, field });
+    setTimeout(() => inputRef.current?.click(), 0);
+  };
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !target) return;
+    setUploading(true);
+    const { arrayKey, idx, field } = target;
+    const statusKey = `${arrayKey}-${idx}-${field}`;
+    try {
+      const fd = new FormData();
+      fd.append('audio', file);
+      const { data } = await uploadAPI.uploadAudio(fd);
+      const url = data.audioUrl;
+      const arr = [...(contenu[arrayKey] || [])];
+      arr[idx] = { ...arr[idx], [field]: url };
+      await monnaieAPI.update(item.id, { contenu: { ...contenu, [arrayKey]: arr } });
+      setStatuses(s => ({ ...s, [statusKey]: 'ok' }));
+      setTimeout(() => setStatuses(s => ({ ...s, [statusKey]: null })), 2500);
+      onUpdate();
+    } catch {
+      setStatuses(s => ({ ...s, [statusKey]: 'err' }));
+      setTimeout(() => setStatuses(s => ({ ...s, [statusKey]: null })), 3000);
+    }
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const renderRows = (arrayKey, arr) => arr.map((ex, i) => {
+    const qKey = `${arrayKey}-${i}-audioUrl`;
+    const rKey = `${arrayKey}-${i}-resultAudioUrl`;
+    const hasResult = ex.resultat !== undefined || ex.rendu !== undefined || ex.valeur !== undefined;
+    const btnClass = (key, existingUrl) => `text-xs px-2 py-0.5 rounded-md border font-semibold whitespace-nowrap transition-colors ${
+      statuses[key] === 'ok' ? 'bg-green-50 border-green-300 text-green-700' :
+      statuses[key] === 'err' ? 'bg-red-50 border-red-300 text-red-600' :
+      existingUrl ? 'bg-sky-50 border-sky-300 text-sky-700' :
+      'bg-white border-gray-200 text-gray-500 hover:border-amber-400 hover:text-amber-700'
+    }`;
+    return (
+      <div key={i} className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-lg">
+        <span className="text-xs text-gray-400 font-mono w-5 flex-shrink-0 text-right">{i + 1}.</span>
+        <p className="text-xs text-gray-600 flex-1 min-w-0 truncate">
+          {ex.question || ex.label || String(ex.valeur || `Item ${i + 1}`)}
+        </p>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => startUpload(arrayKey, i, 'audioUrl')}
+            disabled={uploading}
+            title="Importer audio de la question"
+            className={btnClass(qKey, ex.audioUrl)}
+          >
+            {statuses[qKey] === 'ok' ? '✅' : statuses[qKey] === 'err' ? '❌' : ex.audioUrl ? '🔊 ✓' : '🔊 Question'}
+          </button>
+          {hasResult && (
+            <button
+              onClick={() => startUpload(arrayKey, i, 'resultAudioUrl')}
+              disabled={uploading}
+              title="Importer audio de la réponse"
+              className={btnClass(rKey, ex.resultAudioUrl)}
+            >
+              {statuses[rKey] === 'ok' ? '✅' : statuses[rKey] === 'err' ? '❌' : ex.resultAudioUrl ? '🎯 ✓' : '🎯 Réponse'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  });
+
+  const anyContent = (contenu.exercices?.length || 0) + (contenu.items?.length || 0);
+
+  return (
+    <div className="space-y-1">
+      <input ref={inputRef} type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg" className="hidden" onChange={handleFile} />
+      {uploading && <p className="text-xs text-amber-600 font-semibold animate-pulse py-1">⏳ Upload en cours…</p>}
+      {anyContent === 0 && <p className="text-xs text-gray-400 italic py-1">Aucun exercice détecté dans le contenu JSON.</p>}
+      {contenu.exercices?.length > 0 && <div className="space-y-1">{renderRows('exercices', contenu.exercices)}</div>}
+      {contenu.items?.length > 0 && <div className="space-y-1">{renderRows('items', contenu.items)}</div>}
+    </div>
+  );
+}
+
+function ContenuCard({ item, onEdit, onToggle, onDelete, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
+  const [tab, setTab] = useState('audio');
   return (
     <div className={`bg-white rounded-2xl border-2 transition-all ${item.isActive ? 'border-gray-100 shadow-sm' : 'border-dashed border-gray-200 opacity-70'}`}>
       <div className="p-4 flex items-start gap-3">
@@ -234,9 +550,27 @@ function ContenuCard({ item, onEdit, onToggle, onDelete }) {
       </div>
       {expanded && (
         <div className="px-4 pb-4 border-t border-gray-50 pt-3">
-          <pre className="text-xs bg-gray-50 rounded-xl p-3 overflow-x-auto border border-gray-100 max-h-48">
-            {JSON.stringify(item.contenu, null, 2)}
-          </pre>
+          <div className="flex gap-1 mb-3">
+            <button
+              onClick={() => setTab('audio')}
+              className={`text-xs font-bold px-3 py-1 rounded-lg transition-colors ${tab === 'audio' ? 'bg-amber-100 text-amber-700' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              🔊 Audios
+            </button>
+            <button
+              onClick={() => setTab('json')}
+              className={`text-xs font-bold px-3 py-1 rounded-lg transition-colors ${tab === 'json' ? 'bg-gray-100 text-gray-700' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              {'{ }'} JSON
+            </button>
+          </div>
+          {tab === 'json' ? (
+            <pre className="text-xs bg-gray-50 rounded-xl p-3 overflow-x-auto border border-gray-100 max-h-48">
+              {JSON.stringify(item.contenu, null, 2)}
+            </pre>
+          ) : (
+            <AudioUploadPanel item={item} onUpdate={onUpdate} />
+          )}
         </div>
       )}
     </div>
@@ -285,6 +619,7 @@ export default function MonnaiePage() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [filterLang, setFilterLang] = useState('');
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState('');
 
@@ -326,8 +661,10 @@ export default function MonnaiePage() {
 
   const filtered = contenus.filter(c => {
     const q = search.toLowerCase();
-    return (!q || c.titre?.toLowerCase().includes(q) || c.language?.nom?.toLowerCase().includes(q)) &&
-           (!filterType || c.type === filterType);
+    const matchSearch = !q || c.titre?.toLowerCase().includes(q) || c.language?.nom?.toLowerCase().includes(q);
+    const matchType   = !filterType || c.type === filterType;
+    const matchLang   = !filterLang || c.languageId === filterLang || (filterLang === '__universal__' && !c.languageId);
+    return matchSearch && matchType && matchLang;
   });
 
   const activeCount = contenus.filter(c => c.isActive).length;
@@ -382,6 +719,15 @@ export default function MonnaiePage() {
           <option value="">Tous les types</option>
           {TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t].emoji} {TYPE_LABELS[t].label}</option>)}
         </select>
+        <select
+          value={filterLang}
+          onChange={e => setFilterLang(e.target.value)}
+          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+        >
+          <option value="">Toutes les langues</option>
+          <option value="__universal__">— Universel —</option>
+          {languages.map(l => <option key={l.id} value={l.id}>{l.emoji || '🌍'} {l.nom}</option>)}
+        </select>
       </div>
 
       {/* Type stats */}
@@ -421,6 +767,7 @@ export default function MonnaiePage() {
               onEdit={i => setModal({ item: i })}
               onToggle={handleToggle}
               onDelete={handleDelete}
+              onUpdate={load}
             />
           ))}
         </div>
