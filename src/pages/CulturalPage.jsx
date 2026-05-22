@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import { culturalAPI, languagesAPI } from '../services/api';
 import api from '../services/api';
 import {
@@ -324,7 +325,7 @@ export default function CulturalPage() {
 
   // Charger les langues
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => {
+    languagesAPI.getAllAdmin().then(({ data }) => {
       const list = Array.isArray(data) ? data : data?.data ?? [];
       setLanguages(list);
     }).catch(() => {});
@@ -685,6 +686,7 @@ export default function CulturalPage() {
         </div>
       )}
 
+      <PageHelp pageId="culture" />
     </div>
   );
 }

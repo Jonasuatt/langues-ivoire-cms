@@ -7,6 +7,7 @@
  *  3. 📊 Comptabilité        — tableau de bord financier consolidé
  */
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import { financeAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -1401,6 +1402,7 @@ export default function FinancePage() {
       {activeTab === 'tarifs'        && <TarifsTab isAdmin={isAdmin}/>}
       {activeTab === 'contributions' && <ContributionsTab/>}
       {activeTab === 'comptabilite'  && <ComptabiliteTab/>}
+      <PageHelp pageId="finance" />
     </div>
   );
 }

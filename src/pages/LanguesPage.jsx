@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import {
   GlobeAltIcon, CheckCircleIcon, XCircleIcon,
   MapPinIcon, PlusIcon, PencilIcon, BookOpenIcon,
@@ -595,12 +596,13 @@ export default function LanguesPage() {
   const [filterStatut, setFilterStatut] = useState('all');
   const [search,    setSearch]    = useState('');
   const [syncing,   setSyncing]   = useState(false);
+  const [activating, setActivating] = useState(null); // id de la langue en cours d'activation
 
   const fileInputRef = useRef(null);
 
   const load = useCallback(() => {
     setLoading(true);
-    languagesAPI.getAll()
+    languagesAPI.getAllAdmin()
       .then(({ data }) => {
         const list = Array.isArray(data) ? data : data?.data ?? [];
         setLangues(list);
@@ -742,6 +744,21 @@ export default function LanguesPage() {
     load();
   }
 
+  // ── Activation en un clic ──
+  async function handleActivate(lang) {
+    if (activating) return;
+    setActivating(lang.id);
+    try {
+      await languagesAPI.activate(lang.id);
+      toast.success(`🎉 "${lang.nom}" est maintenant active dans l'application mobile !`);
+      load();
+    } catch {
+      toast.error("Erreur lors de l'activation.");
+    } finally {
+      setActivating(null);
+    }
+  }
+
   // ── Filtres liste ──
   const languesFiltrees = langues.filter(l => {
     const matchSearch  = search.trim() === '' || l.nom?.toLowerCase().includes(search.toLowerCase()) || l.code?.toLowerCase().includes(search.toLowerCase()) || l.region?.toLowerCase().includes(search.toLowerCase());
@@ -845,23 +862,23 @@ export default function LanguesPage() {
       )}
 
       {/* ── Bannière catalogue ── */}
-      {restantCatalogue > 0 && !loading && (
+      {languesFutures > 0 && !loading && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 flex items-center gap-3">
-          <span className="text-2xl">📚</span>
+          <span className="text-2xl">✨</span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-green-800">{restantCatalogue} langue{restantCatalogue > 1 ? 's' : ''} du catalogue non encore ajoutée{restantCatalogue > 1 ? 's' : ''}</p>
-            <p className="text-xs text-green-600 mt-0.5">Côte d'Ivoire compte environ 60 langues ethniques. Ajoutez-les progressivement depuis le catalogue.</p>
+            <p className="text-sm font-semibold text-green-800">{languesFutures} langue{languesFutures > 1 ? 's' : ''} pré-configurée{languesFutures > 1 ? 's' : ''} en dormance</p>
+            <p className="text-xs text-green-600 mt-0.5">Prêtes à l'activation en un clic — aucune saisie requise.</p>
           </div>
-          <button onClick={() => setShowCatalogue(true)}
+          <button onClick={() => setTab('catalogue')}
             className="flex-shrink-0 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">
-            Ouvrir le catalogue
+            Voir le catalogue
           </button>
         </div>
       )}
 
       {/* ── Onglets ── */}
       <div className="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1 w-fit">
-        {[['liste', '📋 Liste'], ['carte', '🗺️ Carte']].map(([key, label]) => (
+        {[['liste', '📋 Liste'], ['catalogue', '✨ Catalogue CI'], ['carte', '🗺️ Carte']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
             {label}
@@ -945,10 +962,27 @@ export default function LanguesPage() {
                           : <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2.5 py-0.5 text-xs font-medium"><XCircleIcon className="w-3.5 h-3.5" /> À venir</span>}
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <button onClick={() => openEdit(lang)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-green-700 bg-gray-50 hover:bg-green-50 border border-gray-200 hover:border-green-200 rounded-lg transition-colors ml-auto">
-                          <PencilIcon className="w-3.5 h-3.5" /> Éditer
-                        </button>
+                        {lang.isActive === false ? (
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => handleActivate(lang)}
+                              disabled={activating === lang.id}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60 transition-colors font-semibold"
+                            >
+                              <CheckCircleIcon className="w-3.5 h-3.5" />
+                              {activating === lang.id ? 'Activation…' : 'Activer'}
+                            </button>
+                            <button onClick={() => openEdit(lang)}
+                              className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors">
+                              <PencilIcon className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button onClick={() => openEdit(lang)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-green-700 bg-gray-50 hover:bg-green-50 border border-gray-200 hover:border-green-200 rounded-lg transition-colors ml-auto">
+                            <PencilIcon className="w-3.5 h-3.5" /> Éditer
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -958,6 +992,109 @@ export default function LanguesPage() {
           )}
         </>
       )}
+
+      {/* ══ TAB CATALOGUE CI ══════════════════════════════════════════════════ */}
+      {!loading && !error && tab === 'catalogue' && (() => {
+        // Map famille DB string → clé FAMILLES
+        const FAMILLE_TO_KEY = {
+          'Akan': 'akan', 'Krou': 'krou', 'Gour': 'gur',
+          'Mandé Nord': 'mande-n', 'Mandé Sud': 'mande-s',
+          'Véhiculaire': 'vehiculaire', 'Véhiculaire / Créole': 'vehiculaire',
+          'Argot urbain': 'vehiculaire',
+          'Mandé du Sud': 'mande-s', 'Mande du Sud': 'mande-s',
+          'Mandé': 'mande-s', 'Gur': 'gur', 'Sénoufo (Gour)': 'gur',
+          'Lagounaire': 'akan',
+        };
+        const languesDormantes = langues.filter(l => l.isActive === false);
+        return (
+          <div className="space-y-5">
+            {/* Bannière info */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0 text-2xl">💡</div>
+              <div>
+                <p className="font-bold text-green-900 text-base">Activation en un clic</p>
+                <p className="text-sm text-green-700 mt-1">Toutes ces langues sont pré-configurées en arrière-plan avec leurs données (région, coordonnées, couleur, emoji). Un clic sur <strong>Activer</strong> les rend immédiatement visibles dans l'application mobile.</p>
+                <div className="flex gap-4 mt-3 text-xs text-green-600">
+                  <span>✅ {langues.filter(l => l.isActive !== false).length} actives</span>
+                  <span>⏸ {languesDormantes.length} en dormance</span>
+                  <span>🌍 {langues.length} langues au total</span>
+                </div>
+              </div>
+            </div>
+
+            {languesDormantes.length === 0 ? (
+              <div className="text-center py-20 text-gray-400">
+                <CheckCircleIcon className="w-14 h-14 mx-auto mb-4 text-green-400" />
+                <p className="text-lg font-semibold text-green-700">Toutes les langues sont actives !</p>
+                <p className="text-sm mt-1">Le catalogue complet de la Côte d'Ivoire est en ligne dans l'application.</p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {FAMILLES.map(famille => {
+                  const items = languesDormantes.filter(l => {
+                    const key = FAMILLE_TO_KEY[l.famille] || l.famille?.toLowerCase().replace(/\s+/g, '-');
+                    return key === famille.key;
+                  });
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={famille.key}>
+                      <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${famille.bg} ${famille.border} border mb-3`}>
+                        <span className="text-base">{famille.emoji}</span>
+                        <span className={`text-xs font-bold uppercase tracking-wide ${famille.text}`}>{famille.nom}</span>
+                        <span className={`ml-auto text-xs ${famille.text} opacity-60`}>{items.length} langue{items.length > 1 ? 's' : ''} en dormance</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        {items.map(lang => (
+                          <div key={lang.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 overflow-hidden">
+                            <div className="p-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-11 h-11 rounded-full flex items-center justify-center text-xl flex-shrink-0 shadow-sm" style={{ background: lang.couleur || '#0B7A52' }}>
+                                  {emojiIsImage(lang.emoji) ? (
+                                    <img src={lang.emoji} alt="" className="w-8 h-8 rounded-full object-cover" />
+                                  ) : (
+                                    <span>{lang.emoji || '🌐'}</span>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-bold text-gray-900 text-sm">{lang.nom}</p>
+                                  <p className="text-xs text-gray-400 truncate">{lang.region}</p>
+                                </div>
+                              </div>
+                              {lang.locuteurs && (
+                                <p className="text-xs text-gray-500 mb-1">👥 {Number(lang.locuteurs).toLocaleString('fr-FR')} locuteurs</p>
+                              )}
+                              {lang.description && (
+                                <p className="text-xs text-gray-400 line-clamp-2 mb-3">{lang.description}</p>
+                              )}
+                            </div>
+                            <div className="px-4 pb-4 flex gap-2">
+                              <button
+                                onClick={() => handleActivate(lang)}
+                                disabled={activating === lang.id}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 disabled:opacity-60 disabled:cursor-wait transition-colors shadow-sm"
+                              >
+                                <CheckCircleIcon className="w-4 h-4" />
+                                {activating === lang.id ? 'Activation…' : 'Activer'}
+                              </button>
+                              <button
+                                onClick={() => openEdit(lang)}
+                                title="Personnaliser avant d'activer"
+                                className="px-3 py-2 text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-sm transition-colors"
+                              >
+                                <PencilIcon className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ══ TAB CARTE ══════════════════════════════════════════════════════════ */}
       {!loading && !error && tab === 'carte' && (
@@ -1313,6 +1450,7 @@ export default function LanguesPage() {
           onSelect={handleCatalogueSelect}
         />
       )}
+      <PageHelp pageId="langues" />
     </div>
   );
 }

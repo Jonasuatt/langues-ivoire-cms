@@ -5,6 +5,7 @@
  * Mobile : alimente le module "Carte CI" de l'application mobile Langues Ivoire
  */
 import { useState, useEffect, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import { languagesAPI } from '../services/api';
 import { CarteCI } from './LanguesPage';
 import {
@@ -371,6 +372,7 @@ export default function CarteCIPage() {
 
         </div>
       </div>
+      <PageHelp pageId="carte" />
     </div>
   );
 }

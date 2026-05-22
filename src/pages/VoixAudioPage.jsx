@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+﻿import { useEffect, useState, useRef, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI, uploadAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
 import FileUploadField from '../components/FileUploadField';
@@ -635,6 +636,7 @@ export default function VoixAudioPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const LIMIT = 20;
   const source = SOURCES.find(s => s.key === activeKey);
@@ -700,7 +702,7 @@ export default function VoixAudioPage() {
   useEffect(() => { loadStats(); }, [loadStats]);
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
+    languagesAPI.getAllAdmin().then(({ data }) => setLanguages(data)).catch(() => {});
   }, []);
 
   const resetFilters = () => {
@@ -737,13 +739,85 @@ export default function VoixAudioPage() {
             Gestion centralisée de tous les fichiers audio de la plateforme Langues Ivoire
           </p>
         </div>
-        {source.canAdd && (
-          <button className="btn-primary flex items-center gap-2 shrink-0" onClick={() => setShowAdd(true)}>
-            <PlusIcon className="w-5 h-5" />
-            Ajouter un audio
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={() => setShowGuide(s => !s)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors">
+            📘 Guide d'importation
           </button>
-        )}
+          {source.canAdd && (
+            <button className="btn-primary flex items-center gap-2" onClick={() => setShowAdd(true)}>
+              <PlusIcon className="w-5 h-5" />
+              Ajouter un audio
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* ── Panneau tutoriel import en masse ── */}
+      {showGuide && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-6 space-y-4">
+          <div className="flex items-start justify-between">
+            <h2 className="text-base font-bold text-blue-900 flex items-center gap-2">
+              📘 Guide d'importation des audios en masse
+            </h2>
+            <button onClick={() => setShowGuide(false)} className="text-blue-400 hover:text-blue-600 text-xs underline">Fermer</button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 text-sm">
+            <div className="space-y-3">
+              <div>
+                <p className="font-semibold text-blue-800 mb-1">📁 Convention de nommage des fichiers</p>
+                <div className="bg-white rounded-xl p-3 border border-blue-100 font-mono text-xs text-gray-700 space-y-1">
+                  <p className="text-gray-500 mb-2">[code_langue]_[mot]_[genre]_[numéro].mp3</p>
+                  <p>✅ dioula_an_se_sama_M_001.mp3</p>
+                  <p>✅ baoule_akwaba_F_001.mp3</p>
+                  <p>✅ yacouba_dan_M_001.mp3</p>
+                  <p>✅ senoufo_poro_F_001.mp3</p>
+                </div>
+              </div>
+              <div>
+                <p className="font-semibold text-blue-800 mb-1">🏷️ Codes langues</p>
+                <div className="bg-white rounded-xl p-3 border border-blue-100 text-xs grid grid-cols-2 gap-x-4 gap-y-1 text-gray-700">
+                  {[['dioula','Dioula'],['baoule','Baoulé'],['bete','Bété'],['senoufo','Sénoufo'],['agni','Agni'],['gouro','Gouro'],['guere','Guéré'],['nouchi','Nouchi'],['yacouba','Yacouba']].map(([code,nom]) => (
+                    <span key={code}><span className="font-mono text-blue-700">{code}</span> → {nom}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <p className="font-semibold text-blue-800 mb-1">🎙️ Spécifications d'enregistrement</p>
+                <div className="bg-white rounded-xl p-3 border border-blue-100 text-xs text-gray-700 space-y-1.5">
+                  <p>📏 Format : <strong>MP3</strong> ou WAV, M4A</p>
+                  <p>⚖️ Taille max : <strong>20 MB</strong> par fichier</p>
+                  <p>🎵 Qualité recommandée : <strong>128 kbps minimum</strong></p>
+                  <p>⏱️ Durée : <strong>1 à 5 secondes</strong> par mot/phrase</p>
+                  <p>🔇 Silence : <strong>0.2s</strong> avant et après le mot</p>
+                  <p>🏠 Environnement : <strong>pièce calme</strong>, pas d'écho</p>
+                </div>
+              </div>
+              <div>
+                <p className="font-semibold text-blue-800 mb-1">👥 Genre locuteur</p>
+                <div className="bg-white rounded-xl p-3 border border-blue-100 text-xs text-gray-700 space-y-1">
+                  <p>👨 <strong>M</strong> = Locuteur masculin (Tuteur langue)</p>
+                  <p>👩 <strong>F</strong> = Locutrice féminine (Tuteure langue)</p>
+                  <p className="text-gray-400 mt-1">Le genre est automatiquement détecté depuis le nom de fichier</p>
+                </div>
+              </div>
+              <div>
+                <p className="font-semibold text-blue-800 mb-1">📋 Étapes d'importation</p>
+                <div className="bg-white rounded-xl p-3 border border-blue-100 text-xs text-gray-700 space-y-1.5">
+                  <p>1️⃣ Nommer les fichiers selon la convention ci-dessus</p>
+                  <p>2️⃣ Sélectionner le module cible (Contributions, Dictionnaire…)</p>
+                  <p>3️⃣ Importer via le bouton "+ Ajouter un audio"</p>
+                  <p>4️⃣ L'URL générée est copiable vers n'importe quel module</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Stats (contributions) ── */}
       {activeKey === 'contributions' && (
@@ -901,6 +975,7 @@ export default function VoixAudioPage() {
           onDeleted={() => { loadItems(); loadStats(); setDeleteItem(null); }}
         />
       )}
+      <PageHelp pageId="import-audio" />
     </div>
   );
 }

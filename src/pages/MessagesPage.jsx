@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import { supportAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import {
@@ -407,6 +408,7 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
+      <PageHelp pageId="messages" />
     </div>
   );
 }

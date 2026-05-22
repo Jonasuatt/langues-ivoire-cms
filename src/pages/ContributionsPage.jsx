@@ -7,6 +7,7 @@
  *  3. Approuver (→ publiée dans le dictionnaire) ou Rejeter (avec raison optionnelle)
  */
 import { useEffect, useState, useRef } from 'react';
+import PageHelp from '../components/PageHelp';
 import { contributionsAPI, languagesAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
 import { useAuth } from '../contexts/AuthContext';
@@ -601,6 +602,7 @@ export default function ContributionsPage() {
         onClose={() => setSelected(null)}
         onModerate={moderate}
       />
+      <PageHelp pageId="contributions" />
     </div>
   );
 }

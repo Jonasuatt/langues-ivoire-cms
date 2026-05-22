@@ -1,9 +1,10 @@
-/**
+﻿/**
  * MarcheDialoguesPage — Scénarios de négociation au Marché
  * Alimente MarcheScreen.js sur le mobile.
  * Un document MarcheDialogue par langue.
  */
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -46,7 +47,7 @@ export default function MarcheDialoguesPage() {
   };
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
+    languagesAPI.getAllAdmin().then(({ data }) => setLanguages(data)).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [filterLang]);
@@ -459,6 +460,7 @@ export default function MarcheDialoguesPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="marche" />
     </div>
   );
 }

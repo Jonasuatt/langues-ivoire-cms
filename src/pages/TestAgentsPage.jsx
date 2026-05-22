@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import { languagesAPI, agentChatAPI } from '../services/api';
 import {
   PaperAirplaneIcon, SpeakerWaveIcon, SpeakerXMarkIcon, TrashIcon,
@@ -494,6 +495,7 @@ export default function TestAgentsPage() {
           </div>
         </div>
       </div>
+      <PageHelp pageId="test-agents" />
     </div>
   );
 }

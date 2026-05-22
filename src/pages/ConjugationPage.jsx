@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import LanguageSelect from '../components/LanguageSelect';
@@ -268,7 +269,7 @@ export default function ConjugationPage() {
 
   // ── Chargement langues ──
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => {
+    languagesAPI.getAllAdmin().then(({ data }) => {
       const list = Array.isArray(data) ? data : data?.data ?? [];
       setLanguages(list);
       if (list.length) setSelectedLang(list[0].code);
@@ -871,6 +872,7 @@ export default function ConjugationPage() {
         </div>
       )}
 
+      <PageHelp pageId="conjugaison" />
     </div>
   );
 }

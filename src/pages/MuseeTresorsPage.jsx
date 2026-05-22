@@ -4,6 +4,7 @@
  * Chaque trésor = un CulturalItem de type TRESOR.
  */
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import {
   PlusIcon, PencilIcon, TrashIcon,
@@ -22,6 +23,7 @@ const ETHNIES = [
   { value: 'gouro',   label: '🦁 Gouro'   },
   { value: 'guere',   label: '🌊 Guéré'   },
   { value: 'nouchi',  label: '🎧 Nouchi'  },
+  { value: 'yacouba', label: '🌲 Yacouba' },
 ];
 
 const TIER_INFO = [
@@ -506,6 +508,7 @@ export default function MuseeTresorsPage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="musee" />
     </div>
   );
 }

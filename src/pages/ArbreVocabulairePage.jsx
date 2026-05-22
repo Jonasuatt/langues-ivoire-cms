@@ -1,9 +1,10 @@
-/**
+﻿/**
  * ArbreVocabulairePage — Vocabulaire familial (Arbre à Palabres)
  * Alimente ArbresScreen.js sur le mobile.
  * Utilise UsefulPhrase avec categorie='famille' et contexte=membreId.
  */
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import api, { languagesAPI } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -54,7 +55,7 @@ export default function ArbreVocabulairePage() {
   };
 
   useEffect(() => {
-    languagesAPI.getAll().then(({ data }) => setLanguages(data)).catch(() => {});
+    languagesAPI.getAllAdmin().then(({ data }) => setLanguages(data)).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [filterLang, filterMembre]);
@@ -396,6 +397,7 @@ export default function ArbreVocabulairePage() {
           </div>
         </div>
       )}
+      <PageHelp pageId="arbre-palabres" />
     </div>
   );
 }

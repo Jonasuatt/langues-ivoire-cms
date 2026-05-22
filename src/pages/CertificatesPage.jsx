@@ -1,11 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
+import PageHelp from '../components/PageHelp';
 import { certificatesAPI, languagesAPI, adminAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import LanguageSelect from '../components/LanguageSelect';
+import FileUploadField from '../components/FileUploadField';
 import {
   AcademicCapIcon, PlusIcon, MagnifyingGlassIcon,
   InformationCircleIcon, XMarkIcon, StarIcon,
   DocumentTextIcon, TrophyIcon, PencilIcon, CheckIcon, SwatchIcon,
+  PhotoIcon, ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
 
 // ── Certificats ─────────────────────────────────────────────────────────────
@@ -437,6 +440,7 @@ const DEFAULT_CERT_TEMPLATE = {
   footerText: 'Ce certificat atteste de la validation du niveau par notre système d\'évaluation.',
   signatureName: 'Direction Pédagogique',
   logoEmoji: '🎓',
+  maquetteUrl: '', // URL de la maquette importée (Photoshop, Canva…)
 };
 
 const DEFAULT_DIPL_TEMPLATE = {
@@ -449,6 +453,7 @@ const DEFAULT_DIPL_TEMPLATE = {
   footerText: 'Ce diplôme est décerné en reconnaissance des mérites exceptionnels.',
   signatureName: 'Direction Générale',
   logoEmoji: '🏆',
+  maquetteUrl: '', // URL de la maquette importée (Photoshop, Canva…)
 };
 
 function loadTemplates() {
@@ -538,9 +543,8 @@ function TemplatesPanel() {
         <div className="text-sm text-purple-900">
           <p className="font-semibold mb-0.5">Personnalisation des modèles</p>
           <p className="text-xs leading-relaxed">
-            Modifiez les couleurs, textes et logo des certificats et diplômes. Les changements sont
-            sauvegardés localement et appliqués à l'affichage. Pour déployer un nouveau modèle
-            en production, contactez l'équipe technique avec les paramètres ci-dessous.
+            Importez une maquette conçue sur Photoshop, Canva ou toute autre application graphique (PNG, JPG).
+            Elle remplace l'aperçu généré. Sans maquette, l'aperçu automatique est utilisé.
           </p>
         </div>
       </div>
@@ -562,15 +566,42 @@ function TemplatesPanel() {
             <PencilIcon className="w-4 h-4" /> Paramètres du modèle
           </h3>
 
-          <Field label="Emoji / Logo" field="logoEmoji" placeholder="🎓" />
-          <Field label="Nom de l'organisation" field="organisationName" />
-          <Field label="Sous-titre organisation" field="organisationSubtitle" />
-          <Field label={activeTpl === 'cert' ? "Titre du certificat" : "Titre du diplôme"} field={activeTpl === 'cert' ? 'certTitle' : 'diplTitle'} />
-          <Field label="Couleur principale" field="accentColor" type="color" />
-          <Field label="Couleur de fond" field="bgColor" type="color" />
-          <Field label="Couleur de bordure" field="borderColor" type="color" />
-          <Field label="Texte de bas de page" field="footerText" />
-          <Field label="Nom du signataire" field="signatureName" />
+          {/* Upload maquette */}
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+            <p className="text-xs font-semibold text-amber-800 flex items-center gap-2">
+              <PhotoIcon className="w-4 h-4" />
+              Maquette personnalisée {activeTpl === 'cert' ? '(Certificat)' : '(Diplôme)'}
+            </p>
+            <p className="text-xs text-amber-700">
+              Importez un fichier PNG, JPG conçu sur Photoshop, Canva, Illustrator, etc.
+              Il s'affichera dans l'aperçu à droite.
+            </p>
+            <FileUploadField
+              type="image"
+              value={tpl.maquetteUrl}
+              onChange={url => setTpl({ maquetteUrl: url })}
+            />
+            {tpl.maquetteUrl && (
+              <button
+                onClick={() => setTpl({ maquetteUrl: '' })}
+                className="text-xs text-red-500 hover:text-red-700 underline">
+                Supprimer la maquette → utiliser l'aperçu automatique
+              </button>
+            )}
+          </div>
+
+          <div className="border-t border-gray-100 pt-4 space-y-4">
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Paramètres de l'aperçu automatique</p>
+            <Field label="Emoji / Logo" field="logoEmoji" placeholder="🎓" />
+            <Field label="Nom de l'organisation" field="organisationName" />
+            <Field label="Sous-titre organisation" field="organisationSubtitle" />
+            <Field label={activeTpl === 'cert' ? "Titre du certificat" : "Titre du diplôme"} field={activeTpl === 'cert' ? 'certTitle' : 'diplTitle'} />
+            <Field label="Couleur principale" field="accentColor" type="color" />
+            <Field label="Couleur de fond" field="bgColor" type="color" />
+            <Field label="Couleur de bordure" field="borderColor" type="color" />
+            <Field label="Texte de bas de page" field="footerText" />
+            <Field label="Nom du signataire" field="signatureName" />
+          </div>
 
           <div className="flex gap-3 pt-2">
             <button onClick={handleReset}
@@ -579,7 +610,7 @@ function TemplatesPanel() {
             </button>
             <button onClick={handleSave}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-colors">
-              {saved ? <CheckIcon className="w-4 h-4" /> : <CheckIcon className="w-4 h-4" />}
+              <CheckIcon className="w-4 h-4" />
               {saved ? 'Sauvegardé !' : 'Sauvegarder le modèle'}
             </button>
           </div>
@@ -587,10 +618,33 @@ function TemplatesPanel() {
 
         {/* Aperçu en direct */}
         <div>
-          <h3 className="text-sm font-bold text-gray-700 mb-3">Aperçu en direct</h3>
-          <CertPreview />
+          <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            Aperçu en direct
+            {tpl.maquetteUrl && (
+              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-normal">
+                Maquette importée
+              </span>
+            )}
+          </h3>
+          {tpl.maquetteUrl ? (
+            <div className="relative rounded-2xl overflow-hidden border-4 border-amber-300 shadow-lg">
+              <img
+                src={tpl.maquetteUrl}
+                alt={`Maquette ${activeTpl === 'cert' ? 'Certificat' : 'Diplôme'}`}
+                className="w-full object-contain"
+                style={{ maxHeight: 480 }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs text-center py-2 font-medium">
+                {activeTpl === 'cert' ? '🎓 Maquette Certificat' : '🏆 Maquette Diplôme'} — Conçue sur application graphique
+              </div>
+            </div>
+          ) : (
+            <CertPreview />
+          )}
           <p className="text-xs text-gray-400 text-center mt-3">
-            L'aperçu se met à jour en temps réel
+            {tpl.maquetteUrl
+              ? 'Maquette personnalisée active — supprimez-la pour revenir à l\'aperçu automatique'
+              : 'Aperçu automatique — importez une maquette ci-contre pour la remplacer'}
           </p>
         </div>
       </div>
@@ -957,6 +1011,7 @@ export default function CertificatesPage() {
           onClose={() => setModalDiplome(false)}
         />
       )}
+      <PageHelp pageId="certificats" />
     </div>
   );
 }

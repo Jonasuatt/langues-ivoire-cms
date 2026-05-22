@@ -1,980 +1,703 @@
-import { useState, useRef } from 'react';
+/**
+ * UserGuidePage.jsx — Guide de formation complet du CMS Langues Ivoire
+ * Utilise GUIDE_DATA.js comme source unique de vérité.
+ */
+
+import { useState, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import {
-  BookOpenIcon, HomeIcon, LanguageIcon, AcademicCapIcon, SparklesIcon,
-  VideoCameraIcon, ChatBubbleLeftRightIcon, CpuChipIcon, MicrophoneIcon,
-  UserGroupIcon, BeakerIcon, MusicalNoteIcon, GlobeAltIcon, TrophyIcon,
-  BellIcon, HeartIcon, BuildingLibraryIcon, UsersIcon,
-  ExclamationTriangleIcon, PhotoIcon, EnvelopeIcon, LightBulbIcon,
-  ChevronDownIcon, ChevronUpIcon, MagnifyingGlassIcon, XMarkIcon,
+  MagnifyingGlassIcon, XMarkIcon, ChevronDownIcon, ChevronUpIcon,
+  LightBulbIcon, ExclamationTriangleIcon, CheckCircleIcon,
+  PlayCircleIcon, BookOpenIcon, AcademicCapIcon, UserGroupIcon,
+  ArrowRightIcon, SparklesIcon,
 } from '@heroicons/react/24/outline';
+import { GUIDE_SECTIONS, GUIDE_MODULES } from '../data/GUIDE_DATA';
 
-// ─── Données du guide ─────────────────────────────────────────────────────────
+// ─── Config couleurs ───────────────────────────────────────────────────────────
+const COLOR_MAP = {
+  indigo: { bg: 'bg-indigo-600', light: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', badge: 'bg-indigo-100 text-indigo-800', tab: 'bg-indigo-600 text-white', tabInactive: 'text-indigo-600 hover:bg-indigo-50' },
+  purple: { bg: 'bg-purple-600', light: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', badge: 'bg-purple-100 text-purple-800', tab: 'bg-purple-600 text-white', tabInactive: 'text-purple-600 hover:bg-purple-50' },
+  red:    { bg: 'bg-red-600',    light: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    badge: 'bg-red-100 text-red-800',    tab: 'bg-red-600 text-white',    tabInactive: 'text-red-600 hover:bg-red-50' },
+  orange: { bg: 'bg-orange-600', light: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', badge: 'bg-orange-100 text-orange-800', tab: 'bg-orange-600 text-white', tabInactive: 'text-orange-600 hover:bg-orange-50' },
+  amber:  { bg: 'bg-amber-600',  light: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  badge: 'bg-amber-100 text-amber-800',  tab: 'bg-amber-600 text-white',  tabInactive: 'text-amber-600 hover:bg-amber-50' },
+  cyan:   { bg: 'bg-cyan-600',   light: 'bg-cyan-50',   text: 'text-cyan-700',   border: 'border-cyan-200',   badge: 'bg-cyan-100 text-cyan-800',   tab: 'bg-cyan-600 text-white',   tabInactive: 'text-cyan-600 hover:bg-cyan-50' },
+  green:    { bg: 'bg-green-600',    light: 'bg-green-50',    text: 'text-green-700',    border: 'border-green-200',    badge: 'bg-green-100 text-green-800',    tab: 'bg-green-600 text-white',    tabInactive: 'text-green-600 hover:bg-green-50' },
+  teal:     { bg: 'bg-teal-600',     light: 'bg-teal-50',     text: 'text-teal-700',     border: 'border-teal-200',     badge: 'bg-teal-100 text-teal-800',     tab: 'bg-teal-600 text-white',     tabInactive: 'text-teal-600 hover:bg-teal-50' },
+  emerald:  { bg: 'bg-emerald-600',  light: 'bg-emerald-50',  text: 'text-emerald-700',  border: 'border-emerald-200',  badge: 'bg-emerald-100 text-emerald-800',  tab: 'bg-emerald-600 text-white',  tabInactive: 'text-emerald-600 hover:bg-emerald-50' },
+  slate:    { bg: 'bg-slate-600',    light: 'bg-slate-50',    text: 'text-slate-700',    border: 'border-slate-200',    badge: 'bg-slate-100 text-slate-800',    tab: 'bg-slate-600 text-white',    tabInactive: 'text-slate-600 hover:bg-slate-50' },
+  gray:     { bg: 'bg-gray-600',     light: 'bg-gray-50',     text: 'text-gray-700',     border: 'border-gray-200',     badge: 'bg-gray-100 text-gray-800',     tab: 'bg-gray-600 text-white',     tabInactive: 'text-gray-600 hover:bg-gray-50' },
+};
 
-const SECTIONS = [
-  {
-    id: 'contenu',
-    label: 'Contenu Principal',
-    color: 'indigo',
-    bg: 'bg-indigo-50',
-    border: 'border-indigo-300',
-    badge: 'bg-indigo-100 text-indigo-700',
-    modules: [
-      {
-        id: 'dashboard',
-        route: '/',
-        icon: HomeIcon,
-        title: 'Tableau de bord',
-        color: 'text-indigo-600',
-        iconBg: 'bg-indigo-50',
-        description: 'Vue d\'ensemble de l\'activité de la plateforme : statistiques, dernières contributions, indicateurs clés.',
-        features: [
-          'Compteurs en temps réel : mots, leçons, utilisateurs inscrits, contributions en attente.',
-          'Graphique de l\'activité récente (7 derniers jours).',
-          'Liste des dernières contributions soumises par les utilisateurs.',
-          'Accès rapide aux modules les plus utilisés.',
-        ],
-        steps: [
-          { title: 'Consulter les statistiques', desc: 'Les 4 cartes en haut résument les chiffres clés. Un chiffre en rouge indique un élément nécessitant une action.' },
-          { title: 'Voir les contributions en attente', desc: 'Le tableau du bas liste les dernières soumissions. Cliquez sur « Contributions » dans le menu pour les modérer.' },
-        ],
-        tip: 'Consultez le tableau de bord chaque matin pour détecter rapidement les contributions en attente de modération.',
-      },
-      {
-        id: 'dictionary',
-        route: '/dictionary',
-        icon: LanguageIcon,
-        title: 'Dictionnaire',
-        color: 'text-purple-600',
-        iconBg: 'bg-purple-50',
-        description: 'Gestion complète des entrées du dictionnaire multilingue : ajout, modification, génération audio.',
-        features: [
-          'Filtrage par langue (Dioula, Baoulé, Bété, Guéré, Agni, Attié, Sénoufo, Nouchi).',
-          'Filtrage par catégorie (salutations, famille, animaux…) et par niveau.',
-          'Ajout d\'un nouveau mot avec : mot local, traduction, phonétique, exemple, catégorie, niveau.',
-          'Génération automatique de l\'audio via l\'IA (bouton « Générer Audio »).',
-          'Recherche en temps réel dans les entrées existantes.',
-        ],
-        steps: [
-          { title: 'Ajouter un mot', desc: 'Cliquez sur « + Ajouter un mot ». Remplissez : mot en langue locale, traduction française, phonétique, exemple de phrase. Sélectionnez la langue et la catégorie. Cliquez sur « Enregistrer ».' },
-          { title: 'Générer l\'audio', desc: 'Sur une fiche de mot existante, cliquez sur « Générer Audio ». L\'IA produit un fichier audio. Vérifiez la prononciation avant de valider.' },
-          { title: 'Modifier un mot', desc: 'Cliquez sur l\'icône crayon à droite de l\'entrée. Modifiez les champs souhaités. Enregistrez.' },
-        ],
-        tip: 'Ajoutez toujours la phonétique entre crochets [  ] pour aider les apprenants non-francophones.',
-      },
-      {
-        id: 'conjugation',
-        route: '/conjugation',
-        icon: BookOpenIcon,
-        title: 'Conjugaison',
-        color: 'text-violet-600',
-        iconBg: 'bg-violet-50',
-        description: 'Gestion des tables de conjugaison des verbes dans chaque langue ivoirienne.',
-        features: [
-          'Ajout de verbes avec leurs formes conjuguées (aspect accompli / inaccompli).',
-          'Gestion des diacritiques (ɛ, ɔ, ŋ…) et des tons.',
-          'Association à une langue et une catégorie grammaticale.',
-          'Audio pour chaque forme conjuguée.',
-        ],
-        steps: [
-          { title: 'Ajouter un verbe', desc: 'Cliquez sur « + Nouveau verbe ». Saisissez le verbe en langue locale et sa traduction. Remplissez les formes conjuguées selon les aspects.' },
-          { title: 'Associer un audio', desc: 'Après la création, utilisez le bouton audio pour importer ou générer la prononciation de chaque forme.' },
-        ],
-        tip: 'Les langues ivoiriennes utilisent des aspects (accompli/inaccompli) plutôt que des temps. Précisez cela dans la description.',
-      },
-      {
-        id: 'vocabulary',
-        route: '/vocabulary',
-        icon: BookOpenIcon,
-        title: 'Vocabulaire',
-        color: 'text-blue-600',
-        iconBg: 'bg-blue-50',
-        description: 'Listes de vocabulaire thématiques associées aux leçons et aux galeries d\'images.',
-        features: [
-          'Organisation par thèmes (animaux, couleurs, chiffres, corps humain…).',
-          'Association directe aux leçons et aux niveaux.',
-          'Import en lot possible via fichier CSV.',
-          'Gestion des audios et des images pour chaque entrée.',
-        ],
-        steps: [
-          { title: 'Créer une liste thématique', desc: 'Sélectionnez une langue et un thème. Ajoutez les mots un à un ou importez un fichier CSV préformaté.' },
-          { title: 'Lier à une leçon', desc: 'Dans le formulaire d\'une liste, sélectionnez la leçon associée dans le menu déroulant.' },
-        ],
-        tip: 'Limitez chaque liste thématique à 20–30 mots pour ne pas surcharger l\'apprenant.',
-      },
-      {
-        id: 'lessons',
-        route: '/lessons',
-        icon: AcademicCapIcon,
-        title: 'Leçons',
-        color: 'text-teal-600',
-        iconBg: 'bg-teal-50',
-        description: 'Création et gestion des leçons structurées par langue et par niveau (A1 à C1).',
-        features: [
-          'Filtrage par langue et par niveau (A1 à C1).',
-          'Création de leçons avec titre, description, objectifs, durée estimée.',
-          'Éditeur de leçon (/lessons/:id) : ajout d\'étapes (Vocabulaire, Dialogue, Grammaire, Exercice).',
-          'Réorganisation par glisser-déposer.',
-          'Publication / dépublication d\'une leçon.',
-        ],
-        steps: [
-          { title: 'Créer une leçon', desc: 'Cliquez sur « + Nouvelle leçon ». Renseignez : titre, langue, niveau (A1–C1), description, durée estimée. Enregistrez.' },
-          { title: 'Ajouter des étapes', desc: 'Depuis la liste, cliquez sur la leçon pour ouvrir l\'éditeur. Ajoutez des étapes : Vocabulaire → liste de mots, Dialogue → conversation, Grammaire → règle + exemples, Exercice → QCM / association / traduction.' },
-          { title: 'Publier', desc: 'Activez le bouton « Publié » pour rendre la leçon visible dans l\'application mobile.' },
-        ],
-        tip: 'Une bonne leçon commence par du vocabulaire (5–10 mots), puis un dialogue, puis un exercice. Durée idéale : 10–15 minutes.',
-      },
-      {
-        id: 'cultural',
-        route: '/cultural',
-        icon: SparklesIcon,
-        title: 'Culture & Traditions',
-        color: 'text-amber-600',
-        iconBg: 'bg-amber-50',
-        description: 'Gestion des contenus culturels affichés sur l\'Accueil de l\'application : proverbes, traditions, points culturels.',
-        features: [
-          'Types de contenus : proverbe, tradition, coutume, événement, gastronomie.',
-          'Texte en langue locale + traduction française + explication.',
-          'Audio optionnel pour la version en langue locale.',
-          'Publication programmée ou immédiate.',
-          'Le contenu du jour est sélectionné automatiquement sur l\'Accueil mobile.',
-        ],
-        steps: [
-          { title: 'Ajouter un contenu culturel', desc: 'Cliquez sur « + Nouveau contenu ». Choisissez le type, la langue, saisissez le texte et sa traduction. Ajoutez une explication contextuelle.' },
-          { title: 'Programmer la publication', desc: 'Activez « Publié » et définissez une date de mise en avant si vous souhaitez que ce contenu apparaisse à une date précise sur l\'Accueil.' },
-        ],
-        tip: 'Variez les langues et les types de contenus pour offrir une diversité culturelle chaque jour.',
-      },
-      {
-        id: 'textes-recits',
-        route: '/textes-recits',
-        icon: BookOpenIcon,
-        title: 'Textes & Récits',
-        color: 'text-fuchsia-600',
-        iconBg: 'bg-fuchsia-50',
-        description: 'Gestion du patrimoine oral ivoirien : contes, chansons, proverbes, poèmes, légendes, discours.',
-        features: [
-          'Types : Conte, Chanson, Histoire, Proverbe, Poème, Récit, Légende, Discours.',
-          'Langue, niveau de lecture, durée estimée, auteur / source.',
-          'Texte complet + traduction française.',
-          'Audio associé (lecture par un locuteur natif).',
-          'Publication avec tag de langue et badge de type.',
-        ],
-        steps: [
-          { title: 'Créer un texte', desc: 'Cliquez sur « + Nouveau texte ». Sélectionnez le type et la langue. Rédigez le texte en langue locale et sa traduction. Renseignez l\'auteur ou la source ethnique.' },
-          { title: 'Associer un audio', desc: 'Cliquez sur « Importer Audio » pour uploader le fichier sonore ou entrez l\'URL d\'un fichier hébergé.' },
-        ],
-        tip: 'Indiquez toujours la source (tradition orale, auteur, ethnie) pour respecter le patrimoine culturel.',
-      },
-      {
-        id: 'image-galleries',
-        route: '/image-galleries',
-        icon: PhotoIcon,
-        title: 'Galeries d\'Images',
-        color: 'text-pink-600',
-        iconBg: 'bg-pink-50',
-        description: 'Organisation des images thématiques associées au vocabulaire visuel de l\'application.',
-        features: [
-          'Création de galeries par thème (Animaux, Nourriture, Corps…) et par langue.',
-          'Upload d\'images directement depuis le CMS.',
-          'Association mot ↔ image ↔ audio pour chaque entrée.',
-          'Réorganisation de l\'ordre des images dans une galerie.',
-        ],
-        steps: [
-          { title: 'Créer une galerie', desc: 'Cliquez sur « + Nouvelle galerie ». Choisissez la catégorie et la langue. Donnez un titre et une description.' },
-          { title: 'Ajouter des images', desc: 'Ouvrez la galerie. Cliquez sur « + Ajouter des images ». Dans la modale, une grille de 8 images Unsplash est disponible pour démarrer rapidement : cliquez sur une image pour la sélectionner, ou uploadez vos propres fichiers PNG/JPG. Saisissez le mot en langue locale, sa phonétique et sa traduction pour chaque image.' },
-          { title: 'Supprimer une image', desc: 'Survolez l\'image. Cliquez sur l\'icône corbeille qui apparaît. Confirmez la suppression.' },
-        ],
-        tip: 'La grille d\'images Unsplash proposée au démarrage est idéale pour créer rapidement une galerie de démonstration. Remplacez-les par vos propres visuels pour la production.',
-      },
-      {
-        id: 'videos',
-        route: '/videos',
-        icon: VideoCameraIcon,
-        title: 'Vidéos',
-        color: 'text-red-600',
-        iconBg: 'bg-red-50',
-        description: 'Médiathèque vidéo : intégration de vidéos YouTube et gestion des catégories.',
-        features: [
-          'Catégories : Prononciation, Culturel, Tutoriel, Musique, Documentaire.',
-          'Intégration par URL YouTube (pas d\'upload direct).',
-          'Titre, description, langue, durée, miniature automatique depuis YouTube.',
-          'Import d\'une miniature personnalisée depuis l\'ordinateur (bouton « 📁 Importer ») avec prévisualisation.',
-          'Publication / archivage d\'une vidéo.',
-        ],
-        steps: [
-          { title: 'Ajouter une vidéo', desc: 'Cliquez sur « + Nouvelle vidéo ». Collez l\'URL YouTube. Le titre et la miniature se remplissent automatiquement. Sélectionnez la catégorie et la langue. Enregistrez.' },
-          { title: 'Personnaliser la miniature', desc: 'Dans le formulaire d\'ajout, cliquez sur « 📁 Importer » pour sélectionner une image depuis votre ordinateur. Une prévisualisation s\'affiche immédiatement avant l\'enregistrement.' },
-          { title: 'Archiver', desc: 'Désactivez le bouton « Publié » pour masquer la vidéo sans la supprimer.' },
-        ],
-        tip: 'Préférez des vidéos sous licence Creative Commons ou produites en interne pour éviter les problèmes de droits.',
-      },
-      {
-        id: 'alphabet-langues',
-        route: '/alphabet-langues',
-        icon: LanguageIcon,
-        title: 'Alphabet des Langues',
-        color: 'text-blue-700',
-        iconBg: 'bg-blue-50',
-        description: 'Référentiel complet des 35 groupes de caractères ivoiriens : voyelles, consonnes, caractères spéciaux africains, digraphes et marques tonales.',
-        features: [
-          'Voyelles communes : A E Ɛ I O Ɔ U Ə.',
-          'Consonnes standard et caractères spécifiques africains : ŋ ɲ ɓ ɗ ɣ ʃ ʒ β.',
-          'Digraphes : gb, kp.',
-          'Marques tonales (tons haut, bas, modulé).',
-          'Code couleur : bleu = commun français, violet = spécifique africain, orange = tons.',
-          'Filtre par catégorie (Voyelles / Consonnes / Spéciaux / Tons).',
-          'Barre de recherche pour trouver un caractère précis.',
-          'Clic sur un caractère pour le copier dans le presse-papier.',
-        ],
-        steps: [
-          { title: 'Parcourir l\'alphabet', desc: 'Accédez à /alphabet-langues. Utilisez les filtres de catégorie pour afficher uniquement les voyelles, consonnes, caractères spéciaux ou tons.' },
-          { title: 'Copier un caractère', desc: 'Cliquez sur n\'importe quel groupe de caractères pour le copier automatiquement dans le presse-papier. Vous pouvez ensuite le coller dans n\'importe quel champ du CMS.' },
-          { title: 'Rechercher un caractère', desc: 'Utilisez la barre de recherche pour retrouver rapidement un caractère ou un groupe par son nom ou sa valeur.' },
-        ],
-        tip: 'Utilisez ce module comme référence lors de la saisie de mots dans le dictionnaire ou la conjugaison pour garantir la bonne écriture des diacritiques africains.',
-      },
-    ],
-  },
-  {
-    id: 'communaute',
-    label: 'Communauté',
-    color: 'green',
-    bg: 'bg-green-50',
-    border: 'border-green-300',
-    badge: 'bg-green-100 text-green-700',
-    modules: [
-      {
-        id: 'contributions',
-        route: '/contributions',
-        icon: ChatBubbleLeftRightIcon,
-        title: 'Contributions',
-        color: 'text-green-600',
-        iconBg: 'bg-green-50',
-        description: 'Modération des mots et phrases soumis par la communauté d\'apprenants et de locuteurs natifs.',
-        features: [
-          'Liste des contributions en attente, approuvées ou rejetées.',
-          'Filtrage par statut, langue et date.',
-          'Fiche de chaque contribution : mot, traduction, phonétique, audio soumis.',
-          'Lecteur audio intégré dans la fiche pour écouter directement l\'enregistrement soumis.',
-          'Actions : Approuver ✓ | Rejeter ✗ | Ajouter au dictionnaire.',
-        ],
-        steps: [
-          { title: 'Modérer une contribution', desc: 'Cliquez sur une contribution pour l\'ouvrir. Vérifiez le mot, la traduction et utilisez le lecteur audio intégré pour écouter l\'enregistrement. Cliquez sur « Approuver » ou « Rejeter ». Un motif de rejet peut être envoyé à l\'utilisateur.' },
-          { title: 'Ajouter au dictionnaire', desc: 'Après approbation, cliquez sur « Ajouter au dictionnaire » pour intégrer directement l\'entrée validée.' },
-        ],
-        tip: 'Le lecteur audio est maintenant pleinement fonctionnel dans chaque fiche de contribution. Écoutez toujours l\'audio avant d\'approuver pour vérifier la qualité de la prononciation.',
-      },
-      {
-        id: 'messages',
-        route: '/messages',
-        icon: EnvelopeIcon,
-        title: 'Messages / Support',
-        color: 'text-sky-600',
-        iconBg: 'bg-sky-50',
-        description: 'Gestion des messages d\'assistance envoyés par les utilisateurs depuis l\'application mobile.',
-        features: [
-          'Badge rouge sur l\'entrée du menu latéral indiquant le nombre de messages ouverts (mis à jour toutes les 60 secondes).',
-          'Liste des tickets de support : ouverts, en cours, résolus.',
-          'Filtrage par statut et par date.',
-          'Zone de réponse toujours visible dans le fil de conversation (même pour les tickets résolus).',
-          'Bouton « ↩ Continuer » sur les messages résolus pour reprendre la conversation.',
-          'Réponse directe depuis le CMS visible dans l\'application mobile de l\'utilisateur.',
-          'Clôture manuelle du ticket.',
-        ],
-        steps: [
-          { title: 'Repérer les nouveaux messages', desc: 'Le badge rouge sur « Messages » dans le menu latéral indique le nombre de tickets ouverts en attente de réponse. Il se met à jour automatiquement toutes les 60 secondes.' },
-          { title: 'Répondre à un message', desc: 'Cliquez sur un ticket. La zone de réponse est toujours visible en bas du fil de conversation. Rédigez votre réponse et cliquez sur « Envoyer ». Le ticket passe automatiquement en statut « En cours ».' },
-          { title: 'Reprendre un message résolu', desc: 'Sur un ticket marqué « Résolu », cliquez sur « ↩ Continuer » pour rouvrir la conversation et envoyer un nouveau message à l\'utilisateur.' },
-          { title: 'Clôturer un ticket', desc: 'Une fois le problème résolu, cliquez sur « Marquer comme résolu ».' },
-        ],
-        tip: 'Le badge de messages vous permet de détecter immédiatement les nouvelles demandes sans quitter votre module de travail. Répondez dans les 48 heures ouvrables.',
-      },
-      {
-        id: 'certificates',
-        route: '/certificates',
-        icon: AcademicCapIcon,
-        title: 'Certificats',
-        color: 'text-yellow-600',
-        iconBg: 'bg-yellow-50',
-        description: 'Génération, personnalisation et gestion des certificats de complétion remis aux apprenants.',
-        features: [
-          'Liste de tous les certificats générés avec la date, l\'utilisateur et la langue.',
-          'Émission manuelle d\'un certificat pour un utilisateur spécifique.',
-          'Émission automatique dès qu\'un utilisateur complète toutes les leçons d\'un niveau.',
-          'Téléchargement PDF du certificat.',
-          'Onglet « 🎨 Modèles » : personnalisation du modèle de Certificat et de Diplôme (couleurs, texte, émoji). Modifications sauvegardées en local.',
-        ],
-        steps: [
-          { title: 'Personnaliser le modèle', desc: 'Cliquez sur l\'onglet « 🎨 Modèles ». Choisissez entre le modèle Certificat et le modèle Diplôme. Modifiez les couleurs, les textes et les émojis selon votre charte graphique. Cliquez sur « Enregistrer » — les préférences sont conservées dans le navigateur.' },
-          { title: 'Émettre un certificat', desc: 'Cliquez sur « + Émettre un certificat ». Sélectionnez l\'utilisateur et la langue / le niveau. Cliquez sur « Générer ».' },
-          { title: 'Télécharger un certificat', desc: 'Trouvez le certificat dans la liste. Cliquez sur l\'icône de téléchargement pour obtenir le PDF.' },
-        ],
-        tip: 'Les certificats sont automatiquement générés quand un utilisateur complète toutes les leçons d\'un niveau. Personnalisez le modèle avant d\'émettre les premiers certificats pour garantir une présentation soignée.',
-      },
-      {
-        id: 'ia-linguistique',
-        route: '/ia-linguistique',
-        icon: CpuChipIcon,
-        title: 'IA Linguistique',
-        color: 'text-cyan-600',
-        iconBg: 'bg-cyan-50',
-        description: 'Gestion des données d\'entraînement et du contenu généré par l\'IA pour les langues ivoiriennes.',
-        features: [
-          'Consultation des corpus linguistiques par langue.',
-          'Validation ou correction des traductions proposées par l\'IA.',
-          'Statistiques de précision par langue.',
-          'Lancement de sessions de génération de contenu (mots, phrases, exemples).',
-        ],
-        steps: [
-          { title: 'Valider du contenu IA', desc: 'Accédez à la liste des propositions générées. Pour chaque entrée, validez ou corrigez la traduction/phonétique. Cliquez sur « Confirmer » pour intégrer l\'entrée validée.' },
-          { title: 'Générer du contenu', desc: 'Sélectionnez une langue et un thème. Cliquez sur « Générer ». L\'IA propose un lot de mots/phrases. Validez ou rejetez chaque proposition.' },
-        ],
-        tip: 'Toujours faire vérifier le contenu généré par un locuteur natif avant publication.',
-      },
-      {
-        id: 'voix-audio',
-        route: '/voix-audio',
-        icon: MicrophoneIcon,
-        title: 'Import Audio',
-        color: 'text-orange-600',
-        iconBg: 'bg-orange-50',
-        description: 'Import et validation des contributions audio enregistrées par les locuteurs natifs.',
-        features: [
-          'Liste des fichiers audio soumis avec statut (en attente, validé, rejeté).',
-          'Lecteur audio intégré pour vérifier la qualité.',
-          'Import en lot (bulk import) depuis un fichier CSV + dossier d\'audios.',
-          'Association automatique de l\'audio au mot correspondant.',
-        ],
-        steps: [
-          { title: 'Valider un audio', desc: 'Cliquez sur l\'icône de lecture pour écouter l\'enregistrement. Si la qualité est bonne, cliquez sur « Valider ». L\'audio est immédiatement associé au mot dans le dictionnaire.' },
-          { title: 'Import en lot', desc: 'Préparez un CSV avec les colonnes : mot_id, fichier_audio. Cliquez sur « Import en lot ». Sélectionnez le CSV et le dossier d\'audios compressé (ZIP). Lancez l\'import.' },
-        ],
-        tip: 'Un bon audio de référence : pièce silencieuse, microphone à 15 cm de la bouche, débit naturel sans coupure.',
-      },
-    ],
-  },
-  {
-    id: 'ia',
-    label: 'Intelligence Artificielle',
+// ─── Parcours de formation par rôle ───────────────────────────────────────────
+const ROLE_PATHS = {
+  CONTRIBUTOR: {
+    label: 'Contributeur',
     color: 'blue',
-    bg: 'bg-blue-50',
-    border: 'border-blue-300',
-    badge: 'bg-blue-100 text-blue-700',
-    modules: [
-      {
-        id: 'tutors',
-        route: '/tutors',
-        icon: UserGroupIcon,
-        title: 'Tuteurs IA',
-        color: 'text-blue-600',
-        iconBg: 'bg-blue-50',
-        description: 'Gestion des 20 tuteurs IA : personnalités, langues, avatars, disponibilité.',
-        features: [
-          '20 tuteurs avec nom, avatar, langue cible, style pédagogique.',
-          'Activation / désactivation d\'un tuteur.',
-          'Modification de la biographie et des spécialités.',
-          'Association à une ou plusieurs langues.',
-        ],
-        steps: [
-          { title: 'Modifier un tuteur', desc: 'Cliquez sur la carte du tuteur. Modifiez la biographie, les spécialités ou l\'avatar. Cliquez sur « Enregistrer ».' },
-          { title: 'Activer / Désactiver', desc: 'Basculez le bouton « Actif » sur la carte du tuteur. Un tuteur inactif n\'apparaît pas dans l\'application mobile.' },
-          { title: 'Ajouter un tuteur', desc: 'Cliquez sur « + Nouveau tuteur ». Remplissez : nom, biographie, langue(s), spécialité. Uploadez un avatar. Enregistrez.' },
-        ],
-        tip: 'Chaque tuteur doit avoir une personnalité distincte pour varier l\'expérience d\'apprentissage. Évitez les doublons de style.',
-      },
-      {
-        id: 'test-agents',
-        route: '/test-agents',
-        icon: BeakerIcon,
-        title: 'Test Agents IA',
-        color: 'text-violet-600',
-        iconBg: 'bg-violet-50',
-        description: 'Interface de test pour dialoguer directement avec les agents IA avant leur déploiement.',
-        features: [
-          'Sélection d\'un tuteur parmi les tuteurs actifs.',
-          'Zone de chat en temps réel.',
-          'Affichage du prompt système utilisé par l\'agent.',
-          'Historique de la session de test.',
-        ],
-        steps: [
-          { title: 'Tester un agent', desc: 'Sélectionnez un tuteur dans la liste déroulante. Tapez un message dans la zone de chat. L\'agent répond en temps réel. Évaluez la qualité des réponses (traductions, phonétique, pédagogie).' },
-          { title: 'Analyser le prompt', desc: 'Cliquez sur « Voir le prompt » pour afficher le prompt système injecté à l\'agent. Signalez les problèmes à l\'équipe technique.' },
-        ],
-        tip: 'Testez avec des phrases simples d\'abord, puis des phrases complexes avec des fautes intentionnelles pour vérifier la robustesse.',
-      },
-      {
-        id: 'bienvenue-sons',
-        route: '/bienvenue-sons',
-        icon: MusicalNoteIcon,
-        title: 'Bienvenue & Sons',
-        color: 'text-emerald-600',
-        iconBg: 'bg-emerald-50',
-        description: 'Gestion des sons de bienvenue et des messages d\'accueil prononcés par les tuteurs IA au démarrage.',
-        features: [
-          'Bannière d\'information indiquant que tous les éditeurs peuvent modifier les messages et ajouter des sons.',
-          'Pour ajouter une nouvelle langue : Paramètres APP → Langues (lien direct depuis ce module).',
-          'Enregistrement ou upload d\'un message de bienvenue par langue.',
-          'Texte du message + version audio.',
-          'Test de lecture directement dans le CMS.',
-          'Activation du message par défaut ou personnalisé.',
-        ],
-        steps: [
-          { title: 'Définir un message de bienvenue', desc: 'Sélectionnez la langue. Saisissez le texte du message. Uploadez l\'audio ou générez-le via l\'IA. Activez le message.' },
-          { title: 'Tester le son', desc: 'Cliquez sur l\'icône de lecture pour entendre le message tel qu\'il sera diffusé dans l\'application.' },
-          { title: 'Ajouter une nouvelle langue', desc: 'Pour qu\'une langue apparaisse dans ce module, elle doit d\'abord être créée et activée dans Paramètres APP → Langues. La bannière d\'information vous rappelle ce prérequis.' },
-        ],
-        tip: 'Le message de bienvenue est la première chose qu\'entend un nouvel apprenant. Soignez le ton : chaleureux, encourageant et clair.',
-      },
-    ],
+    icon: '✍️',
+    desc: 'Vous contribuez en soumettant du contenu linguistique pour relecture par les éditeurs.',
+    modules: ['dashboard', 'dictionnaire', 'vocabulaire', 'contributions', 'voix-audio'],
+    priority: ['contributions', 'dictionnaire', 'voix-audio'],
   },
-  {
-    id: 'parametres',
-    label: 'Paramètres App',
-    color: 'orange',
-    bg: 'bg-orange-50',
-    border: 'border-orange-300',
-    badge: 'bg-orange-100 text-orange-700',
-    modules: [
-      {
-        id: 'langues',
-        route: '/langues',
-        icon: GlobeAltIcon,
-        title: 'Langues',
-        color: 'text-teal-600',
-        iconBg: 'bg-teal-50',
-        description: 'Gestion des langues disponibles dans l\'application mobile.',
-        features: [
-          'Liste des langues actives : Dioula, Baoulé, Bété, Guéré, Agni, Attié, Sénoufo, Nouchi.',
-          'Activation / désactivation d\'une langue dans l\'application.',
-          'Informations linguistiques : famille, région, locuteurs estimés.',
-          'Ajout de nouvelles langues pour les futures versions.',
-        ],
-        steps: [
-          { title: 'Activer une langue', desc: 'Trouvez la langue dans la liste. Basculez le bouton « Active ». La langue apparaît immédiatement dans les filtres de l\'application mobile.' },
-          { title: 'Ajouter une langue', desc: 'Cliquez sur « + Nouvelle langue ». Saisissez le nom, le code ISO, la région, la famille linguistique. Enregistrez. La langue sera inactive par défaut.' },
-        ],
-        tip: 'N\'activez une langue que lorsqu\'elle dispose d\'au moins 50 mots dans le dictionnaire et d\'une leçon A1 complète.',
-      },
-      {
-        id: 'badges',
-        route: '/badges',
-        icon: TrophyIcon,
-        title: 'Badges & XP',
-        color: 'text-yellow-600',
-        iconBg: 'bg-yellow-50',
-        description: 'Gestion des badges de récompense et du système de points XP pour gamifier l\'apprentissage.',
-        features: [
-          'Création de badges avec : nom, icône, description, condition de déclenchement.',
-          'Conditions disponibles : premier mot, 7 jours de streak, 100 XP, 10 leçons…',
-          'Attribution manuelle d\'un badge à un utilisateur.',
-          'Valeur XP de chaque action (leçon = +10 XP, contribution validée = +20 XP…).',
-        ],
-        steps: [
-          { title: 'Créer un badge', desc: 'Cliquez sur « + Nouveau badge ». Saisissez le nom, la description. Choisissez l\'icône et la couleur. Définissez la condition de déclenchement automatique. Enregistrez.' },
-          { title: 'Attribuer manuellement', desc: 'Trouvez le badge. Cliquez sur « Attribuer ». Recherchez l\'utilisateur par nom ou e-mail. Confirmez.' },
-        ],
-        tip: 'Créez des badges progressifs (Bronze / Argent / Or) pour maintenir la motivation sur le long terme.',
-      },
-      {
-        id: 'phrases-sos',
-        route: '/phrases-sos',
-        icon: ExclamationTriangleIcon,
-        title: 'Phrases SOS',
-        color: 'text-red-600',
-        iconBg: 'bg-red-50',
-        description: 'Gestion des phrases d\'urgence disponibles hors ligne dans l\'application mobile.',
-        features: [
-          'Catégories : Urgence, Santé, Survie, Social, Commerce, Autre.',
-          'Phrase en langue locale + traduction + phonétique + audio.',
-          'Marquage comme « disponible hors ligne ».',
-          'Priorité d\'affichage (les phrases vitales apparaissent en premier).',
-        ],
-        steps: [
-          { title: 'Ajouter une phrase SOS', desc: 'Cliquez sur « + Nouvelle phrase ». Sélectionnez la langue et la catégorie. Saisissez la phrase en langue locale, la traduction et la phonétique. Uploadez ou générez l\'audio. Activez « Hors ligne ».' },
-          { title: 'Définir la priorité', desc: 'Dans le formulaire, sélectionnez la priorité : Haute (rouge), Moyenne (orange), Basse (gris). Les phrases Haute priorité apparaissent en haut de la liste.' },
-        ],
-        tip: 'Vérifiez avec un locuteur natif que la prononciation est correcte — ces phrases sont utilisées dans des situations d\'urgence réelles.',
-      },
-      {
-        id: 'phrases-utiles',
-        route: '/phrases-utiles',
-        icon: ChatBubbleLeftRightIcon,
-        title: 'Phrases Utiles',
-        color: 'text-purple-600',
-        iconBg: 'bg-purple-50',
-        description: 'Gestion des expressions du quotidien : salutations, nourriture, vie sociale, lieux…',
-        features: [
-          'Catégories : Salutations, Expressions, Nourriture, Vie quotidienne, Vie sociale, Corps, Lieux, Autre.',
-          'Phrase en langue locale + phonétique + traduction + contexte d\'utilisation.',
-          'Filtrage par langue et par catégorie.',
-          'Activation / désactivation de chaque phrase.',
-        ],
-        steps: [
-          { title: 'Ajouter une phrase', desc: 'Cliquez sur « + Nouvelle phrase ». Choisissez la langue et la catégorie. Saisissez la phrase, la phonétique, la traduction et une note contextuelle (quand utiliser cette phrase).' },
-          { title: 'Gérer les phrases existantes', desc: 'Utilisez les filtres langue + catégorie pour trouver les phrases. Cliquez sur l\'icône crayon pour modifier, ou la corbeille pour supprimer.' },
-        ],
-        tip: 'Le champ « Contexte » est précieux : il indique à l\'apprenant dans quelle situation utiliser la phrase (ex. : "Au marché, pour négocier un prix").',
-      },
-      {
-        id: 'notifications',
-        route: '/notifications',
-        icon: BellIcon,
-        title: 'Notifications',
-        color: 'text-indigo-600',
-        iconBg: 'bg-indigo-50',
-        description: 'Envoi de notifications push aux utilisateurs de l\'application mobile.',
-        features: [
-          'Types : Système, Nouvelle leçon, Rappel d\'apprentissage, Badge, Événement culturel.',
-          'Envoi à tous les utilisateurs ou à un utilisateur ciblé.',
-          'Aperçu de la notification avant envoi.',
-          'Historique complet des notifications envoyées.',
-        ],
-        steps: [
-          { title: 'Envoyer une notification', desc: 'Choisissez le type. Saisissez le titre et le corps du message. Sélectionnez « Tous les utilisateurs » ou un utilisateur spécifique. Cliquez sur « Aperçu » pour vérifier le rendu, puis sur « Envoyer ».' },
-          { title: 'Consulter l\'historique', desc: 'Faites défiler vers le bas pour voir toutes les notifications envoyées avec la date, le type et le nombre de destinataires.' },
-        ],
-        tip: 'Limitez les notifications à 2–3 par semaine pour éviter que les utilisateurs ne les désactivent.',
-      },
-      {
-        id: 'premiers-secours',
-        route: '/premiers-secours',
-        icon: HeartIcon,
-        title: 'Premiers Secours',
-        color: 'text-red-700',
-        iconBg: 'bg-red-50',
-        description: 'Contenu de premiers secours en langues locales : consignes d\'urgence médicale traduites et enregistrées.',
-        features: [
-          'Situations : Appel secours, Arrêt cardiaque, Étouffement, Noyade, Brûlure, Fracture, Saignement, Malaise, Évaluation.',
-          'Consigne en langue locale + traduction + transcription phonétique.',
-          'Niveau de priorité : Vitale (2) / Urgente (1) / Info (0).',
-          'Audio de chaque consigne.',
-          'Filtrage par langue et par situation.',
-        ],
-        steps: [
-          { title: 'Ajouter une consigne', desc: 'Cliquez sur « + Nouvelle consigne ». Sélectionnez la situation et la langue. Rédigez la consigne en langue locale et sa traduction. Définissez le niveau de priorité. Uploadez l\'audio.' },
-          { title: 'Vérifier la cohérence', desc: 'Filtrez par situation pour vérifier que chaque situation couvre toutes les langues actives.' },
-        ],
-        tip: 'Faites valider chaque consigne par un professionnel de santé ET un locuteur natif avant publication. Ces contenus peuvent sauver des vies.',
-      },
-      {
-        id: 'musee-tresors',
-        route: '/musee-tresors',
-        icon: BuildingLibraryIcon,
-        title: 'Musée des Trésors',
-        color: 'text-violet-700',
-        iconBg: 'bg-violet-50',
-        description: 'Gestion du patrimoine culturel ivoirien : artisanat, masques, tissus, musique et instruments.',
-        features: [
-          'Type de contenu unique : TRESOR.',
-          'Titre en français + description en langue locale + traduction française.',
-          'Audio optionnel pour la description en langue locale.',
-          'Image du trésor (upload depuis le CMS).',
-          'Source ethnique : association du trésor à une ethnie ou une région.',
-          'Filtrage par langue dans l\'application mobile.',
-        ],
-        steps: [
-          { title: 'Ajouter un trésor', desc: 'Cliquez sur « + Nouveau trésor ». Saisissez le titre et la description en langue locale. Ajoutez la traduction française. Sélectionnez l\'ethnie / la région source. Uploadez une image et un audio si disponible. Enregistrez.' },
-          { title: 'Modifier un trésor', desc: 'Cliquez sur la fiche du trésor existant. Modifiez les champs souhaités. Enregistrez.' },
-        ],
-        tip: 'Indiquez toujours la source ethnique précise pour chaque trésor. Cela renforce la crédibilité culturelle et aide les apprenants à contextualiser le patrimoine.',
-      },
-      {
-        id: 'arbre-vocabulaire',
-        route: '/arbre-vocabulaire',
-        icon: UserGroupIcon,
-        title: 'Arbre à Palabres',
-        color: 'text-green-700',
-        iconBg: 'bg-green-50',
-        description: 'Gestion du vocabulaire familial en langues locales : mots de la famille avec audio et filtrage par langue.',
-        features: [
-          'Mots de la famille : père, mère, frère, sœur, enfant, oncle, tante, grand-père, grand-mère…',
-          'Mot en langue locale + traduction française + phonétique.',
-          'Audio pour chaque mot (prononciation par un locuteur natif).',
-          'Filtrage par langue dans l\'application mobile.',
-        ],
-        steps: [
-          { title: 'Ajouter un mot de la famille', desc: 'Cliquez sur « + Nouveau mot ». Sélectionnez la langue. Saisissez le mot en langue locale, sa phonétique et sa traduction. Uploadez ou générez l\'audio. Enregistrez.' },
-          { title: 'Vérifier la couverture', desc: 'Filtrez par langue pour vérifier que les termes essentiels de la famille sont couverts dans chaque langue active.' },
-        ],
-        tip: 'Le vocabulaire familial est souvent le premier apprentissage pour un débutant. Priorisez les termes les plus courants (père, mère, frère, enfant) dans chaque langue.',
-      },
-      {
-        id: 'marche-dialogues',
-        route: '/marche-dialogues',
-        icon: ChatBubbleLeftRightIcon,
-        title: 'Au Marché',
-        color: 'text-orange-600',
-        iconBg: 'bg-orange-50',
-        description: 'Gestion des dialogues de négociation au marché : phrases pour marchander, demander le prix et comparer.',
-        features: [
-          'Phrases pratiques pour le marché en langues locales.',
-          'Thèmes : demander un prix, négocier, comparer, remercier, saluer un vendeur.',
-          'Phrase en langue locale + phonétique + traduction française.',
-          'Audio pour chaque phrase.',
-          'Filtrage par langue dans l\'application mobile.',
-        ],
-        steps: [
-          { title: 'Ajouter une phrase', desc: 'Cliquez sur « + Nouvelle phrase ». Sélectionnez la langue. Saisissez la phrase en langue locale, la phonétique et la traduction. Uploadez l\'audio. Enregistrez.' },
-          { title: 'Organiser par thème', desc: 'Renseignez le champ thème lors de la création pour permettre à l\'application mobile de grouper les phrases de façon logique (salutations au vendeur, négociation, clôture de la vente).' },
-        ],
-        tip: 'Ajoutez des phrases courtes et naturelles, telles qu\'elles seraient prononcées au marché. Évitez un langage trop formel ou littéraire.',
-      },
-      {
-        id: 'carte-ci',
-        route: '/carte-ci',
-        icon: GlobeAltIcon,
-        title: 'Carte de Côte d\'Ivoire',
-        color: 'text-teal-700',
-        iconBg: 'bg-teal-50',
-        description: 'Carte interactive des langues par région : chaque région ivoirienne est associée à ses langues locales.',
-        features: [
-          'Carte interactive de Côte d\'Ivoire (PNG cliquable).',
-          'Chaque région est associée à une ou plusieurs langues locales.',
-          'Zoom molette et déplacement (drag) de la carte.',
-          'Clic sur une région pour voir les langues parlées.',
-          'Placement de marqueurs par glisser-déposer pour positionner les langues sur la carte.',
-          'Sélecteur d\'émoji pour personnaliser les marqueurs.',
-          'Vue plein écran disponible.',
-        ],
-        steps: [
-          { title: 'Explorer la carte', desc: 'Accédez à /carte-ci. Utilisez la molette ou les boutons de zoom pour naviguer. Cliquez sur une région pour afficher les langues associées.' },
-          { title: 'Ajouter ou déplacer un marqueur', desc: 'Faites glisser un marqueur de langue sur la carte pour ajuster sa position géographique. La position est sauvegardée automatiquement.' },
-          { title: 'Personnaliser un marqueur', desc: 'Cliquez sur un marqueur existant. Utilisez le sélecteur d\'émoji pour choisir l\'icône associée à cette langue. Confirmez.' },
-        ],
-        tip: 'La carte est un outil pédagogique puissant pour les apprenants qui souhaitent comprendre la répartition géographique des langues ivoiriennes.',
-      },
-      {
-        id: 'civisme',
-        route: '/civisme',
-        icon: BuildingLibraryIcon,
-        title: 'Civisme',
-        color: 'text-blue-800',
-        iconBg: 'bg-blue-50',
-        description: 'Contenu civique en langues locales : proverbes civiques, symboles de l\'État, droits & devoirs, institutions.',
-        features: [
-          'Types : Proverbe civique, Symbole de l\'État, Sensibilisation, Droits & Devoirs, Institution.',
-          'Titre + contenu en langue locale + traduction + explication + valeur civique.',
-          'Filtrage par type et par langue.',
-          'Activation / désactivation de chaque entrée.',
-        ],
-        steps: [
-          { title: 'Ajouter un contenu civique', desc: 'Cliquez sur « + Nouveau contenu ». Choisissez le type, la langue. Saisissez le titre, le contenu en langue locale, la traduction, l\'explication et la valeur promue (ex. : Solidarité, Respect, Démocratie).' },
-          { title: 'Organiser par type', desc: 'Filtrez par type pour vérifier l\'équilibre entre Proverbes, Symboles et Droits & Devoirs.' },
-        ],
-        tip: 'Associez toujours un contenu civique à une valeur concrète (champ Valeur). Cela aide l\'apprenant à contextualiser le message.',
-      },
-    ],
+  EDITOR: {
+    label: 'Éditeur',
+    color: 'purple',
+    icon: '📝',
+    desc: 'Vous créez, modifiez et publiez le contenu sur tous les modules. Vous validez les contributions.',
+    modules: ['dashboard', 'dictionnaire', 'conjugaison', 'vocabulaire', 'lecons', 'cultural', 'textes-recits', 'image-galleries', 'sens-mots', 'videos', 'contributions', 'messages', 'certificats', 'ia-linguistique', 'voix-audio', 'tuteurs', 'test-agents', 'bienvenue-sons', 'langues', 'carte-ci', 'badges', 'phrases-sos', 'phrases-utiles', 'notifications', 'premiers-secours', 'civisme', 'musee-tresors', 'alphabet', 'arbre-vocabulaire', 'marche-dialogues', 'mathematique', 'monnaie', 'institutions'],
+    priority: ['dashboard', 'contributions', 'dictionnaire', 'voix-audio', 'messages'],
   },
-  {
-    id: 'administration',
-    label: 'Administration',
-    color: 'gray',
-    bg: 'bg-gray-50',
-    border: 'border-gray-300',
-    badge: 'bg-gray-200 text-gray-700',
-    modules: [
-      {
-        id: 'users',
-        route: '/users',
-        icon: UsersIcon,
-        title: 'Utilisateurs',
-        color: 'text-gray-700',
-        iconBg: 'bg-gray-100',
-        description: 'Gestion des comptes utilisateurs et des rôles d\'accès au CMS. Réservé aux administrateurs.',
-        features: [
-          'Liste complète des utilisateurs avec rôle, date d\'inscription, statut.',
-          'Rôles disponibles : Utilisateur, Contributeur, Éditeur, Administrateur, Super-Administrateur.',
-          'Modification du rôle d\'un utilisateur.',
-          'Création de comptes éditeurs ou administrateurs.',
-          'Suspension / réactivation d\'un compte.',
-        ],
-        steps: [
-          { title: 'Modifier le rôle d\'un utilisateur', desc: 'Trouvez l\'utilisateur par son nom ou e-mail. Cliquez sur le badge de rôle. Sélectionnez le nouveau rôle dans le menu. Confirmez.' },
-          { title: 'Créer un compte éditeur', desc: 'Cliquez sur « + Créer un compte ». Saisissez prénom, nom, e-mail. Sélectionnez le rôle « Éditeur ». Un e-mail d\'invitation est envoyé automatiquement.' },
-          { title: 'Suspendre un compte', desc: 'Cliquez sur l\'utilisateur. Basculez « Compte actif » sur inactif. L\'utilisateur ne pourra plus se connecter au CMS ni à l\'application.' },
-        ],
-        tip: 'Principe du moindre privilège : attribuez le rôle le plus bas permettant d\'effectuer les tâches requises. Ne donnez le rôle Admin qu\'en cas de stricte nécessité.',
-        adminOnly: true,
-      },
-      {
-        id: 'profile',
-        route: '/profile',
-        icon: UsersIcon,
-        title: 'Mon Profil',
-        color: 'text-slate-600',
-        iconBg: 'bg-slate-50',
-        description: 'Modification des informations personnelles et du mot de passe du compte CMS connecté.',
-        features: [
-          'Modification du prénom, nom et e-mail.',
-          'Changement de mot de passe.',
-          'Affichage du rôle attribué.',
-        ],
-        steps: [
-          { title: 'Modifier ses informations', desc: 'Cliquez sur votre nom en bas du menu latéral, puis « Profil ». Modifiez les champs souhaités. Cliquez sur « Enregistrer ».' },
-          { title: 'Changer de mot de passe', desc: 'Dans la section mot de passe, entrez votre mot de passe actuel, puis le nouveau (min. 8 caractères). Confirmez et enregistrez.' },
-        ],
-        tip: 'Changez votre mot de passe tous les 3 mois et n\'utilisez pas le même que votre compte personnel.',
-      },
-    ],
+  ADMIN: {
+    label: 'Administrateur',
+    color: 'red',
+    icon: '⚙️',
+    desc: 'Vous gérez la plateforme dans son ensemble, les utilisateurs, les finances et tous les contenus.',
+    modules: 'all',
+    priority: ['dashboard', 'users', 'finance', 'contributions', 'messages', 'certificats'],
   },
-];
+  SUPER_ADMIN: {
+    label: 'Super-Administrateur',
+    color: 'amber',
+    icon: '👑',
+    desc: 'Accès complet à toutes les fonctionnalités du CMS, y compris la configuration système.',
+    modules: 'all',
+    priority: ['dashboard', 'users', 'finance', 'contributions', 'messages'],
+  },
+};
 
-const ROLES = [
-  { label: 'Super-Administrateur', color: 'bg-amber-100 text-amber-800', access: 'Accès complet à tous les modules.' },
-  { label: 'Administrateur', color: 'bg-red-100 text-red-700', access: 'Accès complet sauf la gestion avancée des rôles.' },
-  { label: 'Éditeur', color: 'bg-purple-100 text-purple-700', access: 'Création et modification de contenu. Pas d\'accès au module Utilisateurs.' },
-  { label: 'Contributeur', color: 'bg-blue-100 text-blue-700', access: 'Soumission de contributions. Accès limité en lecture.' },
-];
+// ─── Sous-composants ──────────────────────────────────────────────────────────
 
-// ─── Composants ────────────────────────────────────────────────────────────────
+function Collapsible({ title, children, defaultOpen = false, accent = 'text-gray-700' }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="border border-gray-100 rounded-xl overflow-hidden mb-2">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+      >
+        <span className={`text-sm font-semibold ${accent}`}>{title}</span>
+        {open ? <ChevronUpIcon className="w-4 h-4 text-gray-400" /> : <ChevronDownIcon className="w-4 h-4 text-gray-400" />}
+      </button>
+      {open && <div className="px-4 py-3">{children}</div>}
+    </div>
+  );
+}
 
-function ModuleCard({ mod }) {
-  const [open, setOpen] = useState(false);
-  const [openSteps, setOpenSteps] = useState(false);
-  const Icon = mod.icon;
+// Carte résumée d'un module (liste)
+function ModuleCard({ module, isSelected, onClick }) {
+  const colors = COLOR_MAP[module.color] || COLOR_MAP.slate;
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
+        isSelected
+          ? `${colors.light} ${colors.border} border-2 shadow-sm`
+          : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <span className="text-xl flex-shrink-0 mt-0.5">{module.icon}</span>
+        <div className="min-w-0">
+          <p className={`text-sm font-semibold ${isSelected ? colors.text : 'text-gray-800'} leading-tight`}>
+            {module.title}
+          </p>
+          {module.subtitle && (
+            <p className="text-xs text-gray-500 mt-0.5 leading-tight">{module.subtitle}</p>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// Fiche complète d'un module (panneau droit)
+function ModuleDetail({ module }) {
+  const navigate = useNavigate();
+  const colors = COLOR_MAP[module.color] || COLOR_MAP.slate;
 
   return (
-    <div id={mod.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors"
-      >
-        <span className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${mod.iconBg} flex-shrink-0`}>
-          <Icon className={`w-5 h-5 ${mod.color}`} />
-        </span>
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">{mod.route}</p>
-          <p className="text-[15px] font-semibold text-gray-800 truncate">{mod.title}</p>
-        </div>
-        {mod.adminOnly && (
-          <span className="text-[10px] font-bold bg-red-100 text-red-600 rounded-full px-2 py-0.5 flex-shrink-0">Admin</span>
-        )}
-        {open
-          ? <ChevronUpIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          : <ChevronDownIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        }
-      </button>
-
-      {open && (
-        <div className="border-t border-gray-100 px-5 pb-5 pt-4 space-y-5">
-          {/* Description */}
-          <p className="text-sm text-gray-600 leading-relaxed">{mod.description}</p>
-
-          {/* Fonctionnalités */}
+    <div className="h-full overflow-y-auto">
+      {/* En-tête */}
+      <div className={`${colors.bg} px-6 py-5`}>
+        <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Fonctionnalités</p>
-            <ul className="space-y-1.5">
-              {mod.features.map((f, i) => (
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-3xl">{module.icon}</span>
+              <div>
+                <h2 className="text-xl font-bold text-white">{module.title}</h2>
+                {module.subtitle && <p className="text-white/70 text-sm">{module.subtitle}</p>}
+              </div>
+            </div>
+            {module.roles && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {module.roles.map(r => (
+                  <span key={r} className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full font-medium">
+                    {r === 'SUPER_ADMIN' ? '👑 Super-Admin' : r === 'ADMIN' ? '⚙️ Admin' : r === 'EDITOR' ? '📝 Éditeur' : '✍️ Contributeur'}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          {module.route && module.route !== '/guide' && (
+            <button
+              onClick={() => navigate(module.route)}
+              className="flex-shrink-0 flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Ouvrir <ArrowRightIcon className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Corps */}
+      <div className="px-6 py-5 space-y-4">
+        {/* Description */}
+        <div className={`${colors.light} border ${colors.border} rounded-xl p-4`}>
+          <p className="text-sm text-gray-700 leading-relaxed">{module.description}</p>
+        </div>
+
+        {/* Objectifs */}
+        {module.objectifs && module.objectifs.length > 0 && (
+          <Collapsible title="🎯 Objectifs de formation" defaultOpen accent={colors.text}>
+            <ul className="space-y-2">
+              {module.objectifs.map((o, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${mod.iconBg} border ${mod.color.replace('text-', 'border-')}`} />
-                  {f}
+                  <CheckCircleIcon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${colors.text}`} />
+                  <span>{o}</span>
+                </li>
+              ))}
+            </ul>
+          </Collapsible>
+        )}
+
+        {/* Fonctionnalités */}
+        {module.features && module.features.length > 0 && (
+          <Collapsible title="⚙️ Fonctionnalités disponibles" defaultOpen={false}>
+            <ul className="space-y-1.5">
+              {module.features.map((f, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                  <span className="text-gray-400 flex-shrink-0 mt-1">•</span>
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </Collapsible>
+        )}
+
+        {/* Étapes */}
+        {module.steps && module.steps.length > 0 && (
+          <Collapsible title="📋 Guide étape par étape" defaultOpen accent={colors.text}>
+            <ol className="space-y-4">
+              {module.steps.map((step, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className={`flex-shrink-0 w-7 h-7 rounded-full ${colors.bg} text-white text-sm font-bold flex items-center justify-center`}>
+                    {i + 1}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-800 mb-0.5">{step.title}</p>
+                    <p className="text-xs text-gray-600 leading-relaxed">{step.desc}</p>
+                    {step.warning && (
+                      <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <ExclamationTriangleIcon className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-800">{step.warning}</p>
+                      </div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </Collapsible>
+        )}
+
+        {/* Workflows */}
+        {module.workflows && module.workflows.length > 0 && (
+          <Collapsible title="🔄 Workflows pratiques" defaultOpen={false}>
+            <div className="space-y-5">
+              {module.workflows.map((wf, wi) => (
+                <div key={wi}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <PlayCircleIcon className={`w-5 h-5 ${colors.text}`} />
+                    <p className="text-sm font-bold text-gray-800">{wf.title}</p>
+                  </div>
+                  <ol className="space-y-2 ml-2">
+                    {wf.steps.map((s, si) => (
+                      <li key={si} className="flex items-start gap-2.5 text-sm text-gray-600">
+                        <span className={`flex-shrink-0 w-5 h-5 rounded-full ${colors.bg} text-white text-xs font-bold flex items-center justify-center`}>{si + 1}</span>
+                        <span className="leading-relaxed">{s}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ))}
+            </div>
+          </Collapsible>
+        )}
+
+        {/* Convention audio */}
+        {module.audioNaming && (
+          <Collapsible title="🎙️ Convention de nommage des fichiers audio" defaultOpen accent="text-purple-700">
+            <div className="space-y-3">
+              <div className="bg-gray-900 rounded-xl px-5 py-3">
+                <code className="text-green-400 text-sm font-mono">{module.audioNaming.pattern}</code>
+              </div>
+              {module.audioNaming.codes && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Codes de langues</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {module.audioNaming.codes.map((c, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1.5">
+                        <code className="text-xs font-mono font-bold text-purple-700">{c.code}</code>
+                        <span className="text-xs text-gray-600">→ {c.lang}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {module.audioNaming.examples && module.audioNaming.examples.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Exemples</p>
+                  <div className="space-y-1.5">
+                    {module.audioNaming.examples.map((ex, i) => (
+                      <div key={i} className="flex items-start gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                        <code className="text-xs font-mono text-gray-800 font-semibold whitespace-nowrap">{ex.file}</code>
+                        <span className="text-xs text-gray-500">{ex.meaning}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {module.audioNaming.specs && module.audioNaming.specs.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                  <p className="text-xs font-semibold text-blue-800 mb-2">Spécifications techniques</p>
+                  <ul className="space-y-1">
+                    {module.audioNaming.specs.map((s, i) => (
+                      <li key={i} className="text-xs text-blue-700 flex items-center gap-1.5">
+                        <span>✓</span><span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </Collapsible>
+        )}
+
+        {/* Avertissements */}
+        {module.warnings && module.warnings.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4">
+            <div className="flex items-center gap-2 mb-2">
+              <ExclamationTriangleIcon className="w-4 h-4 text-red-600" />
+              <p className="text-sm font-semibold text-red-800">Points d'attention importants</p>
+            </div>
+            <ul className="space-y-1.5">
+              {module.warnings.map((w, i) => (
+                <li key={i} className="text-sm text-red-700 flex items-start gap-2">
+                  <span className="flex-shrink-0">⚠️</span>
+                  <span>{w}</span>
                 </li>
               ))}
             </ul>
           </div>
+        )}
 
-          {/* Étapes */}
-          <div>
-            <button
-              onClick={() => setOpenSteps(v => !v)}
-              className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors"
-            >
-              {openSteps ? <ChevronUpIcon className="w-3.5 h-3.5" /> : <ChevronDownIcon className="w-3.5 h-3.5" />}
-              Comment utiliser ce module ({mod.steps.length} étapes)
-            </button>
-
-            {openSteps && (
-              <ol className="mt-3 space-y-3">
-                {mod.steps.map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className={`flex-shrink-0 w-6 h-6 rounded-full ${mod.iconBg} ${mod.color} flex items-center justify-center text-xs font-bold`}>
-                      {i + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">{step.title}</p>
-                      <p className="text-sm text-gray-600 mt-0.5 leading-relaxed">{step.desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-
-          {/* Conseil */}
-          {mod.tip && (
-            <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <LightBulbIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800 leading-relaxed">
-                <strong>Conseil : </strong>{mod.tip}
-              </p>
+        {/* Conseil */}
+        {module.tip && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4">
+            <div className="flex items-start gap-3">
+              <LightBulbIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-800 mb-1">💡 Conseil de l'équipe</p>
+                <p className="text-sm text-amber-900 leading-relaxed">{module.tip}</p>
+              </div>
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Aide contextuelle reminder */}
+        {module.id !== 'guide' && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className="text-2xl">❓</span>
+            <p className="text-xs text-gray-600">
+              <strong className="text-gray-800">Aide rapide :</strong> Lorsque vous êtes sur la page de ce module, cliquez sur le bouton flottant{' '}
+              <span className="inline-flex items-center gap-1 bg-primary-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Aide</span>{' '}
+              en bas à droite pour accéder directement à ce tutoriel.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Parcours de formation ────────────────────────────────────────────────────
+function TrainingPath({ userRole }) {
+  const path = ROLE_PATHS[userRole];
+  if (!path) return null;
+
+  const priorityModules = GUIDE_MODULES.filter(m => path.priority.includes(m.id));
+  const [checked, setChecked] = useState({});
+
+  const toggle = (id) => setChecked(prev => ({ ...prev, [id]: !prev[id] }));
+  const done = Object.values(checked).filter(Boolean).length;
+
+  const colorClasses = {
+    blue:   { bg: 'bg-blue-600', light: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' },
+    purple: { bg: 'bg-purple-600', light: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-800' },
+    red:    { bg: 'bg-red-600', light: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-800' },
+    amber:  { bg: 'bg-amber-600', light: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800' },
+  };
+  const c = colorClasses[path.color] || colorClasses.blue;
+
+  return (
+    <div className={`${c.light} border ${c.border} rounded-2xl p-5`}>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">{path.icon}</span>
+            <h3 className="text-base font-bold text-gray-800">Parcours {path.label}</h3>
+          </div>
+          <p className="text-xs text-gray-600 max-w-lg">{path.desc}</p>
+        </div>
+        <div className="flex-shrink-0 text-right">
+          <div className={`text-2xl font-bold ${c.text}`}>{done}/{priorityModules.length}</div>
+          <div className="text-xs text-gray-500">modules vus</div>
+        </div>
+      </div>
+
+      {/* Barre de progression */}
+      <div className="w-full bg-white rounded-full h-2 mb-4">
+        <div
+          className={`${c.bg} h-2 rounded-full transition-all`}
+          style={{ width: `${priorityModules.length ? (done / priorityModules.length) * 100 : 0}%` }}
+        />
+      </div>
+
+      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Modules prioritaires pour vous :</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {priorityModules.map(m => (
+          <label key={m.id} className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 cursor-pointer hover:shadow-sm transition-shadow border border-gray-100">
+            <input
+              type="checkbox"
+              checked={!!checked[m.id]}
+              onChange={() => toggle(m.id)}
+              className="w-4 h-4 rounded accent-current"
+            />
+            <span className="text-lg">{m.icon}</span>
+            <div>
+              <p className={`text-sm font-medium ${checked[m.id] ? 'line-through text-gray-400' : 'text-gray-800'}`}>{m.title}</p>
+              {m.subtitle && <p className="text-xs text-gray-400">{m.subtitle}</p>}
+            </div>
+          </label>
+        ))}
+      </div>
+
+      {done === priorityModules.length && priorityModules.length > 0 && (
+        <div className={`mt-4 flex items-center gap-2 ${c.light} border ${c.border} rounded-xl px-4 py-3`}>
+          <CheckCircleIcon className={`w-5 h-5 ${c.text}`} />
+          <p className={`text-sm font-semibold ${c.text}`}>
+            🎉 Félicitations ! Vous avez parcouru tous les modules prioritaires pour votre rôle.
+          </p>
         </div>
       )}
     </div>
   );
 }
 
-function SectionBlock({ section, searchQuery }) {
-  const filtered = searchQuery
-    ? section.modules.filter(m =>
-        m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.features.some(f => f.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    : section.modules;
-
-  if (filtered.length === 0) return null;
-
-  return (
-    <div>
-      <div className={`flex items-center gap-2 mb-3 pl-1`}>
-        <span className={`inline-block w-2 h-5 rounded-sm ${section.bg} border ${section.border}`} />
-        <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest">{section.label}</h2>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${section.badge}`}>
-          {filtered.length} module{filtered.length > 1 ? 's' : ''}
-        </span>
-      </div>
-      <div className="space-y-2 mb-6">
-        {filtered.map(mod => <ModuleCard key={mod.id} mod={mod} />)}
-      </div>
-    </div>
-  );
-}
-
 // ─── Page principale ──────────────────────────────────────────────────────────
-
 export default function UserGuidePage() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
-  const totalModules = SECTIONS.reduce((sum, s) => sum + s.modules.length, 0);
-  const filteredCount = SECTIONS.reduce((sum, s) =>
-    sum + s.modules.filter(m =>
-      !search ||
-      m.title.toLowerCase().includes(search.toLowerCase()) ||
-      m.description.toLowerCase().includes(search.toLowerCase()) ||
-      m.features.some(f => f.toLowerCase().includes(search.toLowerCase()))
-    ).length, 0);
+  const [activeSection, setActiveSection] = useState('all');
+  const [selectedModule, setSelectedModule] = useState(null);
+  const [activeTab, setActiveTab] = useState('guide'); // 'guide' | 'parcours'
+  const searchRef = useRef(null);
+
+  // Filtrer les modules
+  const filteredModules = useMemo(() => {
+    let list = GUIDE_MODULES;
+    if (activeSection !== 'all') {
+      list = list.filter(m => m.section === activeSection);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(m =>
+        m.title.toLowerCase().includes(q) ||
+        m.subtitle?.toLowerCase().includes(q) ||
+        m.description?.toLowerCase().includes(q) ||
+        m.features?.some(f => f.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [search, activeSection]);
+
+  // Grouper par section pour affichage
+  const grouped = useMemo(() => {
+    if (activeSection !== 'all') return null; // pas besoin de grouper
+    const map = {};
+    GUIDE_SECTIONS.forEach(s => { map[s.id] = []; });
+    filteredModules.forEach(m => {
+      if (map[m.section]) map[m.section].push(m);
+      else map['dashboard'] = [...(map['dashboard'] || []), m];
+    });
+    return map;
+  }, [filteredModules, activeSection]);
+
+  const currentModule = selectedModule ? GUIDE_MODULES.find(m => m.id === selectedModule) : null;
+
+  const sectionColorDot = {
+    dashboard: 'bg-slate-500',
+    contenu: 'bg-indigo-500',
+    sos: 'bg-red-500',
+    medias: 'bg-purple-500',
+    communaute: 'bg-orange-500',
+    ia: 'bg-cyan-500',
+    app: 'bg-green-500',
+    finance: 'bg-amber-500',
+    admin: 'bg-gray-500',
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <div className="bg-gradient-to-br from-[#0B3D2E] to-[#1a5c45] px-6 py-10 text-white">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10">
-              <BookOpenIcon className="w-7 h-7 text-white" />
-            </span>
+    <div className="h-full flex flex-col overflow-hidden bg-gray-50">
+      {/* ─── En-tête ───────────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-br from-primary-600 to-primary-800 px-6 py-6 flex-shrink-0">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-2xl font-bold">Guide d'utilisation du CMS</h1>
-              <p className="text-green-200 text-sm">Langues Ivoire — Back-Office Éditorial</p>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <BookOpenIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">Guide de Formation CMS</h1>
+                  <p className="text-white/70 text-sm">Langues Ivoire — Back-Office</p>
+                </div>
+              </div>
+              <p className="text-white/80 text-sm max-w-xl">
+                Formation complète à tous les modules du CMS. {GUIDE_MODULES.length} modules documentés, étapes détaillées, workflows pratiques et conseils d'experts.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="bg-white/10 rounded-xl px-4 py-2 text-center">
+                <div className="text-2xl font-bold text-white">{GUIDE_MODULES.length}</div>
+                <div className="text-xs text-white/60">modules</div>
+              </div>
+              <div className="bg-white/10 rounded-xl px-4 py-2 text-center">
+                <div className="text-2xl font-bold text-white">{GUIDE_SECTIONS.length}</div>
+                <div className="text-xs text-white/60">sections</div>
+              </div>
             </div>
           </div>
-          <p className="text-green-100 text-sm leading-relaxed mb-6 max-w-xl">
-            Ce guide détaille tous les modules du CMS : fonctionnalités, étapes d'utilisation et conseils pratiques
-            pour les éditeurs, administrateurs et contributeurs.
-          </p>
 
-          {/* Statistiques rapides */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: 'Modules', value: totalModules },
-              { label: 'Sections', value: SECTIONS.length },
-              { label: 'Rôles', value: ROLES.length },
-              { label: 'Routes', value: totalModules },
-            ].map(stat => (
-              <div key={stat.label} className="bg-white/10 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-green-200 text-xs">{stat.label}</p>
-              </div>
-            ))}
+          {/* Onglets */}
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setActiveTab('guide')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === 'guide' ? 'bg-white text-primary-700' : 'bg-white/10 text-white/80 hover:bg-white/20'}`}
+            >
+              <BookOpenIcon className="w-4 h-4" />
+              Guide complet
+            </button>
+            <button
+              onClick={() => setActiveTab('parcours')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === 'parcours' ? 'bg-white text-primary-700' : 'bg-white/10 text-white/80 hover:bg-white/20'}`}
+            >
+              <AcademicCapIcon className="w-4 h-4" />
+              Mon parcours
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-
-        {/* Rôles & Accès */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">Rôles & Niveaux d'accès</h2>
-          <div className="space-y-2">
-            {ROLES.map(role => (
-              <div key={role.label} className="flex items-start gap-3">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${role.color}`}>
-                  {role.label}
-                </span>
-                <p className="text-sm text-gray-600">{role.access}</p>
+      {/* ─── Contenu selon onglet ──────────────────────────────────────── */}
+      {activeTab === 'parcours' ? (
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <UserGroupIcon className="w-5 h-5 text-primary-600" />
+                <h2 className="text-base font-bold text-gray-800">Formation par rôle</h2>
               </div>
-            ))}
+              <p className="text-sm text-gray-600 mb-5">
+                Chaque rôle a ses responsabilités et ses modules prioritaires. Cochez les modules au fur et à mesure de votre formation.
+              </p>
+
+              {user && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <SparklesIcon className="w-4 h-4 text-amber-500" />
+                    <p className="text-sm font-semibold text-gray-800">
+                      Votre parcours ({user.prenom} — {ROLE_PATHS[user.role]?.label || user.role})
+                    </p>
+                  </div>
+                  <TrainingPath userRole={user.role} />
+                </div>
+              )}
+
+              <div className="border-t border-gray-100 pt-5">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Tous les parcours</p>
+                <div className="space-y-4">
+                  {Object.entries(ROLE_PATHS)
+                    .filter(([role]) => role !== user?.role)
+                    .map(([role, path]) => (
+                      <details key={role} className="border border-gray-100 rounded-xl overflow-hidden">
+                        <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm font-semibold text-gray-700">
+                          <span className="text-lg">{path.icon}</span>
+                          <span>Parcours {path.label}</span>
+                          <span className="ml-auto text-xs text-gray-400">
+                            {path.modules === 'all' ? `${GUIDE_MODULES.length} modules` : `${path.priority.length} modules prioritaires`}
+                          </span>
+                        </summary>
+                        <div className="px-4 pb-4 pt-2">
+                          <p className="text-xs text-gray-600 mb-3">{path.desc}</p>
+                          <TrainingPath userRole={role} />
+                        </div>
+                      </details>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bonnes pratiques générales */}
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <LightBulbIcon className="w-5 h-5 text-amber-600" />
+                <h3 className="text-sm font-bold text-amber-800">Bonnes pratiques générales</h3>
+              </div>
+              <ul className="space-y-2">
+                {[
+                  'Consultez le tableau de bord chaque matin pour surveiller l\'activité.',
+                  'Utilisez le bouton "Aide" (?) flottant sur chaque page pour accéder au tutoriel du module.',
+                  'Toujours vérifier la qualité audio avant de publier un enregistrement.',
+                  'Ne supprimez jamais un contenu sans l\'avoir archivé ou signalé à un supérieur.',
+                  'Respectez la convention de nommage des fichiers audio pour faciliter l\'import en masse.',
+                  'En cas de doute sur un contenu linguistique, consultez d\'abord le tuteur natif de la langue.',
+                ].map((p, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-amber-900">
+                    <CheckCircleIcon className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
+      ) : (
+        /* ─── Guide complet (layout 2 colonnes) ─────────────────────── */
+        <div className="flex-1 flex overflow-hidden">
+          {/* Colonne gauche : filtres + liste */}
+          <div className="w-72 flex-shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden">
+            {/* Recherche */}
+            <div className="p-3 border-b border-gray-100">
+              <div className="relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  ref={searchRef}
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Rechercher un module…"
+                  className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
 
-        {/* Barre de recherche */}
-        <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={`Rechercher parmi les ${totalModules} modules…`}
-            className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-200 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              <XMarkIcon className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+            {/* Filtres section */}
+            <div className="p-2 border-b border-gray-100 flex flex-wrap gap-1">
+              <button
+                onClick={() => { setActiveSection('all'); setSelectedModule(null); }}
+                className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${activeSection === 'all' ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                Tous ({GUIDE_MODULES.length})
+              </button>
+              {GUIDE_SECTIONS.map(s => {
+                const count = GUIDE_MODULES.filter(m => m.section === s.id).length;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => { setActiveSection(s.id); setSelectedModule(null); }}
+                    className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${activeSection === s.id ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                  >
+                    {s.label} ({count})
+                  </button>
+                );
+              })}
+            </div>
 
-        {search && (
-          <p className="text-sm text-gray-500 -mt-4">
-            {filteredCount} résultat{filteredCount > 1 ? 's' : ''} pour <strong>"{search}"</strong>
-          </p>
-        )}
+            {/* Liste de modules */}
+            <div className="flex-1 overflow-y-auto p-2 space-y-3">
+              {search && filteredModules.length === 0 && (
+                <div className="text-center py-8 text-sm text-gray-400">Aucun module trouvé pour "{search}"</div>
+              )}
 
-        {/* Modules par section */}
-        {SECTIONS.map(section => (
-          <SectionBlock key={section.id} section={section} searchQuery={search} />
-        ))}
-
-        {/* Raccourcis clavier */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">Raccourcis & Astuces</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[
-              { keys: ['Ctrl', 'K'], desc: 'Ouvrir la recherche rapide (si disponible)' },
-              { keys: ['Tab'], desc: 'Naviguer entre les champs d\'un formulaire' },
-              { keys: ['Échap'], desc: 'Fermer une modale ou annuler' },
-              { keys: ['Entrée'], desc: 'Valider un formulaire' },
-            ].map(k => (
-              <div key={k.desc} className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  {k.keys.map(key => (
-                    <kbd key={key} className="px-2 py-0.5 text-xs font-mono bg-gray-100 border border-gray-300 rounded text-gray-700">{key}</kbd>
+              {activeSection !== 'all' ? (
+                /* Mode section unique */
+                <div className="space-y-1">
+                  {filteredModules.map(m => (
+                    <ModuleCard key={m.id} module={m} isSelected={selectedModule === m.id} onClick={() => setSelectedModule(m.id)} />
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">{k.desc}</span>
+              ) : (
+                /* Mode tous : grouper par section */
+                GUIDE_SECTIONS.map(sec => {
+                  const mods = (grouped?.[sec.id] || []).filter(m =>
+                    !search || filteredModules.find(fm => fm.id === m.id)
+                  );
+                  if (mods.length === 0) return null;
+                  return (
+                    <div key={sec.id}>
+                      <div className="flex items-center gap-2 px-2 mb-1.5">
+                        <div className={`w-2 h-2 rounded-full ${sectionColorDot[sec.id] || 'bg-gray-400'}`} />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{sec.label}</p>
+                      </div>
+                      <div className="space-y-1">
+                        {mods.map(m => (
+                          <ModuleCard key={m.id} module={m} isSelected={selectedModule === m.id} onClick={() => setSelectedModule(m.id)} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Colonne droite : détail du module */}
+          <div className="flex-1 overflow-hidden bg-white">
+            {currentModule ? (
+              <ModuleDetail module={currentModule} />
+            ) : (
+              /* État vide : sélectionner un module */
+              <div className="h-full flex flex-col items-center justify-center text-center px-8 py-12">
+                <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                  <BookOpenIcon className="w-10 h-10 text-gray-300" />
+                </div>
+                <h3 className="text-base font-bold text-gray-700 mb-2">Sélectionnez un module</h3>
+                <p className="text-sm text-gray-400 max-w-sm">
+                  Choisissez un module dans la liste à gauche pour afficher son guide de formation complet : objectifs, étapes, workflows et conseils.
+                </p>
+                {GUIDE_MODULES.length > 0 && (
+                  <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                    {GUIDE_MODULES.slice(0, 5).map(m => (
+                      <button
+                        key={m.id}
+                        onClick={() => setSelectedModule(m.id)}
+                        className="flex items-center gap-1.5 text-xs bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full px-3 py-1.5 text-gray-700 transition-colors"
+                      >
+                        <span>{m.icon}</span>
+                        <span>{m.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
+            )}
           </div>
         </div>
-
-        {/* Contact */}
-        <div className="bg-[#0B3D2E] rounded-xl p-5 text-white">
-          <h2 className="font-bold text-base mb-1">Assistance technique</h2>
-          <p className="text-green-200 text-sm mb-3">En cas de problème avec le CMS, contactez l'équipe technique.</p>
-          <div className="space-y-1.5">
-            {[
-              ['✉', 'support@langues-ivoire.com'],
-              ['🌐', 'www.langues-ivoire.com'],
-            ].map(([icon, val]) => (
-              <p key={val} className="text-sm text-green-100">{icon} {val}</p>
-            ))}
-          </div>
-          <p className="text-xs text-green-300 mt-3 italic">Réponse sous 48 heures ouvrables.</p>
-        </div>
-
-        <div className="h-6" />
-      </div>
+      )}
     </div>
   );
 }
