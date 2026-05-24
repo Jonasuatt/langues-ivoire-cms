@@ -4,7 +4,6 @@ import { phrasesAdminAPI, languagesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatBubbleLeftRightIcon, PlusIcon, PencilIcon, TrashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import FileUploadField from '../components/FileUploadField';
-import QuadAudioField from '../components/QuadAudioField';
 import toast from 'react-hot-toast';
 import LanguageSelect from '../components/LanguageSelect';
 
@@ -43,7 +42,7 @@ const CAT_COLORS = {
   vie_sociale: 'bg-pink-100 text-pink-700', corps: 'bg-orange-100 text-orange-700',
   lieux: 'bg-indigo-100 text-indigo-700', autre: 'bg-gray-100 text-gray-600',
 };
-const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'expressions', contexte: '', audioUrl: '', audioUrlF: '', audioUrlFr: '', audioUrlFrF: '', genreLocuteur: '', status: 'PUBLISHED' };
+const EMPTY_FORM = { languageId: '', phrase: '', transcription: '', traduction: '', categorie: 'expressions', contexte: '', audioUrl: '', audioUrlFr: '', genreLocuteur: '', status: 'PUBLISHED' };
 
 export default function PhrasesUtilesPage() {
   const { user } = useAuth();
@@ -90,7 +89,7 @@ export default function PhrasesUtilesPage() {
     setEditItem(p);
     setForm({ languageId: p.languageId || '', phrase: p.phrase || '', transcription: p.transcription || '',
       traduction: p.traduction || '', categorie: p.categorie || 'expressions',
-      contexte: p.contexte || '', audioUrl: p.audioUrl || '', audioUrlF: p.audioUrlF || '', audioUrlFr: p.audioUrlFr || '', audioUrlFrF: p.audioUrlFrF || '', genreLocuteur: p.genreLocuteur || '', status: p.status || 'PUBLISHED' });
+      contexte: p.contexte || '', audioUrl: p.audioUrl || '', audioUrlFr: p.audioUrlFr || '', genreLocuteur: p.genreLocuteur || '', status: p.status || 'PUBLISHED' });
     setShowModal(true);
   };
 
@@ -100,8 +99,8 @@ export default function PhrasesUtilesPage() {
     const payload = { languageId: form.languageId, phrase: form.phrase.trim(),
       transcription: form.transcription.trim() || null, traduction: form.traduction.trim(),
       categorie: form.categorie, contexte: form.contexte.trim() || null,
-      audioUrl: form.audioUrl.trim() || null, audioUrlF: form.audioUrlF.trim() || null,
-      audioUrlFr: form.audioUrlFr.trim() || null, audioUrlFrF: form.audioUrlFrF.trim() || null,
+      audioUrl: form.audioUrl.trim() || null,
+      audioUrlFr: form.audioUrlFr.trim() || null,
       genreLocuteur: form.genreLocuteur || null, status: form.status };
     try {
       if (editItem) { await phrasesAdminAPI.update(editItem.id, payload); toast.success('Phrase mise à jour'); }
@@ -241,12 +240,17 @@ export default function PhrasesUtilesPage() {
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Transcription phonétique</label><input className="input" value={form.transcription} onChange={e => setForm({ ...form, transcription: e.target.value })} /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Traduction (français) *</label><input className="input" value={form.traduction} onChange={e => setForm({ ...form, traduction: e.target.value })} placeholder="ex: Comment ça va l'ami ?" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Contexte</label><input className="input" value={form.contexte} onChange={e => setForm({ ...form, contexte: e.target.value })} /></div>
-              <QuadAudioField
-                audioUrl={form.audioUrl}
-                audioUrlF={form.audioUrlF}
-                audioUrlFr={form.audioUrlFr}
-                audioUrlFrF={form.audioUrlFrF}
-                onChange={(field, url) => setForm(f => ({ ...f, [field]: url }))}
+              <FileUploadField
+                type="audio"
+                label="🌍 Audio — langue locale"
+                value={form.audioUrl}
+                onChange={url => setForm(f => ({ ...f, audioUrl: url }))}
+              />
+              <FileUploadField
+                type="audio"
+                label="🇫🇷 Audio français (narration)"
+                value={form.audioUrlFr}
+                onChange={url => setForm(f => ({ ...f, audioUrlFr: url }))}
               />
               <GenrePicker value={form.genreLocuteur} onChange={v => setForm({ ...form, genreLocuteur: v })} />
               <div>

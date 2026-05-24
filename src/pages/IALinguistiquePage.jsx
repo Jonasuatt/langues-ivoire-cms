@@ -3,6 +3,7 @@ import PageHelp from '../components/PageHelp';
 import { audioContribAPI, languagesAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
 import CategorySelect from '../components/CategorySelect';
+import FileUploadField from '../components/FileUploadField';
 import {
   CheckIcon, XMarkIcon, TrashIcon, PlayIcon, StopIcon,
   InformationCircleIcon, ArrowUpTrayIcon, PlusIcon, MusicalNoteIcon,
@@ -52,7 +53,7 @@ export default function IALinguistiquePage() {
   };
 
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addForm, setAddForm] = useState({ languageId: '', mot: '', traduction: '', transcription: '', categorie: '', type: 'mot', estVoixOfficielle: false, genreVoix: '', file: null });
+  const [addForm, setAddForm] = useState({ languageId: '', mot: '', traduction: '', transcription: '', categorie: '', type: 'mot', estVoixOfficielle: false, genreVoix: '', audioUrlFr: '', file: null });
   const [addSaving, setAddSaving] = useState(false);
 
   const [unvalidateTarget, setUnvalidateTarget] = useState(null);
@@ -169,15 +170,15 @@ export default function IALinguistiquePage() {
       fd.append('transcription', addForm.transcription);
       fd.append('categorie', addForm.categorie);
       const saved = await audioContribAPI.create(fd);
-      if (addForm.estVoixOfficielle) {
+      if (addForm.estVoixOfficielle || addForm.audioUrlFr) {
         await audioContribAPI.update(saved.data.id, {
-          estVoixOfficielle: true,
-          genreVoix: addForm.genreVoix,
+          ...(addForm.estVoixOfficielle ? { estVoixOfficielle: true, genreVoix: addForm.genreVoix } : {}),
+          ...(addForm.audioUrlFr ? { audioUrlFr: addForm.audioUrlFr } : {}),
         });
       }
       toast.success(`✅ "${addForm.mot}" importé et validé automatiquement !`);
       setShowAddModal(false);
-      setAddForm(f => ({ ...f, mot: '', traduction: '', transcription: '', file: null, estVoixOfficielle: false, genreVoix: '' }));
+      setAddForm(f => ({ ...f, mot: '', traduction: '', transcription: '', file: null, estVoixOfficielle: false, genreVoix: '', audioUrlFr: '' }));
       load(); loadStats();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Erreur lors de l\'import');
@@ -592,7 +593,7 @@ export default function IALinguistiquePage() {
                   placeholder="ex: Bienvenue" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fichier audio *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fichier audio — langue locale *</label>
                 <label className={`flex flex-col items-center gap-2 p-5 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${addForm.file ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-primary-400 hover:bg-primary-50'}`}>
                   <MusicalNoteIcon className={`w-8 h-8 ${addForm.file ? 'text-green-500' : 'text-gray-400'}`} />
                   {addForm.file
@@ -602,6 +603,15 @@ export default function IALinguistiquePage() {
                   <input type="file" accept=".mp3,.wav,.ogg,.m4a,.webm,.aac,audio/*" className="hidden"
                     onChange={e => { if (e.target.files[0]) setAddForm(f => ({ ...f, file: e.target.files[0] })); }} />
                 </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">🇫🇷 Audio français (narration)</label>
+                <FileUploadField
+                  type="audio"
+                  label="Narration en français du même locuteur (optionnel)"
+                  value={addForm.audioUrlFr}
+                  onChange={url => setAddForm(f => ({ ...f, audioUrlFr: url }))}
+                />
               </div>
             </div>
             <div className="mt-4 bg-indigo-50 rounded-xl p-4 border border-indigo-100">

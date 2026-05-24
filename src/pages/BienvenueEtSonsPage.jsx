@@ -88,6 +88,7 @@ function LangCard({ lang, onSaved, onReset }) {
     welcomeMessage:      lang.welcomeMessage      || getDefaultMessage(lang),
     traditionalAudioUrl: lang.traditionalAudioUrl || '',
     frenchAudioUrl:      lang.frenchAudioUrl      || '',
+    genreVoix:           lang.genreVoix           || '',
   });
   const [saving, setSaving]           = useState(false);
   const [resetting, setResetting]     = useState(false);
@@ -107,8 +108,9 @@ function LangCard({ lang, onSaved, onReset }) {
       welcomeMessage:      lang.welcomeMessage      || getDefaultMessage(lang),
       traditionalAudioUrl: lang.traditionalAudioUrl || '',
       frenchAudioUrl:      lang.frenchAudioUrl      || '',
+      genreVoix:           lang.genreVoix           || '',
     });
-  }, [lang.welcomeMessage, lang.traditionalAudioUrl, lang.frenchAudioUrl]);
+  }, [lang.welcomeMessage, lang.traditionalAudioUrl, lang.frenchAudioUrl, lang.genreVoix]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -142,9 +144,10 @@ function LangCard({ lang, onSaved, onReset }) {
         welcomeMessage:      form.welcomeMessage      || null,
         traditionalAudioUrl: form.traditionalAudioUrl || null,
         frenchAudioUrl:      form.frenchAudioUrl      || null,
+        genreVoix:           form.genreVoix           || null,
       });
       setSaved(true);
-      onSaved?.({ ...lang, welcomeMessage: form.welcomeMessage, traditionalAudioUrl: form.traditionalAudioUrl, frenchAudioUrl: form.frenchAudioUrl });
+      onSaved?.({ ...lang, welcomeMessage: form.welcomeMessage, traditionalAudioUrl: form.traditionalAudioUrl, frenchAudioUrl: form.frenchAudioUrl, genreVoix: form.genreVoix });
       toast.success(`${lang.nom} sauvegardé !`);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -332,6 +335,30 @@ function LangCard({ lang, onSaved, onReset }) {
               />
             </div>
 
+            {/* Genre du locuteur */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Genre du locuteur (audio)</label>
+              <div className="flex gap-2">
+                {[
+                  { v: '',  label: 'Non défini',  icon: '—' },
+                  { v: 'M', label: '♂ Masculin',  icon: '👨' },
+                  { v: 'F', label: '♀ Féminin',   icon: '👩' },
+                ].map(g => (
+                  <button key={g.v} type="button"
+                    onClick={() => setForm(f => ({ ...f, genreVoix: g.v }))}
+                    className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                      form.genreVoix === g.v
+                        ? g.v === 'M' ? 'border-blue-400 bg-blue-50 text-blue-700'
+                          : g.v === 'F' ? 'border-pink-400 bg-pink-50 text-pink-700'
+                          : 'border-gray-400 bg-gray-100 text-gray-700'
+                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}>
+                    {g.icon} {g.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Message de bienvenue */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -445,7 +472,7 @@ export default function BienvenueEtSonsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter]         = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ langId: '', message: '', audioUrl: '', audioUrlFr: '' });
+  const [createForm, setCreateForm] = useState({ langId: '', message: '', audioUrl: '', audioUrlFr: '', genreVoix: '' });
   const [createSaving, setCreateSaving] = useState(false);
 
   useEffect(() => {
@@ -473,10 +500,11 @@ export default function BienvenueEtSonsPage() {
         welcomeMessage: createForm.message || null,
         traditionalAudioUrl: createForm.audioUrl || null,
         frenchAudioUrl: createForm.audioUrlFr || null,
+        genreVoix: createForm.genreVoix || null,
       });
       toast.success(`Message créé pour ${lang.nom} !`);
       setShowCreateModal(false);
-      setCreateForm({ langId: '', message: '', audioUrl: '', audioUrlFr: '' });
+      setCreateForm({ langId: '', message: '', audioUrl: '', audioUrlFr: '', genreVoix: '' });
       // Recharger
       languagesAPI.getAllAdmin().then(({ data }) => setLanguages(Array.isArray(data) ? data : data.data || [])).catch(() => {});
     } catch (err) {
@@ -647,6 +675,28 @@ export default function BienvenueEtSonsPage() {
                   value={createForm.audioUrlFr}
                   onChange={url => setCreateForm(f => ({ ...f, audioUrlFr: url }))}
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Genre du locuteur (audio)</label>
+                <div className="flex gap-2">
+                  {[
+                    { v: '',  label: 'Non défini', icon: '—' },
+                    { v: 'M', label: '♂ Masculin', icon: '👨' },
+                    { v: 'F', label: '♀ Féminin',  icon: '👩' },
+                  ].map(g => (
+                    <button key={g.v} type="button"
+                      onClick={() => setCreateForm(f => ({ ...f, genreVoix: g.v }))}
+                      className={`flex-1 py-2 rounded-xl border-2 text-sm font-semibold transition-colors flex items-center justify-center gap-1 ${
+                        createForm.genreVoix === g.v
+                          ? g.v === 'M' ? 'border-blue-400 bg-blue-50 text-blue-700'
+                            : g.v === 'F' ? 'border-pink-400 bg-pink-50 text-pink-700'
+                            : 'border-gray-400 bg-gray-100 text-gray-700'
+                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      }`}>
+                      {g.icon} {g.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="flex gap-3 mt-6">

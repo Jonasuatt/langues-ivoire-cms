@@ -217,7 +217,7 @@ function ModalShell({ title, onClose, children, maxW = 'max-w-lg' }) {
 
 // ─── Modal Ajouter (Contribution seulement) ────────────────────────────────────
 function ModalAjouter({ languages, onClose, onCreated }) {
-  const [form, setForm] = useState({ langue: '', mot: '', traduction: '', genreVoix: '', audioUrl: '' });
+  const [form, setForm] = useState({ langue: '', mot: '', traduction: '', genreVoix: '', audioUrl: '', audioUrlFr: '' });
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -233,6 +233,7 @@ function ModalAjouter({ languages, onClose, onCreated }) {
         traduction: form.traduction.trim() || undefined,
         genreVoix: form.genreVoix || undefined,
         audioUrl: form.audioUrl,
+        audioUrlFr: form.audioUrlFr || undefined,
       });
       toast.success('Audio ajouté avec succès !');
       onCreated();
@@ -295,14 +296,25 @@ function ModalAjouter({ languages, onClose, onCreated }) {
           {!form.genreVoix && <p className="text-xs text-gray-400 mt-1">Optionnel — peut être renseigné plus tard</p>}
         </div>
 
-        {/* Upload audio */}
+        {/* Upload audio locale */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Fichier audio * <span className="font-normal text-gray-400">(MP3, WAV, M4A — max 20 MB)</span></label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">🌍 Fichier audio — langue locale * <span className="font-normal text-gray-400">(MP3, WAV, M4A — max 20 MB)</span></label>
           <FileUploadField
             type="audio"
             label="🎵 Importer ou glisser un fichier audio"
             value={form.audioUrl}
             onChange={url => set('audioUrl', url)}
+          />
+        </div>
+
+        {/* Upload audio français */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">🇫🇷 Audio français (narration) <span className="font-normal text-gray-400">optionnel</span></label>
+          <FileUploadField
+            type="audio"
+            label="Narration en français du même locuteur"
+            value={form.audioUrlFr}
+            onChange={url => set('audioUrlFr', url)}
           />
         </div>
 
@@ -334,11 +346,9 @@ function ModalModifier({ item, source, onClose, onUpdated }) {
     try {
       let payload = {};
       if (isContrib) {
-        payload = { mot: mot.trim(), traduction: traduction.trim() || undefined, genreVoix: genreVoix || undefined, audioUrl };
-      } else if (isCulture) {
-        payload = { audioUrl, audioUrlFr };
+        payload = { mot: mot.trim(), traduction: traduction.trim() || undefined, genreVoix: genreVoix || undefined, audioUrl, audioUrlFr: audioUrlFr || undefined };
       } else {
-        payload = { audioUrl };
+        payload = { audioUrl, audioUrlFr: audioUrlFr || undefined };
       }
       await source.updateItem(item.id, payload);
       toast.success('Audio mis à jour !');
@@ -399,7 +409,7 @@ function ModalModifier({ item, source, onClose, onUpdated }) {
         {/* Audio local / principal */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            {isCulture ? '🌍 Audio langue locale' : '🎵 Fichier audio'}
+            🌍 Audio langue locale
             <span className="text-xs font-normal text-gray-400 ml-1">(MP3, WAV, M4A — max 20 MB)</span>
           </label>
           <FileUploadField
@@ -410,21 +420,19 @@ function ModalModifier({ item, source, onClose, onUpdated }) {
           />
         </div>
 
-        {/* Audio FR (culturel seulement) */}
-        {isCulture && (
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              🇫🇷 Audio narration française
-              <span className="text-xs font-normal text-gray-400 ml-1">(MP3, WAV, M4A — max 20 MB)</span>
-            </label>
-            <FileUploadField
-              type="audio"
-              label="Narration en français"
-              value={audioUrlFr}
-              onChange={setAudioUrlFr}
-            />
-          </div>
-        )}
+        {/* Audio FR (tous les modules) */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            🇫🇷 Audio narration française
+            <span className="text-xs font-normal text-gray-400 ml-1">(optionnel — même locuteur)</span>
+          </label>
+          <FileUploadField
+            type="audio"
+            label="Narration en français"
+            value={audioUrlFr}
+            onChange={setAudioUrlFr}
+          />
+        </div>
 
         {/* Aperçu audio actuel */}
         {(item.audioUrl || item.audioUrlFr) && (
