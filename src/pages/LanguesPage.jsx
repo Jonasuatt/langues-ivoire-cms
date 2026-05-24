@@ -596,7 +596,11 @@ export default function LanguesPage() {
   const [filterStatut, setFilterStatut] = useState('all');
   const [search,    setSearch]    = useState('');
   const [syncing,   setSyncing]   = useState(false);
-  const [activating, setActivating] = useState(null); // id de la langue en cours d'activation
+  const [activating,    setActivating]    = useState(null); // id de la langue en cours d'activation
+  const [initModal,     setInitModal]     = useState(null); // langue dormante en attente d'activation
+  const [initSourceId,  setInitSourceId]  = useState('');  // langue source choisie pour l'init
+  const [initLoading,   setInitLoading]   = useState(false);
+  const [initResult,    setInitResult]    = useState(null); // stats après init réussie
 
   const fileInputRef = useRef(null);
 
@@ -744,18 +748,48 @@ export default function LanguesPage() {
     load();
   }
 
-  // ── Activation en un clic ──
-  async function handleActivate(lang) {
-    if (activating) return;
-    setActivating(lang.id);
+  // ── Activation — ouvre le modal de choix ──
+  function handleActivate(lang) {
+    if (activating || initLoading) return;
+    const mvpLangs = langues.filter(l => l.isActive !== false && l.isInMvp);
+    const defaultSource = mvpLangs[0]?.id || langues.find(l => l.isActive !== false)?.id || '';
+    setInitSourceId(defaultSource);
+    setInitResult(null);
+    setInitModal(lang);
+  }
+
+  // ── Activation simple (sans init de contenu) ──
+  async function handleActivateOnly() {
+    if (!initModal) return;
+    const lang = initModal;
+    setInitLoading(true);
     try {
       await languagesAPI.activate(lang.id);
       toast.success(`🎉 "${lang.nom}" est maintenant active dans l'application mobile !`);
+      setInitModal(null);
       load();
     } catch {
       toast.error("Erreur lors de l'activation.");
     } finally {
-      setActivating(null);
+      setInitLoading(false);
+    }
+  }
+
+  // ── Activation + initialisation depuis une langue source ──
+  async function handleActivateWithInit() {
+    if (!initModal || !initSourceId) return;
+    const lang = initModal;
+    setInitLoading(true);
+    try {
+      const { data } = await languagesAPI.initFrom(lang.id, initSourceId);
+      setInitResult(data.stats);
+      toast.success(`🎉 "${lang.nom}" activée et initialisée !`);
+      load();
+    } catch (err) {
+      const msg = err.response?.data?.error || "Erreur lors de l'initialisation.";
+      toast.error(msg);
+    } finally {
+      setInitLoading(false);
     }
   }
 
@@ -966,11 +1000,11 @@ export default function LanguesPage() {
                           <div className="flex gap-2 justify-end">
                             <button
                               onClick={() => handleActivate(lang)}
-                              disabled={activating === lang.id}
+                              disabled={initLoading}
                               className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60 transition-colors font-semibold"
                             >
                               <CheckCircleIcon className="w-3.5 h-3.5" />
-                              {activating === lang.id ? 'Activation…' : 'Activer'}
+                              Activer
                             </button>
                             <button onClick={() => openEdit(lang)}
                               className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors">
@@ -1061,7 +1095,7 @@ export default function LanguesPage() {
                                 </div>
                               </div>
                               {lang.locuteurs && (
-                                <p className="text-xs text-gray-500 mb-1">👥 {Number(lang.locuteurs).toLocaleString('fr-FR')} locuteurs</p>
+                                <p className="text-xs text-gray-500 mb-1">👥 {lang.locuteurs} locuteurs</p>
                               )}
                               {lang.description && (
                                 <p className="text-xs text-gray-400 line-clamp-2 mb-3">{lang.description}</p>
@@ -1070,11 +1104,11 @@ export default function LanguesPage() {
                             <div className="px-4 pb-4 flex gap-2">
                               <button
                                 onClick={() => handleActivate(lang)}
-                                disabled={activating === lang.id}
+                                disabled={initLoading}
                                 className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 disabled:opacity-60 disabled:cursor-wait transition-colors shadow-sm"
                               >
                                 <CheckCircleIcon className="w-4 h-4" />
-                                {activating === lang.id ? 'Activation…' : 'Activer'}
+                                Activer
                               </button>
                               <button
                                 onClick={() => openEdit(lang)}
@@ -1450,6 +1484,108 @@ export default function LanguesPage() {
           onSelect={handleCatalogueSelect}
         />
       )}
+      {/* ── Modal Activation + Initialisation ─────────────────────────────── */}
+      {initModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+
+            {/* En-tête */}
+            <div className="flex items-start gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">{initModal.emoji || '🌍'}</span>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Activer « {initModal.nom} »</h2>
+                <p className="text-sm text-gray-500">{initModal.region}</p>
+              </div>
+            </div>
+
+            {/* Résultat succès */}
+            {initResult ? (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5">
+                <p className="font-semibold text-green-800 mb-2">✅ Initialisation réussie !</p>
+                <ul className="space-y-1 text-sm text-green-700">
+                  <li>📚 <strong>{initResult.dictEntries}</strong> entrées dictionnaire créées</li>
+                  <li>💬 <strong>{initResult.usefulPhrases}</strong> phrases utiles créées</li>
+                  <li>🚨 <strong>{initResult.premierSecours}</strong> phrases de premiers secours créées</li>
+                </ul>
+                <p className="text-xs text-green-600 mt-2">
+                  Les champs en langue locale sont vides — prêts à recevoir les voix des locuteurs.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Option initialisation */}
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4">
+                  <p className="text-sm font-semibold text-indigo-900 mb-1">
+                    🚀 Initialiser depuis une langue MVP
+                  </p>
+                  <p className="text-xs text-indigo-700 mb-3 leading-relaxed">
+                    Copie la structure française (traductions, audio FR, catégories) des langues expérimentales
+                    dans « {initModal.nom} ». Les champs locaux resteront vides, prêts pour les locuteurs.
+                  </p>
+                  <label className="block text-xs font-medium text-indigo-800 mb-1">
+                    Langue source
+                  </label>
+                  <select
+                    className="w-full border border-indigo-300 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    value={initSourceId}
+                    onChange={e => setInitSourceId(e.target.value)}
+                  >
+                    <option value="">— Choisir une langue source —</option>
+                    {langues
+                      .filter(l => l.isActive !== false && l.id !== initModal.id)
+                      .sort((a, b) => (b.isInMvp ? 1 : 0) - (a.isInMvp ? 1 : 0) || a.nom.localeCompare(b.nom, 'fr'))
+                      .map(l => (
+                        <option key={l.id} value={l.id}>
+                          {l.isInMvp ? '⭐ ' : ''}{l.nom} ({l.code})
+                        </option>
+                      ))
+                    }
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              {initResult ? (
+                <button
+                  onClick={() => setInitModal(null)}
+                  className="btn-primary flex-1 justify-center"
+                >
+                  Fermer
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setInitModal(null)}
+                    className="btn-secondary flex-1"
+                    disabled={initLoading}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleActivateOnly}
+                    disabled={initLoading}
+                    className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    {initLoading ? '…' : 'Activer seulement'}
+                  </button>
+                  <button
+                    onClick={handleActivateWithInit}
+                    disabled={initLoading || !initSourceId}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  >
+                    {initLoading ? 'Initialisation…' : '🚀 Activer + Init'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <PageHelp pageId="langues" />
     </div>
   );
