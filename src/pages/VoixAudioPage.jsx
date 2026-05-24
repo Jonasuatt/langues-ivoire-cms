@@ -31,7 +31,7 @@ const SOURCES = [
       titre: item.mot || '—',
       soustitre: item.traduction || '',
       audioUrl: item.audioUrl,
-      audioUrlFr: null,
+      audioUrlFr: item.audioUrlFr || null,
       langue: item.language,
       genreVoix: item.genreVoix,
       isValidated: item.isValidated,

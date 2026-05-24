@@ -21,7 +21,7 @@ export const GUIDE_MODULES = [
   // ─────────────────────────────────────────────
   {
     id: 'dashboard',
-    route: '/dashboard',
+    route: '/',
     section: 'dashboard',
     icon: '📊',
     title: 'Tableau de Bord',
@@ -68,7 +68,7 @@ export const GUIDE_MODULES = [
   // ─────────────────────────────────────────────
   {
     id: 'dictionnaire',
-    route: '/dictionnaire',
+    route: '/dictionary',
     section: 'contenu',
     icon: '📖',
     title: 'Dictionnaire',
@@ -121,7 +121,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'conjugaison',
-    route: '/conjugaison',
+    route: '/conjugation',
     section: 'contenu',
     icon: '🔤',
     title: 'Conjugaison',
@@ -168,7 +168,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'vocabulaire',
-    route: '/vocabulaire',
+    route: '/vocabulary',
     section: 'contenu',
     icon: '📝',
     title: 'Vocabulaire',
@@ -214,7 +214,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'lecons',
-    route: '/lecons',
+    route: '/lessons',
     section: 'contenu',
     icon: '🎓',
     title: 'Leçons',
@@ -265,7 +265,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'culture',
-    route: '/culture',
+    route: '/cultural',
     section: 'contenu',
     icon: '🌍',
     title: 'Culture & Traditions',
@@ -312,7 +312,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'textes',
-    route: '/textes',
+    route: '/textes-recits',
     section: 'contenu',
     icon: '📜',
     title: 'Textes & Récits',
@@ -361,7 +361,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'galeries',
-    route: '/galeries',
+    route: '/image-galleries',
     section: 'contenu',
     icon: '🖼️',
     title: 'Galeries d\'Images',
@@ -395,7 +395,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'sens-des-mots',
-    route: '/sens-des-mots',
+    route: '/sens-mots',
     section: 'contenu',
     icon: '🔍',
     title: 'Sens des Mots',
@@ -660,7 +660,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'import-audio',
-    route: '/import-audio',
+    route: '/voix-audio',
     section: 'medias',
     icon: '🎵',
     title: 'Import Audio',
@@ -710,29 +710,18 @@ export const GUIDE_MODULES = [
     tip: 'Nommez les fichiers audio AVANT d\'uploader. Un bon nom de fichier permet de retrouver et réutiliser l\'audio facilement, même plusieurs mois plus tard.',
     warnings: [],
     audioNaming: {
-      convention: '[code_langue]_[mot]_[genre]_[numéro].mp3',
-      example: 'dioula_akwaba_M_001.mp3',
-      genres: [
-        'M = Homme (tuteur masculin natif)',
-        'F = Femme (tuteure féminine native)',
+      pattern: '[code_langue]_[mot]_[genre]_[numéro].mp3',
+      examples: [
+        { file: 'dioula_akwaba_M_001.mp3', meaning: 'Mot "akwaba" en Dioula — locuteur masculin' },
+        { file: 'baoule_me_F_001.mp3', meaning: 'Mot "me" en Baoulé — locutrice féminine' },
+        { file: 'senoufo_poro_M_002.mp3', meaning: 'Mot "poro" en Sénoufo — locuteur masculin, 2e prise' },
       ],
-      codes: {
-        dioula: 'Dioula',
-        baoule: 'Baoulé',
-        bete: 'Bété',
-        senoufo: 'Sénoufo',
-        agni: 'Agni',
-        gouro: 'Gouro',
-        guere: 'Guéré',
-        nouchi: 'Nouchi',
-        yacouba: 'Yacouba',
-      },
     },
   },
 
   {
     id: 'bienvenue',
-    route: '/bienvenue',
+    route: '/bienvenue-sons',
     section: 'medias',
     icon: '🎶',
     title: 'Bienvenue & Sons',
@@ -868,7 +857,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'certificats',
-    route: '/certificats',
+    route: '/certificates',
     section: 'communaute',
     icon: '🏆',
     title: 'Certificats',
@@ -985,7 +974,7 @@ export const GUIDE_MODULES = [
   // ─────────────────────────────────────────────
   {
     id: 'tuteurs-ia',
-    route: '/tuteurs-ia',
+    route: '/tutors',
     section: 'ia',
     icon: '🤖',
     title: 'Tuteurs IA',
@@ -1154,7 +1143,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'carte',
-    route: '/carte',
+    route: '/carte-ci',
     section: 'app',
     icon: '🗺️',
     title: 'Carte CI',
@@ -1189,7 +1178,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'alphabet',
-    route: '/alphabet',
+    route: '/alphabet-langues',
     section: 'app',
     icon: '🔡',
     title: 'Alphabet des Langues',
@@ -1222,7 +1211,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'musee',
-    route: '/musee',
+    route: '/musee-tresors',
     section: 'app',
     icon: '🏺',
     title: 'Musée des Trésors',
@@ -1258,7 +1247,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'arbre-palabres',
-    route: '/arbre-palabres',
+    route: '/arbre-vocabulaire',
     section: 'app',
     icon: '🌳',
     title: 'Arbre à Palabres',
@@ -1290,7 +1279,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'marche',
-    route: '/marche',
+    route: '/marche-dialogues',
     section: 'app',
     icon: '🛒',
     title: 'Au Marché',
@@ -1635,7 +1624,7 @@ export const GUIDE_MODULES = [
   // ─────────────────────────────────────────────
   {
     id: 'utilisateurs',
-    route: '/utilisateurs',
+    route: '/users',
     section: 'admin',
     icon: '👥',
     title: 'Utilisateurs',
@@ -1682,7 +1671,7 @@ export const GUIDE_MODULES = [
 
   {
     id: 'profil',
-    route: '/profil',
+    route: '/profile',
     section: 'admin',
     icon: '👤',
     title: 'Mon Profil',

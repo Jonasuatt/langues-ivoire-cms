@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   QuestionMarkCircleIcon, XMarkIcon, ChevronDownIcon,
   ChevronUpIcon, LightBulbIcon, ExclamationTriangleIcon,
@@ -237,12 +238,12 @@ function HelpPanel({ module, colors, onClose }) {
 
         {/* Lien vers le guide complet */}
         <div className="text-center pb-4">
-          <a
-            href="/guide"
+          <button
+            onClick={() => { setOpen(false); navigate('/guide'); }}
             className={`inline-flex items-center gap-2 text-xs ${colors.text} hover:underline font-medium`}
           >
             📘 Voir le Guide complet d'utilisation →
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -253,6 +254,7 @@ function HelpPanel({ module, colors, onClose }) {
 
 export default function PageHelp({ pageId }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Fermer avec Escape
   useEffect(() => {
