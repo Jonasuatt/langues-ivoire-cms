@@ -24,7 +24,7 @@ const VALEURS = [
 
 const EMPTY_FORM = {
   type: 'proverbe_civique', titre: '', contenu: '', traduction: '', explication: '',
-  audioUrl: '', imageUrl: '', genreVoix: '', valeur: '', languageId: '',
+  audioUrl: '', audioUrlFr: '', imageUrl: '', genreVoix: '', valeur: '', languageId: '',
 };
 
 export default function CivismePage() {
@@ -66,6 +66,7 @@ export default function CivismePage() {
       traduction: item.traduction || '',
       explication: item.explication || '',
       audioUrl: item.audioUrl || '',
+      audioUrlFr: item.audioUrlFr || '',
       imageUrl: item.imageUrl || '',
       genreVoix: item.genreVoix || '',
       valeur: item.valeur || '',
@@ -289,13 +290,23 @@ export default function CivismePage() {
               </div>
 
               {/* Audio */}
-              <FileUploadField
-                type="audio"
-                label="Audio (lecture du contenu)"
-                value={form.audioUrl}
-                onChange={url => setForm(f => ({...f, audioUrl: url}))}
-                disabled={saving}
-              />
+              <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 space-y-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🎵 Fichiers audio</p>
+                <FileUploadField
+                  type="audio"
+                  label="🌍 Audio langue locale (lecture du contenu)"
+                  value={form.audioUrl}
+                  onChange={url => setForm(f => ({...f, audioUrl: url}))}
+                  disabled={saving}
+                />
+                <FileUploadField
+                  type="audio"
+                  label="🇫🇷 Audio français (narration)"
+                  value={form.audioUrlFr}
+                  onChange={url => setForm(f => ({...f, audioUrlFr: url}))}
+                  disabled={saving}
+                />
+              </div>
 
               {/* Genre de la voix */}
               <div>

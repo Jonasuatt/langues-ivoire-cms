@@ -20,7 +20,7 @@ const STATUS_LABELS = {
 
 const CATEGORIES = ['salutations','famille','nourriture','nature','habitat','transport','vie_quotidienne','expressions','verbes','spiritualite','vie_sociale','chiffres','couleurs'];
 
-const EMPTY_FORM = { mot: '', traduction: '', transcription: '', categorie: '', exemplePhrase: '', exempleTraduction: '', audioUrl: '', genreVoix: '' };
+const EMPTY_FORM = { mot: '', traduction: '', transcription: '', categorie: '', exemplePhrase: '', exempleTraduction: '', audioUrl: '', audioUrlFr: '', genreVoix: '' };
 
 // Composant lecteur audio inline
 function AudioPlayer({ src }) {
@@ -108,6 +108,7 @@ export default function VocabularyPage() {
       exemplePhrase: entry.exemplePhrase || '',
       exempleTraduction: entry.exempleTraduction || '',
       audioUrl: entry.audioUrl || '',
+      audioUrlFr: entry.audioUrlFr || '',
       genreVoix: entry.genreVoix || '',
     });
     setShowModal(true);
@@ -309,12 +310,19 @@ export default function VocabularyPage() {
 
               {/* Section Audio */}
               <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎵 Fichiers audio</p>
                 <div className="space-y-3">
                   <FileUploadField
                     type="audio"
-                    label="Audio de prononciation"
+                    label="🌍 Audio langue locale (prononciation)"
                     value={form.audioUrl}
                     onChange={url => setForm({...form, audioUrl: url})}
+                  />
+                  <FileUploadField
+                    type="audio"
+                    label="🇫🇷 Audio français (narration)"
+                    value={form.audioUrlFr}
+                    onChange={url => setForm({...form, audioUrlFr: url})}
                   />
 
                   {/* Bouton génération IA */}

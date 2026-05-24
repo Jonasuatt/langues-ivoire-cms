@@ -29,7 +29,7 @@ const PRIORITE_COLORS = {
 
 const EMPTY_FORM = {
   situation: 'appel_secours', consigne: '', traduction: '', transcription: '',
-  audioUrl: '', imageUrl: '', genreVoix: '', priorite: 2, languageId: '',
+  audioUrl: '', audioUrlFr: '', imageUrl: '', genreVoix: '', priorite: 2, languageId: '',
 };
 
 export default function PremierSecoursPage() {
@@ -70,6 +70,7 @@ export default function PremierSecoursPage() {
       traduction: item.traduction || '',
       transcription: item.transcription || '',
       audioUrl: item.audioUrl || '',
+      audioUrlFr: item.audioUrlFr || '',
       imageUrl: item.imageUrl || '',
       genreVoix: item.genreVoix || '',
       priorite: item.priorite ?? 2,
@@ -280,13 +281,23 @@ export default function PremierSecoursPage() {
               </div>
 
               {/* Audio */}
-              <FileUploadField
-                type="audio"
-                label="Audio (lecture de la consigne)"
-                value={form.audioUrl}
-                onChange={url => setForm(f => ({...f, audioUrl: url}))}
-                disabled={saving}
-              />
+              <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 space-y-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🎵 Fichiers audio</p>
+                <FileUploadField
+                  type="audio"
+                  label="🌍 Audio langue locale (lecture de la consigne)"
+                  value={form.audioUrl}
+                  onChange={url => setForm(f => ({...f, audioUrl: url}))}
+                  disabled={saving}
+                />
+                <FileUploadField
+                  type="audio"
+                  label="🇫🇷 Audio français (narration)"
+                  value={form.audioUrlFr}
+                  onChange={url => setForm(f => ({...f, audioUrlFr: url}))}
+                  disabled={saving}
+                />
+              </div>
 
               {/* Genre de la voix */}
               <div>
