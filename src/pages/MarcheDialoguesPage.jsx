@@ -21,7 +21,7 @@ const EMPTY_REPLIQUE = {
 
 const EMPTY_FORM = {
   languageId: '', vendeur: '', vendeurDesc: '', salutation: '',
-  audioSalutation: '', isActive: true,
+  audioSalutation: '', genreVoix: '', isActive: true,
   repliques: [{ ...EMPTY_REPLIQUE, motJuste: { mot: '', sens: '', effet: -500 } }],
 };
 
@@ -82,6 +82,7 @@ export default function MarcheDialoguesPage() {
       vendeurDesc:     item.vendeurDesc || '',
       salutation:      item.salutation || '',
       audioSalutation: item.audioSalutation || '',
+      genreVoix:       item.genreVoix || '',
       isActive:        item.isActive !== false,
       repliques,
     });
@@ -117,6 +118,7 @@ export default function MarcheDialoguesPage() {
         vendeurDesc:     form.vendeurDesc.trim() || null,
         salutation:      form.salutation.trim(),
         audioSalutation: form.audioSalutation.trim() || null,
+        genreVoix:       form.genreVoix || null,
         isActive:        form.isActive,
         repliques,
       };
@@ -306,6 +308,26 @@ export default function MarcheDialoguesPage() {
                   value={form.audioSalutation}
                   onChange={url => f('audioSalutation', url)}
                 />
+
+                {/* Genre de la voix */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Genre de la voix audio</label>
+                  <div className="flex gap-2">
+                    {[{v:'',l:'Non défini'},{v:'M',l:'♂ Masculin'},{v:'F',l:'♀ Féminin'}].map(g => (
+                      <button key={g.v} type="button"
+                        onClick={() => f('genreVoix', g.v)}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                          form.genreVoix === g.v
+                            ? g.v === 'M' ? 'bg-blue-600 text-white border-blue-600'
+                              : g.v === 'F' ? 'bg-pink-500 text-white border-pink-500'
+                              : 'bg-gray-600 text-white border-gray-600'
+                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}>
+                        {g.l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.isActive} onChange={e => f('isActive', e.target.checked)} className="w-4 h-4 accent-primary-500" />

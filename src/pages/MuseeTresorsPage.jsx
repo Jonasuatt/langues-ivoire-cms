@@ -43,7 +43,7 @@ function getTier(seuil) {
 const EMPTY_FORM = {
   titre: '', contenu: '', traduction: '', sourceEthnique: 'baoule',
   seuilXp: 0, matiere: '', typeObjet: '', emoji: '🏺',
-  imageUrl: '', audioUrl: '', audioUrlFr: '', isActive: true,
+  imageUrl: '', audioUrl: '', audioUrlFr: '', genreVoix: '', isActive: true,
 };
 
 // ─── Page ────────────────────────────────────────────────────────────────────
@@ -117,7 +117,7 @@ export default function MuseeTresorsPage() {
       matiere: item.matiere || '', typeObjet: item.typeObjet || '',
       emoji: item.emoji || '🏺', imageUrl: item.imageUrl || '',
       audioUrl: item.audioUrl || '', audioUrlFr: item.audioUrlFr || '',
-      isActive: item.isActive !== false,
+      genreVoix: item.genreVoix || '', isActive: item.isActive !== false,
     });
     setShowModal(true);
   };
@@ -135,7 +135,7 @@ export default function MuseeTresorsPage() {
       matiere: form.matiere.trim() || null, typeObjet: form.typeObjet.trim() || null,
       emoji: form.emoji.trim() || null, imageUrl: form.imageUrl.trim() || null,
       audioUrl: form.audioUrl.trim() || null, audioUrlFr: form.audioUrlFr.trim() || null,
-      isActive: form.isActive,
+      genreVoix: form.genreVoix || null, isActive: form.isActive,
     };
     try {
       if (editItem) {
@@ -484,6 +484,26 @@ export default function MuseeTresorsPage() {
                   value={form.audioUrl} onChange={url => f('audioUrl', url)}/>
                 <FileUploadField type="audio" label="🇫🇷 Audio français"
                   value={form.audioUrlFr} onChange={url => f('audioUrlFr', url)}/>
+              </div>
+
+              {/* Genre de la voix */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Genre de la voix audio</label>
+                <div className="flex gap-2">
+                  {[{v:'',l:'Non défini'},{v:'M',l:'♂ Masculin'},{v:'F',l:'♀ Féminin'}].map(g => (
+                    <button key={g.v} type="button"
+                      onClick={() => f('genreVoix', g.v)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        form.genreVoix === g.v
+                          ? g.v === 'M' ? 'bg-blue-600 text-white border-blue-600'
+                            : g.v === 'F' ? 'bg-pink-500 text-white border-pink-500'
+                            : 'bg-gray-600 text-white border-gray-600'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}>
+                      {g.l}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Actif */}

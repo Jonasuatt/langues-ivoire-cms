@@ -55,6 +55,7 @@ const EMPTY_FORM = {
   resume: '',
   audioUrl: '',
   audioUrlFr: '',
+  genreVoix: '',
   imageUrl: '',
   niveau: 'A1',
   auteur: '',
@@ -290,6 +291,7 @@ export default function TextContentPage() {
       resume: item.resume ?? '',
       audioUrl: item.audioUrl ?? '',
       audioUrlFr: item.audioUrlFr ?? '',
+      genreVoix: item.genreVoix ?? '',
       imageUrl: item.imageUrl ?? '',
       niveau: item.niveau ?? 'A1',
       auteur: item.auteur ?? '',
@@ -838,6 +840,25 @@ export default function TextContentPage() {
                   onChange={url => setForm({ ...form, audioUrlFr: url })}
                 />
 
+                {/* Genre de la voix */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Genre de la voix audio</label>
+                  <div className="flex gap-2">
+                    {[{v:'',l:'Non défini'},{v:'M',l:'♂ Masculin'},{v:'F',l:'♀ Féminin'}].map(g => (
+                      <button key={g.v} type="button"
+                        onClick={() => setForm({ ...form, genreVoix: g.v })}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                          form.genreVoix === g.v
+                            ? g.v === 'M' ? 'bg-blue-600 text-white border-blue-600'
+                              : g.v === 'F' ? 'bg-pink-500 text-white border-pink-500'
+                              : 'bg-gray-600 text-white border-gray-600'
+                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}>
+                        {g.l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Statut */}
                 <div>

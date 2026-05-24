@@ -25,7 +25,7 @@ const MEMBRES = [
 
 const EMPTY_FORM = {
   languageId: '', contexte: 'grand_pere', phrase: '',
-  transcription: '', traduction: '', audioUrl: '', audioUrlFr: '',
+  transcription: '', traduction: '', audioUrl: '', audioUrlFr: '', genreVoix: '',
   status: 'PUBLISHED',
 };
 
@@ -76,6 +76,7 @@ export default function ArbreVocabulairePage() {
       traduction:    item.traduction || '',
       audioUrl:      item.audioUrl || '',
       audioUrlFr:    item.audioUrlFr || '',
+      genreVoix:     item.genreVoix || '',
       status:        item.status || 'PUBLISHED',
     });
     setShowModal(true);
@@ -96,6 +97,7 @@ export default function ArbreVocabulairePage() {
         traduction:    form.traduction.trim(),
         audioUrl:      form.audioUrl.trim() || null,
         audioUrlFr:    form.audioUrlFr.trim() || null,
+        genreVoix:     form.genreVoix || null,
         status:        form.status,
       };
       if (editItem) {
@@ -376,6 +378,26 @@ export default function ArbreVocabulairePage() {
                   value={form.audioUrlFr}
                   onChange={url => f('audioUrlFr', url)}
                 />
+              </div>
+
+              {/* Genre de la voix */}
+              <div>
+                <label className="label">Genre de la voix audio</label>
+                <div className="flex gap-2">
+                  {[{v:'',l:'Non défini'},{v:'M',l:'♂ Masculin'},{v:'F',l:'♀ Féminin'}].map(g => (
+                    <button key={g.v} type="button"
+                      onClick={() => f('genreVoix', g.v)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        form.genreVoix === g.v
+                          ? g.v === 'M' ? 'bg-blue-600 text-white border-blue-600'
+                            : g.v === 'F' ? 'bg-pink-500 text-white border-pink-500'
+                            : 'bg-gray-600 text-white border-gray-600'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}>
+                      {g.l}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Statut */}

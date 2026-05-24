@@ -31,7 +31,7 @@ const STATUS_LABELS = {
 
 const EMPTY_WORD = {
   mot: '', traduction: '', transcription: '', categorie: '',
-  exemplePhrase: '', exempleTraduction: '', audioUrl: '', audioUrlFr: '', imageUrl: '',
+  exemplePhrase: '', exempleTraduction: '', audioUrl: '', audioUrlFr: '', imageUrl: '', genreVoix: '',
 };
 const EMPTY_PHRASE = {
   phrase: '', traduction: '', transcription: '', categorie: '', contexte: '',
@@ -145,7 +145,7 @@ export default function DictionaryPage() {
     setEditEntry(e);
     setWordForm({ mot: e.mot||'', traduction: e.traduction||'', transcription: e.transcription||'',
       categorie: e.categorie||'', exemplePhrase: e.exemplePhrase||'', exempleTraduction: e.exempleTraduction||'',
-      audioUrl: e.audioUrl||'', audioUrlFr: e.audioUrlFr||'', imageUrl: e.imageUrl||'' });
+      audioUrl: e.audioUrl||'', audioUrlFr: e.audioUrlFr||'', imageUrl: e.imageUrl||'', genreVoix: e.genreVoix||'' });
     setShowModal('word');
   };
   const handleSaveWord = async () => {
@@ -518,6 +518,25 @@ export default function DictionaryPage() {
                     value={wordForm.audioUrlFr}
                     onChange={url => setWordForm(f => ({...f, audioUrlFr: url}))}
                   />
+                </div>
+                {/* Genre de la voix */}
+                <div className="mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Genre de la voix audio</label>
+                  <div className="flex gap-2">
+                    {[{v:'',l:'Non défini'},{v:'M',l:'♂ Masculin'},{v:'F',l:'♀ Féminin'}].map(g => (
+                      <button key={g.v} type="button"
+                        onClick={() => setWordForm(f => ({...f, genreVoix: g.v}))}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                          wordForm.genreVoix === g.v
+                            ? g.v === 'M' ? 'bg-blue-600 text-white border-blue-600'
+                              : g.v === 'F' ? 'bg-pink-500 text-white border-pink-500'
+                              : 'bg-gray-600 text-white border-gray-600'
+                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}>
+                        {g.l}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <button type="button" onClick={handleGenerateAudio} disabled={generating || !wordForm.mot}
                   className="mt-2 w-full py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2
