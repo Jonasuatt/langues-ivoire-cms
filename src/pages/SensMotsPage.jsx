@@ -20,7 +20,7 @@ const STATUS_LABELS = {
 };
 
 const EMPTY_FORM = {
-  languageId: '', motSource: '', transcription: '', audioUrl: '',
+  languageId: '', motSource: '', transcription: '', audioUrl: '', audioUrlFr: '',
   sensHistoriqueFr: '', sensVeritable: '', contexteErreur: '', source: '',
   status: 'DRAFT',
 };
@@ -99,6 +99,7 @@ export default function SensMotsPage() {
       motSource:        item.motSource        || '',
       transcription:    item.transcription    || '',
       audioUrl:         item.audioUrl         || '',
+      audioUrlFr:       item.audioUrlFr       || '',
       sensHistoriqueFr: item.sensHistoriqueFr || '',
       sensVeritable:    item.sensVeritable    || '',
       contexteErreur:   item.contexteErreur   || '',
@@ -352,12 +353,21 @@ export default function SensMotsPage() {
               </div>
 
               {/* Audio — upload local ou URL */}
-              <FileUploadField
-                type="audio"
-                label="🔊 Audio de prononciation native"
-                value={form.audioUrl}
-                onChange={url => setForm(f => ({ ...f, audioUrl: url }))}
-              />
+              <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 space-y-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🎵 Fichiers audio</p>
+                <FileUploadField
+                  type="audio"
+                  label="🌍 Audio langue locale (prononciation native)"
+                  value={form.audioUrl}
+                  onChange={url => setForm(f => ({ ...f, audioUrl: url }))}
+                />
+                <FileUploadField
+                  type="audio"
+                  label="🇫🇷 Audio français (narration)"
+                  value={form.audioUrlFr}
+                  onChange={url => setForm(f => ({ ...f, audioUrlFr: url }))}
+                />
+              </div>
 
               {/* Statut */}
               <div>

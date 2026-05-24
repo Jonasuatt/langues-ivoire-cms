@@ -87,6 +87,7 @@ function LangCard({ lang, onSaved, onReset }) {
   const [form, setForm] = useState({
     welcomeMessage:      lang.welcomeMessage      || getDefaultMessage(lang),
     traditionalAudioUrl: lang.traditionalAudioUrl || '',
+    frenchAudioUrl:      lang.frenchAudioUrl      || '',
   });
   const [saving, setSaving]           = useState(false);
   const [resetting, setResetting]     = useState(false);
@@ -105,8 +106,9 @@ function LangCard({ lang, onSaved, onReset }) {
     setForm({
       welcomeMessage:      lang.welcomeMessage      || getDefaultMessage(lang),
       traditionalAudioUrl: lang.traditionalAudioUrl || '',
+      frenchAudioUrl:      lang.frenchAudioUrl      || '',
     });
-  }, [lang.welcomeMessage, lang.traditionalAudioUrl]);
+  }, [lang.welcomeMessage, lang.traditionalAudioUrl, lang.frenchAudioUrl]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -139,9 +141,10 @@ function LangCard({ lang, onSaved, onReset }) {
       await languagesAPI.update(lang.id, {
         welcomeMessage:      form.welcomeMessage      || null,
         traditionalAudioUrl: form.traditionalAudioUrl || null,
+        frenchAudioUrl:      form.frenchAudioUrl      || null,
       });
       setSaved(true);
-      onSaved?.({ ...lang, welcomeMessage: form.welcomeMessage, traditionalAudioUrl: form.traditionalAudioUrl });
+      onSaved?.({ ...lang, welcomeMessage: form.welcomeMessage, traditionalAudioUrl: form.traditionalAudioUrl, frenchAudioUrl: form.frenchAudioUrl });
       toast.success(`${lang.nom} sauvegardé !`);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -313,6 +316,22 @@ function LangCard({ lang, onSaved, onReset }) {
               </div>
             </div>
 
+            {/* Audio français — narration */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                🇫🇷 Audio français <span className="font-normal text-gray-400 text-xs">(narration par le même locuteur)</span>
+              </label>
+              <p className="text-xs text-gray-500 mb-3">
+                Le même locuteur dit le message de bienvenue en français. L'utilisateur entend toujours la même voix, quelle que soit la langue d'interface.
+              </p>
+              <FileUploadField
+                type="audio"
+                label="🇫🇷 Audio français (narration)"
+                value={form.frenchAudioUrl}
+                onChange={url => setForm(f => ({ ...f, frenchAudioUrl: url }))}
+              />
+            </div>
+
             {/* Message de bienvenue */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -426,7 +445,7 @@ export default function BienvenueEtSonsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter]         = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ langId: '', message: '', audioUrl: '' });
+  const [createForm, setCreateForm] = useState({ langId: '', message: '', audioUrl: '', audioUrlFr: '' });
   const [createSaving, setCreateSaving] = useState(false);
 
   useEffect(() => {
@@ -453,10 +472,11 @@ export default function BienvenueEtSonsPage() {
       await languagesAPI.update(createForm.langId, {
         welcomeMessage: createForm.message || null,
         traditionalAudioUrl: createForm.audioUrl || null,
+        frenchAudioUrl: createForm.audioUrlFr || null,
       });
       toast.success(`Message créé pour ${lang.nom} !`);
       setShowCreateModal(false);
-      setCreateForm({ langId: '', message: '', audioUrl: '' });
+      setCreateForm({ langId: '', message: '', audioUrl: '', audioUrlFr: '' });
       // Recharger
       languagesAPI.getAllAdmin().then(({ data }) => setLanguages(Array.isArray(data) ? data : data.data || [])).catch(() => {});
     } catch (err) {
@@ -613,12 +633,21 @@ export default function BienvenueEtSonsPage() {
                   onChange={e => setCreateForm(f => ({ ...f, message: e.target.value }))}
                   placeholder="Texte du message de bienvenue dans la langue locale..." />
               </div>
-              <FileUploadField
-                type="audio"
-                label="🎵 Son traditionnel (optionnel)"
-                value={createForm.audioUrl}
-                onChange={url => setCreateForm(f => ({ ...f, audioUrl: url }))}
-              />
+              <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 space-y-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🎵 Fichiers audio</p>
+                <FileUploadField
+                  type="audio"
+                  label="🌍 Son traditionnel — langue locale (optionnel)"
+                  value={createForm.audioUrl}
+                  onChange={url => setCreateForm(f => ({ ...f, audioUrl: url }))}
+                />
+                <FileUploadField
+                  type="audio"
+                  label="🇫🇷 Audio français — narration (optionnel)"
+                  value={createForm.audioUrlFr}
+                  onChange={url => setCreateForm(f => ({ ...f, audioUrlFr: url }))}
+                />
+              </div>
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowCreateModal(false)} className="btn-secondary flex-1">Annuler</button>

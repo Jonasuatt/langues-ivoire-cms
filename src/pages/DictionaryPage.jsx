@@ -31,7 +31,7 @@ const STATUS_LABELS = {
 
 const EMPTY_WORD = {
   mot: '', traduction: '', transcription: '', categorie: '',
-  exemplePhrase: '', exempleTraduction: '', audioUrl: '', imageUrl: '',
+  exemplePhrase: '', exempleTraduction: '', audioUrl: '', audioUrlFr: '', imageUrl: '',
 };
 const EMPTY_PHRASE = {
   phrase: '', traduction: '', transcription: '', categorie: '', contexte: '',
@@ -145,7 +145,7 @@ export default function DictionaryPage() {
     setEditEntry(e);
     setWordForm({ mot: e.mot||'', traduction: e.traduction||'', transcription: e.transcription||'',
       categorie: e.categorie||'', exemplePhrase: e.exemplePhrase||'', exempleTraduction: e.exempleTraduction||'',
-      audioUrl: e.audioUrl||'', imageUrl: e.imageUrl||'' });
+      audioUrl: e.audioUrl||'', audioUrlFr: e.audioUrlFr||'', imageUrl: e.imageUrl||'' });
     setShowModal('word');
   };
   const handleSaveWord = async () => {
@@ -504,12 +504,21 @@ export default function DictionaryPage() {
 
               {/* Audio */}
               <div>
-                <FileUploadField
-                  type="audio"
-                  label="Audio de prononciation"
-                  value={wordForm.audioUrl}
-                  onChange={url => setWordForm(f => ({...f, audioUrl: url}))}
-                />
+                <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 space-y-3 mb-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🎵 Fichiers audio</p>
+                  <FileUploadField
+                    type="audio"
+                    label="🌍 Audio langue locale (prononciation)"
+                    value={wordForm.audioUrl}
+                    onChange={url => setWordForm(f => ({...f, audioUrl: url}))}
+                  />
+                  <FileUploadField
+                    type="audio"
+                    label="🇫🇷 Audio français (narration)"
+                    value={wordForm.audioUrlFr}
+                    onChange={url => setWordForm(f => ({...f, audioUrlFr: url}))}
+                  />
+                </div>
                 <button type="button" onClick={handleGenerateAudio} disabled={generating || !wordForm.mot}
                   className="mt-2 w-full py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2
                   bg-accent/10 text-accent hover:bg-accent/20 border border-accent/30 disabled:opacity-50">
