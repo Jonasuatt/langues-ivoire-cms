@@ -91,6 +91,7 @@ export default function IALinguistiquePage() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkLang, setBulkLang] = useState('');
   const [bulkCategorie, setBulkCategorie] = useState('');
+  const [bulkGenre, setBulkGenre] = useState('');
   const [bulkFiles, setBulkFiles] = useState([]);
   const [bulkDragOver, setBulkDragOver] = useState(false);
   const [bulkUploading, setBulkUploading] = useState(false);
@@ -223,6 +224,7 @@ export default function IALinguistiquePage() {
       const fd = new FormData();
       fd.append('languageId', bulkLang);
       if (bulkCategorie) fd.append('categorie', bulkCategorie);
+      if (bulkGenre) fd.append('genreVoix', bulkGenre);
       fd.append('texts', JSON.stringify(bulkFiles.map(e => e.text)));
       bulkFiles.forEach(e => fd.append('audios', e.file));
       const { data } = await audioContribAPI.bulkImport(fd);
@@ -534,7 +536,7 @@ export default function IALinguistiquePage() {
       {/* MODAL AJOUT UNIQUE */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-bold text-gray-900 mb-1">Ajouter un enregistrement</h2>
             <p className="text-sm text-gray-400 mb-4">Votre import sera automatiquement validé pour l'IA.</p>
             <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5">
@@ -688,6 +690,28 @@ export default function IALinguistiquePage() {
                 />
               </div>
             </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Genre du locuteur (optionnel)</label>
+              <div className="flex gap-2">
+                {[
+                  { v: '',  label: 'Non renseigné', icon: '—' },
+                  { v: 'M', label: '♂ Masculin',    icon: '👨' },
+                  { v: 'F', label: '♀ Féminin',     icon: '👩' },
+                ].map(g => (
+                  <button key={g.v} type="button"
+                    onClick={() => setBulkGenre(g.v)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-sm font-semibold transition-colors ${
+                      bulkGenre === g.v
+                        ? g.v === 'M' ? 'border-blue-400 bg-blue-50 text-blue-700'
+                          : g.v === 'F' ? 'border-pink-400 bg-pink-50 text-pink-700'
+                          : 'border-gray-400 bg-gray-100 text-gray-700'
+                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}>
+                    {g.icon} {g.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div
               onDragOver={e => { e.preventDefault(); setBulkDragOver(true); }}
               onDragLeave={() => setBulkDragOver(false)}
@@ -750,7 +774,7 @@ export default function IALinguistiquePage() {
               </div>
             )}
             <div className="flex gap-3">
-              <button onClick={() => { setShowBulkModal(false); setBulkFiles([]); setBulkResult(null); }}
+              <button onClick={() => { setShowBulkModal(false); setBulkFiles([]); setBulkResult(null); setBulkGenre(''); }}
                 className="btn-secondary flex-1">Fermer</button>
               <button onClick={handleBulkUpload} disabled={bulkUploading || bulkFiles.length === 0}
                 className="btn-primary flex-1 justify-center disabled:opacity-50">
