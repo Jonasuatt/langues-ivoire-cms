@@ -51,13 +51,13 @@ const UNVALIDATE_REASONS  = ['Prononciation incorrecte','Bruit de fond / qualit�
 // ─── FORMULAIRES VIDES ────────────────────────────────────────────────────────
 const EMPTY = {
   audio:   { languageId: '', mot: '', traduction: '', transcription: '', categorie: '', type: 'mot', estVoixOfficielle: false, genreVoix: '', file: null },
-  dict:    { langueCode: '', languageId: '', mot: '', traduction: '', transcription: '', categorie: '', file: null },
-  phrases: { languageId: '', phrase: '', traduction: '', transcription: '', categorie: 'salutations', contexte: '', file: null, fileFr: null },
-  secours: { languageId: '', consigne: '', traduction: '', transcription: '', situation: 'appel_secours', priorite: 2, file: null, fileFr: null },
-  civisme: { languageId: '', type: 'proverbe_civique', titre: '', contenu: '', traduction: '', explication: '', valeur: '', file: null, fileFr: null },
-  sens:    { languageId: '', motSource: '', transcription: '', sensHistoriqueFr: '', sensVeritable: '', contexteErreur: '', file: null },
-  culture: { languageId: '', type: 'PROVERB', contenu: '', traduction: '', sourceEthnique: '', file: null, fileFr: null },
-  textes:  { languageId: '', type: 'CONTE', titre: '', contenu: '', traduction: '', file: null, fileFr: null },
+  dict:    { langueCode: '', languageId: '', type: 'mot', mot: '', traduction: '', transcription: '', categorie: '', genreVoix: '', file: null, fileFr: null },
+  phrases: { languageId: '', phrase: '', traduction: '', transcription: '', categorie: 'salutations', contexte: '', genreVoix: '', file: null, fileFr: null },
+  secours: { languageId: '', consigne: '', traduction: '', transcription: '', situation: 'appel_secours', priorite: 2, genreVoix: '', file: null, fileFr: null },
+  civisme: { languageId: '', type: 'proverbe_civique', titre: '', contenu: '', traduction: '', explication: '', valeur: '', genreVoix: '', file: null, fileFr: null },
+  sens:    { languageId: '', motSource: '', transcription: '', sensHistoriqueFr: '', sensVeritable: '', contexteErreur: '', genreVoix: '', file: null, fileFr: null },
+  culture: { languageId: '', type: 'PROVERB', contenu: '', traduction: '', sourceEthnique: '', genreVoix: '', file: null, fileFr: null },
+  textes:  { languageId: '', type: 'CONTE', titre: '', contenu: '', traduction: '', genreVoix: '', file: null, fileFr: null },
 };
 
 // ─── COMPOSANTS PARTAGÉS ──────────────────────────────────────────────────────
@@ -113,6 +113,28 @@ function AudioUploadField({ file, onChange, label, sublabel, enrichIA = true }) 
           🇫🇷 Audio français — stocké dans le module, non envoyé au corpus IA local.
         </p>
       )}
+    </div>
+  );
+}
+
+/** Sélecteur de genre de voix (M / F) commun à tous les formulaires */
+function GenreVoixField({ value, onChange }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">Genre de la voix</label>
+      <div className="flex gap-2">
+        {[['', 'Non précisé', 'bg-gray-100 text-gray-600 border-gray-200'],
+          ['F', '♀ Voix féminine', 'bg-pink-100 text-pink-700 border-pink-300'],
+          ['M', '♂ Voix masculine', 'bg-blue-100 text-blue-700 border-blue-300']].map(([val, label, cls]) => (
+          <button key={val} type="button"
+            className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+              value === val ? cls + ' ring-2 ring-offset-1 ring-indigo-400' : 'bg-white text-gray-500 border-gray-200'
+            }`}
+            onClick={() => onChange(val)}>
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -379,24 +401,33 @@ export default function IALinguistiquePage() {
   };
 
   const handleDictSubmit = async () => {
-    if (!formDict.mot.trim() || !formDict.langueCode) {
-      toast.error('Langue et mot sont obligatoires'); return;
+    const mainText = formDict.type === 'phrase' ? formDict.mot : formDict.mot; // mot ou phrase, même champ
+    if (!mainText.trim() || !formDict.langueCode) {
+      toast.error(`Langue et ${formDict.type === 'phrase' ? 'phrase' : 'mot'} sont obligatoires`); return;
     }
     setSaving(true);
     try {
-      const audioUrl = formDict.file
-        ? (await uploadAudioToIA(formDict.file, formDict.languageId, formDict.mot)) || ''
-        : '';
-      await api.post('/dictionary/admin/word', {
-        langueCode: formDict.langueCode,
-        mot: formDict.mot,
-        traduction: formDict.traduction,
+      const [audioUrl, audioUrlFr] = await Promise.all([
+        formDict.file   ? uploadAudioToIA(formDict.file, formDict.languageId, mainText) : null,
+        formDict.fileFr ? uploadFrAudio(formDict.fileFr) : null,
+      ]);
+      const payload = {
+        langueCode:   formDict.langueCode,
+        traduction:   formDict.traduction,
         transcription: formDict.transcription,
-        categorie: formDict.categorie,
-        audioUrl,
+        categorie:    formDict.categorie,
+        genreVoix:    formDict.genreVoix || null,
+        audioUrl:     audioUrl   || '',
+        audioUrlFr:   audioUrlFr || '',
         status: 'PUBLISHED',
-      });
-      toast.success(`✅ "${formDict.mot}" ajouté au dictionnaire${audioUrl ? ' + audio intégré à l\'IA' : ''} !`);
+      };
+      // Mot → champ "mot", Phrase → champ "phrase"
+      if (formDict.type === 'phrase') payload.phrase = mainText;
+      else                            payload.mot    = mainText;
+
+      await api.post('/dictionary/admin/word', payload);
+      const msg = [audioUrl && 'audio local → IA', audioUrlFr && 'audio FR → module'].filter(Boolean).join(', ');
+      toast.success(`✅ "${mainText}" ajouté au dictionnaire${msg ? ` (${msg})` : ''} !`);
       setShowModal(false);
       setFormDict(f => ({ ...EMPTY.dict, langueCode: f.langueCode, languageId: f.languageId }));
     } catch (err) {
@@ -421,6 +452,7 @@ export default function IALinguistiquePage() {
         transcription: formPhrases.transcription,
         categorie:    formPhrases.categorie,
         contexte:     formPhrases.contexte,
+        genreVoix:    formPhrases.genreVoix || null,
         audioUrl:     audioUrl   || '',
         audioUrlFr:   audioUrlFr || '',
         status: 'PUBLISHED',
@@ -451,6 +483,7 @@ export default function IALinguistiquePage() {
         transcription: formSecours.transcription,
         situation:    formSecours.situation,
         priorite:     Number(formSecours.priorite),
+        genreVoix:    formSecours.genreVoix || null,
         audioUrl:     audioUrl   || '',
         audioUrlFr:   audioUrlFr || '',
         isActive: true,
@@ -482,6 +515,7 @@ export default function IALinguistiquePage() {
         traduction:  formCivisme.traduction,
         explication: formCivisme.explication,
         valeur:      formCivisme.valeur,
+        genreVoix:   formCivisme.genreVoix || null,
         audioUrl:    audioUrl   || '',
         audioUrlFr:  audioUrlFr || '',
         isActive: true,
@@ -501,17 +535,20 @@ export default function IALinguistiquePage() {
     }
     setSaving(true);
     try {
-      const audioUrl = formSens.file
-        ? (await uploadAudioToIA(formSens.file, formSens.languageId, formSens.motSource)) || ''
-        : '';
+      const [audioUrl, audioUrlFrSens] = await Promise.all([
+        formSens.file   ? uploadAudioToIA(formSens.file, formSens.languageId, formSens.motSource) : null,
+        formSens.fileFr ? uploadFrAudio(formSens.fileFr) : null,
+      ]);
       await api.post('/sens-mots', {
-        languageId: formSens.languageId,
-        motSource: formSens.motSource,
-        transcription: formSens.transcription,
+        languageId:      formSens.languageId,
+        motSource:       formSens.motSource,
+        transcription:   formSens.transcription,
         sensHistoriqueFr: formSens.sensHistoriqueFr,
-        sensVeritable: formSens.sensVeritable,
-        contexteErreur: formSens.contexteErreur,
-        audioUrl,
+        sensVeritable:   formSens.sensVeritable,
+        contexteErreur:  formSens.contexteErreur,
+        genreVoix:       formSens.genreVoix || null,
+        audioUrl:        audioUrl   || '',
+        audioUrlFr:      audioUrlFrSens || '',
         status: 'PUBLISHED',
       });
       toast.success(`✅ "${formSens.motSource}" ajouté${audioUrl ? ' + audio intégré à l\'IA' : ''} !`);
@@ -538,6 +575,7 @@ export default function IALinguistiquePage() {
         contenu:       formCulture.contenu.trim(),
         traduction:    formCulture.traduction,
         sourceEthnique: formCulture.sourceEthnique,
+        genreVoix:     formCulture.genreVoix || null,
         audioUrl:      audioUrl   || '',
         audioUrlFr:    audioUrlFr || '',
       });
@@ -566,6 +604,7 @@ export default function IALinguistiquePage() {
         titre:      formTextes.titre.trim(),
         contenu:    formTextes.contenu.trim(),
         traduction: formTextes.traduction,
+        genreVoix:  formTextes.genreVoix || null,
         audioUrl:   audioUrl   || '',
         audioUrlFr: audioUrlFr || '',
         status:     'PUBLISHED',
@@ -585,7 +624,16 @@ export default function IALinguistiquePage() {
   };
 
   // ── LABELS BOUTON AJOUTER ──────────────────────────────────────────────────
-  const addLabel = { audio: 'Ajouter un audio', dict: 'Ajouter un mot', phrases: 'Ajouter une phrase', secours: 'Ajouter une consigne', civisme: 'Ajouter un contenu', sens: 'Ajouter un sens', culture: 'Ajouter un contenu culturel', textes: 'Ajouter un texte' };
+  const addLabel = {
+    audio:   'Ajouter un audio',
+    dict:    formDict.type === 'phrase' ? 'Ajouter une phrase' : 'Ajouter un mot',
+    phrases: 'Ajouter une phrase',
+    secours: 'Ajouter une consigne',
+    civisme: 'Ajouter un contenu',
+    sens:    'Ajouter un sens',
+    culture: 'Ajouter un contenu culturel',
+    textes:  'Ajouter un texte',
+  };
   const currentTab = TABS.find(t => t.id === activeTab);
 
   // ── RENDU ──────────────────────────────────────────────────────────────────
@@ -1066,6 +1114,16 @@ export default function IALinguistiquePage() {
               {/* ── FORMULAIRE DICTIONNAIRE ────────────────────────────────── */}
               {activeTab === 'dict' && (
                 <>
+                  {/* Toggle Mot / Phrase */}
+                  <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+                    {[['mot','📝 Mot'],['phrase','💬 Phrase']].map(([val,label]) => (
+                      <button key={val} type="button"
+                        className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${formDict.type === val ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        onClick={() => setFormDict(f => ({ ...f, type: val }))}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Langue *</label>
@@ -1082,9 +1140,16 @@ export default function IALinguistiquePage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mot *</label>
-                    <input className="input font-medium" value={formDict.mot}
-                      onChange={e => setFormDict(f => ({ ...f, mot: e.target.value }))} placeholder="ex: Akwaba" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {formDict.type === 'phrase' ? 'Phrase en langue locale *' : 'Mot *'}
+                    </label>
+                    {formDict.type === 'phrase'
+                      ? <textarea className="input h-20 resize-none" value={formDict.mot}
+                          onChange={e => setFormDict(f => ({ ...f, mot: e.target.value }))}
+                          placeholder="ex: Aya foro, i wo ho te sɛn ?" />
+                      : <input className="input font-medium" value={formDict.mot}
+                          onChange={e => setFormDict(f => ({ ...f, mot: e.target.value }))}
+                          placeholder="ex: Akwaba" />}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -1098,7 +1163,23 @@ export default function IALinguistiquePage() {
                         onChange={e => setFormDict(f => ({ ...f, transcription: e.target.value }))} placeholder="[a.kwa.ba]" />
                     </div>
                   </div>
-                  <AudioUploadField file={formDict.file} onChange={file => setFormDict(f => ({ ...f, file }))} />
+                  <GenreVoixField value={formDict.genreVoix} onChange={v => setFormDict(f => ({ ...f, genreVoix: v }))} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <AudioUploadField
+                      file={formDict.file}
+                      onChange={file => setFormDict(f => ({ ...f, file }))}
+                      label="🎙️ Audio en langue locale"
+                      sublabel="(optionnel — enrichit l'IA)"
+                      enrichIA={true}
+                    />
+                    <AudioUploadField
+                      file={formDict.fileFr}
+                      onChange={fileFr => setFormDict(f => ({ ...f, fileFr }))}
+                      label="🇫🇷 Audio en français"
+                      sublabel="(traduction lue en français)"
+                      enrichIA={false}
+                    />
+                  </div>
                 </>
               )}
 
@@ -1138,6 +1219,7 @@ export default function IALinguistiquePage() {
                     <input className="input" value={formPhrases.contexte}
                       onChange={e => setFormPhrases(f => ({ ...f, contexte: e.target.value }))} placeholder="ex: Salutation matinale entre amis" />
                   </div>
+                  <GenreVoixField value={formPhrases.genreVoix} onChange={v => setFormPhrases(f => ({ ...f, genreVoix: v }))} />
                   <div className="grid grid-cols-2 gap-3">
                     <AudioUploadField
                       file={formPhrases.file}
@@ -1198,6 +1280,7 @@ export default function IALinguistiquePage() {
                         onChange={e => setFormSecours(f => ({ ...f, transcription: e.target.value }))} placeholder="[a fo.ro]" />
                     </div>
                   </div>
+                  <GenreVoixField value={formSecours.genreVoix} onChange={v => setFormSecours(f => ({ ...f, genreVoix: v }))} />
                   <div className="grid grid-cols-2 gap-3">
                     <AudioUploadField
                       file={formSecours.file}
@@ -1260,6 +1343,7 @@ export default function IALinguistiquePage() {
                     <textarea className="input h-16 resize-none" value={formCivisme.explication}
                       onChange={e => setFormCivisme(f => ({ ...f, explication: e.target.value }))} placeholder="Contexte ou sens approfondi…" />
                   </div>
+                  <GenreVoixField value={formCivisme.genreVoix} onChange={v => setFormCivisme(f => ({ ...f, genreVoix: v }))} />
                   <div className="grid grid-cols-2 gap-3">
                     <AudioUploadField
                       file={formCivisme.file}
@@ -1317,7 +1401,23 @@ export default function IALinguistiquePage() {
                       onChange={e => setFormSens(f => ({ ...f, contexteErreur: e.target.value }))}
                       placeholder="ex: Souvent confondu avec le terme…" />
                   </div>
-                  <AudioUploadField file={formSens.file} onChange={file => setFormSens(f => ({ ...f, file }))} />
+                  <GenreVoixField value={formSens.genreVoix} onChange={v => setFormSens(f => ({ ...f, genreVoix: v }))} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <AudioUploadField
+                      file={formSens.file}
+                      onChange={file => setFormSens(f => ({ ...f, file }))}
+                      label="🎙️ Audio en langue locale"
+                      sublabel="(optionnel — enrichit l'IA)"
+                      enrichIA={true}
+                    />
+                    <AudioUploadField
+                      file={formSens.fileFr}
+                      onChange={fileFr => setFormSens(f => ({ ...f, fileFr }))}
+                      label="🇫🇷 Audio en français"
+                      sublabel="(traduction lue en français)"
+                      enrichIA={false}
+                    />
+                  </div>
                 </>
               )}
 
@@ -1361,6 +1461,7 @@ export default function IALinguistiquePage() {
                         placeholder="ex: Bété, Baoulé, Dioula…" />
                     </div>
                   </div>
+                  <GenreVoixField value={formCulture.genreVoix} onChange={v => setFormCulture(f => ({ ...f, genreVoix: v }))} />
                   <div className="grid grid-cols-2 gap-3">
                     <AudioUploadField
                       file={formCulture.file}
@@ -1418,6 +1519,7 @@ export default function IALinguistiquePage() {
                       onChange={e => setFormTextes(f => ({ ...f, traduction: e.target.value }))}
                       placeholder="Traduction du texte en français…" />
                   </div>
+                  <GenreVoixField value={formTextes.genreVoix} onChange={v => setFormTextes(f => ({ ...f, genreVoix: v }))} />
                   <div className="grid grid-cols-2 gap-3">
                     <AudioUploadField
                       file={formTextes.file}
