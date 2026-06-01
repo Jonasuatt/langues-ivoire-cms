@@ -11,12 +11,14 @@ import FileUploadField from '../components/FileUploadField';
 
 // ── Rubriques par défaut ────────────────────────────────────────────────────
 const DEFAULT_RUBRIQUES = [
-  { cle: 'PROVERB',   nom: 'Proverbe',   emoji: '💬', couleur: 'purple' },
-  { cle: 'TRADITION', nom: 'Tradition',   emoji: '🏛️', couleur: 'green'  },
-  { cle: 'ANECDOTE',  nom: 'Anecdote',   emoji: '📖', couleur: 'blue'   },
-  { cle: 'TALE',      nom: 'Conte',      emoji: '🌙', couleur: 'orange' },
-  { cle: 'MUSIC',     nom: 'Musique',    emoji: '🎵', couleur: 'pink'   },
-  { cle: 'DANCE',     nom: 'Danse',      emoji: '💃', couleur: 'teal'   },
+  { cle: 'PROVERB',   nom: 'Proverbe',        emoji: '💬', couleur: 'purple' },
+  { cle: 'TRADITION', nom: 'Tradition',        emoji: '🏛️', couleur: 'green'  },
+  { cle: 'ANECDOTE',  nom: 'Anecdote',        emoji: '📖', couleur: 'blue'   },
+  { cle: 'TALE',      nom: 'Conte',           emoji: '🌙', couleur: 'orange' },
+  { cle: 'MUSIC',     nom: 'Musique',         emoji: '🎵', couleur: 'pink'   },
+  { cle: 'DANCE',     nom: 'Danse',           emoji: '💃', couleur: 'teal'   },
+  // TRESOR : alimente le Musée des Trésors dans l'app mobile
+  { cle: 'TRESOR',    nom: 'Trésor culturel', emoji: '🏺', couleur: 'gold'   },
 ];
 
 // Palette couleurs disponibles
@@ -33,6 +35,7 @@ const PALETTE = [
   { key: 'lime',   bg: 'bg-lime-100',   text: 'text-lime-700',   dot: '#65a30d' },
   { key: 'stone',  bg: 'bg-stone-100',  text: 'text-stone-700',  dot: '#78716c' },
   { key: 'cyan',   bg: 'bg-cyan-100',   text: 'text-cyan-700',   dot: '#0891b2' },
+  { key: 'gold',   bg: 'bg-yellow-100', text: 'text-yellow-700', dot: '#d97706' },
 ];
 
 const paletteOf = (couleur) => PALETTE.find(p => p.key === couleur) || PALETTE[0];
