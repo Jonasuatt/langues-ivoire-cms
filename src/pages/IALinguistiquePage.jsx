@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import PageHelp from '../components/PageHelp';
-import api, { audioContribAPI, languagesAPI, phrasesAdminAPI, premierSecoursAPI, civismeAPI } from '../services/api';
+import api, { audioContribAPI, languagesAPI, phrasesAdminAPI, premierSecoursAPI, civismeAPI, uploadAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
 import CategorySelect from '../components/CategorySelect';
 import {
@@ -33,9 +33,9 @@ const UNVALIDATE_REASONS  = ['Prononciation incorrecte','Bruit de fond / qualit�
 const EMPTY = {
   audio:   { languageId: '', mot: '', traduction: '', transcription: '', categorie: '', type: 'mot', estVoixOfficielle: false, genreVoix: '', file: null },
   dict:    { langueCode: '', languageId: '', mot: '', traduction: '', transcription: '', categorie: '', file: null },
-  phrases: { languageId: '', phrase: '', traduction: '', transcription: '', categorie: 'salutations', contexte: '', file: null },
-  secours: { languageId: '', consigne: '', traduction: '', transcription: '', situation: 'appel_secours', priorite: 2, file: null },
-  civisme: { languageId: '', type: 'proverbe_civique', titre: '', contenu: '', traduction: '', explication: '', valeur: '', file: null },
+  phrases: { languageId: '', phrase: '', traduction: '', transcription: '', categorie: 'salutations', contexte: '', file: null, fileFr: null },
+  secours: { languageId: '', consigne: '', traduction: '', transcription: '', situation: 'appel_secours', priorite: 2, file: null, fileFr: null },
+  civisme: { languageId: '', type: 'proverbe_civique', titre: '', contenu: '', traduction: '', explication: '', valeur: '', file: null, fileFr: null },
   sens:    { languageId: '', motSource: '', transcription: '', sensHistoriqueFr: '', sensVeritable: '', contexteErreur: '', file: null },
 };
 
@@ -59,24 +59,37 @@ function InlinePlayer({ src }) {
   );
 }
 
-function AudioUploadField({ file, onChange }) {
+/**
+ * Champ d'upload audio réutilisable.
+ * enrichIA : true  → audio envoyé au corpus IA en plus du module (langue locale)
+ *            false → audio uploadé uniquement pour le module (ex : audio français)
+ */
+function AudioUploadField({ file, onChange, label, sublabel, enrichIA = true }) {
+  const borderColor  = enrichIA ? 'border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50' : 'border-blue-200 hover:border-blue-400 hover:bg-blue-50';
+  const iconColor    = enrichIA ? 'text-indigo-400' : 'text-blue-400';
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        Fichier audio <span className="text-gray-400 font-normal">(optionnel — enrichit l'IA automatiquement)</span>
+        {label ?? 'Fichier audio'}
+        {sublabel && <span className="text-gray-400 font-normal ml-1">{sublabel}</span>}
       </label>
       <label className={`flex items-center gap-3 p-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-        file ? 'border-green-400 bg-green-50' : 'border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50'}`}>
-        <MusicalNoteIcon className={`w-5 h-5 flex-shrink-0 ${file ? 'text-green-500' : 'text-indigo-400'}`} />
+        file ? 'border-green-400 bg-green-50' : borderColor}`}>
+        <MusicalNoteIcon className={`w-5 h-5 flex-shrink-0 ${file ? 'text-green-500' : iconColor}`} />
         <span className={`text-sm ${file ? 'text-green-700 font-medium' : 'text-gray-500'}`}>
           {file ? `✓ ${file.name}` : 'Cliquez pour choisir — MP3, WAV, M4A, OGG'}
         </span>
         <input type="file" accept=".mp3,.wav,.ogg,.m4a,.webm,.aac,audio/*" className="hidden"
           onChange={e => { if (e.target.files[0]) onChange(e.target.files[0]); }} />
       </label>
-      {file && (
-        <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1">
+      {file && enrichIA && (
+        <p className="text-xs text-indigo-600 mt-1">
           🤖 Cet audio sera aussi envoyé au corpus d'entraînement de l'IA Linguistique.
+        </p>
+      )}
+      {file && !enrichIA && (
+        <p className="text-xs text-blue-600 mt-1">
+          🇫🇷 Audio français — stocké dans le module, non envoyé au corpus IA local.
         </p>
       )}
     </div>
@@ -270,8 +283,9 @@ export default function IALinguistiquePage() {
 
   // ── UPLOAD AUDIO → corpus IA (helper partagé) ──────────────────────────────
   /**
-   * Upload un fichier audio et l'intègre au corpus IA (auto-validé).
-   * Retourne l'audioUrl du fichier stocké, ou null si pas de fichier.
+   * Upload un fichier audio en langue locale :
+   *   1. Intègre l'audio au corpus d'entraînement de l'IA (auto-validé)
+   *   2. Retourne l'audioUrl pour le stocker dans l'entrée du module
    */
   const uploadAudioToIA = async (file, languageId, text) => {
     if (!file || !languageId) return null;
@@ -281,6 +295,19 @@ export default function IALinguistiquePage() {
     fd.append('mot', text?.trim() || 'enregistrement');
     const { data } = await audioContribAPI.create(fd);
     return data.audioUrl || null;
+  };
+
+  /**
+   * Upload un fichier audio FRANÇAIS (traduction lue en français).
+   * Stocké via upload simple — NE va PAS dans le corpus IA local.
+   * Retourne l'audioUrl, ou null si pas de fichier.
+   */
+  const uploadFrAudio = async (file) => {
+    if (!file) return null;
+    const fd = new FormData();
+    fd.append('audio', file);
+    const { data } = await uploadAPI.uploadAudio(fd);
+    return data.url || data.audioUrl || null;
   };
 
   // ── OUVERTURE MODALE DE CRÉATION ───────────────────────────────────────────
@@ -356,20 +383,23 @@ export default function IALinguistiquePage() {
     }
     setSaving(true);
     try {
-      const audioUrl = formPhrases.file
-        ? (await uploadAudioToIA(formPhrases.file, formPhrases.languageId, formPhrases.phrase)) || ''
-        : '';
+      const [audioUrl, audioUrlFr] = await Promise.all([
+        formPhrases.file   ? uploadAudioToIA(formPhrases.file, formPhrases.languageId, formPhrases.phrase) : null,
+        formPhrases.fileFr ? uploadFrAudio(formPhrases.fileFr) : null,
+      ]);
       await phrasesAdminAPI.create({
-        languageId: formPhrases.languageId,
-        phrase: formPhrases.phrase,
-        traduction: formPhrases.traduction,
+        languageId:   formPhrases.languageId,
+        phrase:       formPhrases.phrase,
+        traduction:   formPhrases.traduction,
         transcription: formPhrases.transcription,
-        categorie: formPhrases.categorie,
-        contexte: formPhrases.contexte,
-        audioUrl,
+        categorie:    formPhrases.categorie,
+        contexte:     formPhrases.contexte,
+        audioUrl:     audioUrl   || '',
+        audioUrlFr:   audioUrlFr || '',
         status: 'PUBLISHED',
       });
-      toast.success(`✅ Phrase ajoutée${audioUrl ? ' + audio intégré à l\'IA' : ''} !`);
+      const msg = [audioUrl && 'audio local → IA', audioUrlFr && 'audio FR → module'].filter(Boolean).join(', ');
+      toast.success(`✅ Phrase ajoutée${msg ? ` (${msg})` : ''} !`);
       setShowModal(false);
       setFormPhrases(f => ({ ...EMPTY.phrases, languageId: f.languageId }));
     } catch (err) {
@@ -383,20 +413,23 @@ export default function IALinguistiquePage() {
     }
     setSaving(true);
     try {
-      const audioUrl = formSecours.file
-        ? (await uploadAudioToIA(formSecours.file, formSecours.languageId, formSecours.consigne)) || ''
-        : '';
+      const [audioUrl, audioUrlFr] = await Promise.all([
+        formSecours.file   ? uploadAudioToIA(formSecours.file, formSecours.languageId, formSecours.consigne) : null,
+        formSecours.fileFr ? uploadFrAudio(formSecours.fileFr) : null,
+      ]);
       await premierSecoursAPI.create({
-        languageId: formSecours.languageId,
-        consigne: formSecours.consigne,
-        traduction: formSecours.traduction,
+        languageId:   formSecours.languageId,
+        consigne:     formSecours.consigne,
+        traduction:   formSecours.traduction,
         transcription: formSecours.transcription,
-        situation: formSecours.situation,
-        priorite: Number(formSecours.priorite),
-        audioUrl,
+        situation:    formSecours.situation,
+        priorite:     Number(formSecours.priorite),
+        audioUrl:     audioUrl   || '',
+        audioUrlFr:   audioUrlFr || '',
         isActive: true,
       });
-      toast.success(`✅ Consigne ajoutée${audioUrl ? ' + audio intégré à l\'IA' : ''} !`);
+      const msg = [audioUrl && 'audio local → IA', audioUrlFr && 'audio FR → module'].filter(Boolean).join(', ');
+      toast.success(`✅ Consigne ajoutée${msg ? ` (${msg})` : ''} !`);
       setShowModal(false);
       setFormSecours(f => ({ ...EMPTY.secours, languageId: f.languageId }));
     } catch (err) {
@@ -410,21 +443,24 @@ export default function IALinguistiquePage() {
     }
     setSaving(true);
     try {
-      const audioUrl = formCivisme.file
-        ? (await uploadAudioToIA(formCivisme.file, formCivisme.languageId, formCivisme.contenu)) || ''
-        : '';
+      const [audioUrl, audioUrlFr] = await Promise.all([
+        formCivisme.file   ? uploadAudioToIA(formCivisme.file, formCivisme.languageId, formCivisme.contenu) : null,
+        formCivisme.fileFr ? uploadFrAudio(formCivisme.fileFr) : null,
+      ]);
       await civismeAPI.create({
-        languageId: formCivisme.languageId,
-        type: formCivisme.type,
-        titre: formCivisme.titre,
-        contenu: formCivisme.contenu,
-        traduction: formCivisme.traduction,
+        languageId:  formCivisme.languageId,
+        type:        formCivisme.type,
+        titre:       formCivisme.titre,
+        contenu:     formCivisme.contenu,
+        traduction:  formCivisme.traduction,
         explication: formCivisme.explication,
-        valeur: formCivisme.valeur,
-        audioUrl,
+        valeur:      formCivisme.valeur,
+        audioUrl:    audioUrl   || '',
+        audioUrlFr:  audioUrlFr || '',
         isActive: true,
       });
-      toast.success(`✅ Contenu civique ajouté${audioUrl ? ' + audio intégré à l\'IA' : ''} !`);
+      const msg = [audioUrl && 'audio local → IA', audioUrlFr && 'audio FR → module'].filter(Boolean).join(', ');
+      toast.success(`✅ Contenu civique ajouté${msg ? ` (${msg})` : ''} !`);
       setShowModal(false);
       setFormCivisme(f => ({ ...EMPTY.civisme, languageId: f.languageId }));
     } catch (err) {
@@ -498,12 +534,18 @@ export default function IALinguistiquePage() {
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-5 flex gap-3">
         <InformationCircleIcon className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-indigo-900">
-          <p className="font-semibold mb-1">🤖 Hub central de création linguistique</p>
-          <p>
-            Sélectionnez un module ci-dessous pour y créer du contenu. Tout fichier audio importé est
-            <strong> automatiquement intégré au corpus d'entraînement de l'IA</strong> et enrichit les tuteurs.
-            Les modules individuels restent accessibles pour les <strong>modifications uniquement</strong>.
-          </p>
+          <p className="font-semibold mb-2">🤖 Hub central de création linguistique</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div className="bg-white/60 rounded-lg p-2">
+              <p className="font-semibold mb-1">📥 Où vont les données ?</p>
+              <p>Chaque onglet envoie les données <strong>directement dans le module cible</strong> (Dictionnaire, Phrases, etc.) et les rend visibles sur l'app mobile immédiatement.</p>
+            </div>
+            <div className="bg-white/60 rounded-lg p-2">
+              <p className="font-semibold mb-1">🎙️ Audio en langue locale</p>
+              <p>Enrichit le corpus IA pour l'entraînement <strong>ET</strong> est joué sur l'app mobile.</p>
+              <p className="mt-1">🇫🇷 Audio français : lu sur l'app uniquement, ne va pas dans le corpus IA.</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1012,7 +1054,22 @@ export default function IALinguistiquePage() {
                     <input className="input" value={formPhrases.contexte}
                       onChange={e => setFormPhrases(f => ({ ...f, contexte: e.target.value }))} placeholder="ex: Salutation matinale entre amis" />
                   </div>
-                  <AudioUploadField file={formPhrases.file} onChange={file => setFormPhrases(f => ({ ...f, file }))} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <AudioUploadField
+                      file={formPhrases.file}
+                      onChange={file => setFormPhrases(f => ({ ...f, file }))}
+                      label="🎙️ Audio en langue locale"
+                      sublabel="(optionnel — enrichit l'IA)"
+                      enrichIA={true}
+                    />
+                    <AudioUploadField
+                      file={formPhrases.fileFr}
+                      onChange={fileFr => setFormPhrases(f => ({ ...f, fileFr }))}
+                      label="🇫🇷 Audio en français"
+                      sublabel="(traduction lue en français)"
+                      enrichIA={false}
+                    />
+                  </div>
                 </>
               )}
 
@@ -1057,7 +1114,22 @@ export default function IALinguistiquePage() {
                         onChange={e => setFormSecours(f => ({ ...f, transcription: e.target.value }))} placeholder="[a fo.ro]" />
                     </div>
                   </div>
-                  <AudioUploadField file={formSecours.file} onChange={file => setFormSecours(f => ({ ...f, file }))} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <AudioUploadField
+                      file={formSecours.file}
+                      onChange={file => setFormSecours(f => ({ ...f, file }))}
+                      label="🎙️ Audio en langue locale"
+                      sublabel="(optionnel — enrichit l'IA)"
+                      enrichIA={true}
+                    />
+                    <AudioUploadField
+                      file={formSecours.fileFr}
+                      onChange={fileFr => setFormSecours(f => ({ ...f, fileFr }))}
+                      label="🇫🇷 Audio en français"
+                      sublabel="(traduction lue en français)"
+                      enrichIA={false}
+                    />
+                  </div>
                 </>
               )}
 
@@ -1104,7 +1176,22 @@ export default function IALinguistiquePage() {
                     <textarea className="input h-16 resize-none" value={formCivisme.explication}
                       onChange={e => setFormCivisme(f => ({ ...f, explication: e.target.value }))} placeholder="Contexte ou sens approfondi…" />
                   </div>
-                  <AudioUploadField file={formCivisme.file} onChange={file => setFormCivisme(f => ({ ...f, file }))} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <AudioUploadField
+                      file={formCivisme.file}
+                      onChange={file => setFormCivisme(f => ({ ...f, file }))}
+                      label="🎙️ Audio en langue locale"
+                      sublabel="(optionnel — enrichit l'IA)"
+                      enrichIA={true}
+                    />
+                    <AudioUploadField
+                      file={formCivisme.fileFr}
+                      onChange={fileFr => setFormCivisme(f => ({ ...f, fileFr }))}
+                      label="🇫🇷 Audio en français"
+                      sublabel="(traduction lue en français)"
+                      enrichIA={false}
+                    />
+                  </div>
                 </>
               )}
 
