@@ -163,10 +163,13 @@ export default function SensMotsPage() {
             <span className="font-medium text-primary-500">{total}</span> fiches au total
           </p>
         </div>
-        <button onClick={openAdd} className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-4 h-4" />
-          Ajouter une fiche
-        </button>
+        <a href="/ia-linguistique"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors">
+          🎙️ Créer via IA Linguistique
+        </a>
+      </div>
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-5 text-sm text-indigo-800 flex items-center gap-2">
+        ℹ️ La création se fait désormais depuis <a href="/ia-linguistique" className="font-semibold underline hover:text-indigo-600">IA Linguistique → onglet Sens des Mots</a>. Cette page reste disponible pour les <strong>modifications</strong>.
       </div>
 
       {/* Filtres */}

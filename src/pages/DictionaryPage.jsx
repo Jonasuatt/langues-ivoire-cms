@@ -253,7 +253,7 @@ export default function DictionaryPage() {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dictionnaire</h1>
           <p className="text-gray-500 text-sm mt-1">
@@ -262,12 +262,13 @@ export default function DictionaryPage() {
             {audioCount > 0 && <span className="ml-2 text-green-600">· {audioCount} avec audio</span>}
           </p>
         </div>
-        <button
-          onClick={activeTab === 'words' ? openAddWord : openAddPhrase}
-          className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-4 h-4" />
-          {activeTab === 'words' ? 'Ajouter un mot' : 'Ajouter une phrase'}
-        </button>
+        <a href="/ia-linguistique"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors">
+          🎙️ Créer via IA Linguistique
+        </a>
+      </div>
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-5 text-sm text-indigo-800 flex items-center gap-2">
+        ℹ️ La création de nouveaux mots se fait désormais depuis <a href="/ia-linguistique" className="font-semibold underline hover:text-indigo-600">IA Linguistique → onglet Dictionnaire</a>. Cette page reste disponible pour les <strong>modifications</strong>.
       </div>
 
       {/* Filtres */}

@@ -113,14 +113,18 @@ export default function CivismePage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">🏛️ Civisme</h1>
           <p className="text-gray-500 text-sm mt-1">Proverbes civiques, symboles de l'État et contenus de sensibilisation</p>
         </div>
-        <button onClick={openAdd} className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-4 h-4" /> Nouveau contenu
-        </button>
+        <a href="/ia-linguistique"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors">
+          🎙️ Créer via IA Linguistique
+        </a>
+      </div>
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-5 text-sm text-indigo-800 flex items-center gap-2">
+        ℹ️ La création de nouveaux contenus se fait désormais depuis <a href="/ia-linguistique" className="font-semibold underline hover:text-indigo-600">IA Linguistique → onglet Civisme</a>. Cette page reste disponible pour les <strong>modifications</strong>.
       </div>
 
       {/* Filtres */}
@@ -142,7 +146,7 @@ export default function CivismePage() {
         <div className="card text-center py-16">
           <p className="text-4xl mb-3">🏛️</p>
           <p className="text-gray-400">Aucun contenu civique</p>
-          <button onClick={openAdd} className="btn-primary mt-4 mx-auto">Créer le premier contenu</button>
+          <a href="/ia-linguistique" className="btn-primary mt-4 mx-auto inline-flex items-center gap-2">🎙️ Créer via IA Linguistique</a>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -127,7 +127,7 @@ export default function PhrasesUtilesPage() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <ChatBubbleLeftRightIcon className="w-7 h-7 text-purple-500" />
@@ -135,7 +135,13 @@ export default function PhrasesUtilesPage() {
           </h1>
           <p className="text-gray-500 text-sm mt-1">Phrasebook multilingue — expressions, salutations, vie quotidienne…</p>
         </div>
-        <button onClick={openAdd} className="btn-primary flex items-center gap-2"><PlusIcon className="w-4 h-4" /> Ajouter une phrase</button>
+        <a href="/ia-linguistique"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors">
+          🎙️ Créer via IA Linguistique
+        </a>
+      </div>
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-5 text-sm text-indigo-800 flex items-center gap-2">
+        ℹ️ La création se fait désormais depuis <a href="/ia-linguistique" className="font-semibold underline hover:text-indigo-600">IA Linguistique → onglet Phrases Utiles</a>. Cette page reste disponible pour les <strong>modifications</strong>.
       </div>
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="card py-3 px-5"><p className="text-2xl font-bold text-gray-800">{total}</p><p className="text-sm text-gray-500">Total dans la base</p></div>
@@ -161,7 +167,7 @@ export default function PhrasesUtilesPage() {
         <div className="card text-center py-16">
           <ChatBubbleLeftRightIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-400">Aucune phrase pour ces filtres</p>
-          <button onClick={openAdd} className="mt-4 btn-primary text-sm">Ajouter la première phrase</button>
+          <a href="/ia-linguistique" className="mt-4 btn-primary text-sm inline-flex items-center gap-2">🎙️ Créer via IA Linguistique</a>
         </div>
       ) : (
         <div className="card overflow-hidden p-0">
