@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import PageHelp from '../components/PageHelp';
-import api, { audioContribAPI, languagesAPI, phrasesAdminAPI, premierSecoursAPI, civismeAPI, uploadAPI } from '../services/api';
+import api, { audioContribAPI, languagesAPI, phrasesAdminAPI, premierSecoursAPI, civismeAPI, culturalAPI, textContentAPI, uploadAPI } from '../services/api';
 import LanguageSelect from '../components/LanguageSelect';
 import CategorySelect from '../components/CategorySelect';
 import {
@@ -12,12 +12,14 @@ import toast from 'react-hot-toast';
 
 // ─── ONGLETS MODULES ──────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'audio',   emoji: '🎙️', label: 'Audio IA',       route: null,              desc: 'Enregistrements vocaux pour l\'IA' },
-  { id: 'dict',    emoji: '📚', label: 'Dictionnaire',     route: '/dictionary',     desc: 'Mots et phrases de la langue' },
-  { id: 'phrases', emoji: '💬', label: 'Phrases Utiles',   route: '/phrases-utiles', desc: 'Expressions du quotidien' },
-  { id: 'secours', emoji: '🚨', label: 'Premiers Secours', route: '/premiers-secours', desc: 'Consignes d\'urgence' },
-  { id: 'civisme', emoji: '🏛️', label: 'Civisme',          route: '/civisme',        desc: 'Valeurs et symboles civiques' },
-  { id: 'sens',    emoji: '📖', label: 'Sens des Mots',    route: '/sens-mots',      desc: 'Vraies significations des mots' },
+  { id: 'audio',   emoji: '🎙️', label: 'Audio IA',          route: null,              desc: 'Enregistrements vocaux pour l\'IA' },
+  { id: 'dict',    emoji: '📚', label: 'Dictionnaire',        route: '/dictionary',     desc: 'Mots et phrases de la langue' },
+  { id: 'phrases', emoji: '💬', label: 'Phrases Utiles',      route: '/phrases-utiles', desc: 'Expressions du quotidien' },
+  { id: 'secours', emoji: '🚨', label: 'Premiers Secours',    route: '/premiers-secours', desc: 'Consignes d\'urgence' },
+  { id: 'civisme', emoji: '🏛️', label: 'Civisme',             route: '/civisme',        desc: 'Valeurs et symboles civiques' },
+  { id: 'sens',    emoji: '📖', label: 'Sens des Mots',       route: '/sens-mots',      desc: 'Vraies significations des mots' },
+  { id: 'culture', emoji: '🌍', label: 'Culture & Traditions',route: '/cultural',       desc: 'Proverbes, contes, traditions locales' },
+  { id: 'textes',  emoji: '📜', label: 'Textes & Récits',     route: '/textes-recits',  desc: 'Contes, histoires et récits en langue locale' },
 ];
 
 // ─── CATÉGORIES ───────────────────────────────────────────────────────────────
@@ -25,7 +27,24 @@ const AUDIO_CATS   = ['salutations','famille','nourriture','marché','couleurs',
 const DICT_CATS    = ['salutations','famille','nourriture','nature','habitat','transport','vie_quotidienne','expressions','verbes','spiritualite','vie_sociale','chiffres','couleurs'];
 const PHRASES_CATS = ['salutations','expressions','nourriture','vie_quotidienne','vie_sociale','corps','lieux','autre'];
 const SITUATIONS   = ['appel_secours','arret_cardiaque','etouffement','mise_en_securite','noyade','brulure','fracture','saignement','malaise','evaluation'];
-const CIVISME_TYPES = ['proverbe_civique','symbole_etat','sensibilisation','droit_devoir','institution'];
+const CIVISME_TYPES  = ['proverbe_civique','symbole_etat','sensibilisation','droit_devoir','institution'];
+const CULTURE_TYPES  = [
+  { cle: 'PROVERB',   nom: 'Proverbe',   emoji: '💬' },
+  { cle: 'TRADITION', nom: 'Tradition',  emoji: '🏛️' },
+  { cle: 'ANECDOTE',  nom: 'Anecdote',   emoji: '📖' },
+  { cle: 'TALE',      nom: 'Conte',      emoji: '🌙' },
+  { cle: 'MUSIC',     nom: 'Musique',    emoji: '🎵' },
+  { cle: 'DANCE',     nom: 'Danse',      emoji: '💃' },
+];
+const TEXTES_TYPES = [
+  { key: 'CONTE',         label: 'Conte',       emoji: '📖' },
+  { key: 'HISTOIRE',      label: 'Histoire',    emoji: '🏛️' },
+  { key: 'CHANSON',       label: 'Chanson',     emoji: '🎵' },
+  { key: 'RECIT',         label: 'Récit',       emoji: '📜' },
+  { key: 'DESCRIPTION',   label: 'Description', emoji: '📝' },
+  { key: 'LEGENDE',       label: 'Légende',     emoji: '⭐' },
+  { key: 'PROVERBE_LONG', label: 'Proverbe',    emoji: '💡' },
+];
 const AUDIO_STATUS_LABELS = { all: 'Toutes', pending: 'En attente', validated: 'Validées' };
 const UNVALIDATE_REASONS  = ['Prononciation incorrecte','Bruit de fond / qualité insuffisante','Traduction erronée','Contenu inapproprié','Doublon','Autre raison'];
 
@@ -37,6 +56,8 @@ const EMPTY = {
   secours: { languageId: '', consigne: '', traduction: '', transcription: '', situation: 'appel_secours', priorite: 2, file: null, fileFr: null },
   civisme: { languageId: '', type: 'proverbe_civique', titre: '', contenu: '', traduction: '', explication: '', valeur: '', file: null, fileFr: null },
   sens:    { languageId: '', motSource: '', transcription: '', sensHistoriqueFr: '', sensVeritable: '', contexteErreur: '', file: null },
+  culture: { languageId: '', type: 'PROVERB', contenu: '', traduction: '', sourceEthnique: '', file: null, fileFr: null },
+  textes:  { languageId: '', type: 'CONTE', titre: '', contenu: '', traduction: '', file: null, fileFr: null },
 };
 
 // ─── COMPOSANTS PARTAGÉS ──────────────────────────────────────────────────────
@@ -137,6 +158,8 @@ export default function IALinguistiquePage() {
   const [formSecours, setFormSecours] = useState(EMPTY.secours);
   const [formCivisme, setFormCivisme] = useState(EMPTY.civisme);
   const [formSens,    setFormSens]    = useState(EMPTY.sens);
+  const [formCulture, setFormCulture] = useState(EMPTY.culture);
+  const [formTextes,  setFormTextes]  = useState(EMPTY.textes);
 
   // ── CHARGEMENT INITIAL ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -151,6 +174,8 @@ export default function IALinguistiquePage() {
       setFormSecours(f => ({ ...f, languageId: langId }));
       setFormCivisme(f => ({ ...f, languageId: langId }));
       setFormSens(f => ({ ...f, languageId: langId }));
+      setFormCulture(f => ({ ...f, languageId: langId }));
+      setFormTextes(f => ({ ...f, languageId: langId }));
       setBulkLang(langId);
     }).catch(() => {});
     loadAudioStats();
@@ -321,6 +346,8 @@ export default function IALinguistiquePage() {
     if (activeTab === 'secours') setFormSecours({ ...EMPTY.secours, languageId: langId });
     if (activeTab === 'civisme') setFormCivisme({ ...EMPTY.civisme, languageId: langId });
     if (activeTab === 'sens')    setFormSens({ ...EMPTY.sens, languageId: langId });
+    if (activeTab === 'culture') setFormCulture({ ...EMPTY.culture, languageId: langId });
+    if (activeTab === 'textes')  setFormTextes({ ...EMPTY.textes, languageId: langId });
     setShowModal(true);
   };
 
@@ -495,13 +522,70 @@ export default function IALinguistiquePage() {
     } finally { setSaving(false); }
   };
 
+  const handleCultureSubmit = async () => {
+    if (!formCulture.contenu.trim()) {
+      toast.error('Le contenu en langue locale est obligatoire'); return;
+    }
+    setSaving(true);
+    try {
+      const [audioUrl, audioUrlFr] = await Promise.all([
+        formCulture.file   ? uploadAudioToIA(formCulture.file, formCulture.languageId, formCulture.contenu) : null,
+        formCulture.fileFr ? uploadFrAudio(formCulture.fileFr) : null,
+      ]);
+      await culturalAPI.create({
+        languageId:    formCulture.languageId || null,
+        type:          formCulture.type,
+        contenu:       formCulture.contenu.trim(),
+        traduction:    formCulture.traduction,
+        sourceEthnique: formCulture.sourceEthnique,
+        audioUrl:      audioUrl   || '',
+        audioUrlFr:    audioUrlFr || '',
+      });
+      const msg = [audioUrl && 'audio local → IA', audioUrlFr && 'audio FR → module'].filter(Boolean).join(', ');
+      toast.success(`✅ Contenu culturel ajouté${msg ? ` (${msg})` : ''} !`);
+      setShowModal(false);
+      setFormCulture(f => ({ ...EMPTY.culture, languageId: f.languageId }));
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la création');
+    } finally { setSaving(false); }
+  };
+
+  const handleTextesSubmit = async () => {
+    if (!formTextes.titre.trim() || !formTextes.contenu.trim() || !formTextes.languageId) {
+      toast.error('Langue, titre et contenu sont obligatoires'); return;
+    }
+    setSaving(true);
+    try {
+      const [audioUrl, audioUrlFr] = await Promise.all([
+        formTextes.file   ? uploadAudioToIA(formTextes.file, formTextes.languageId, formTextes.titre) : null,
+        formTextes.fileFr ? uploadFrAudio(formTextes.fileFr) : null,
+      ]);
+      await textContentAPI.create({
+        languageId: formTextes.languageId,
+        type:       formTextes.type,
+        titre:      formTextes.titre.trim(),
+        contenu:    formTextes.contenu.trim(),
+        traduction: formTextes.traduction,
+        audioUrl:   audioUrl   || '',
+        audioUrlFr: audioUrlFr || '',
+        status:     'PUBLISHED',
+      });
+      const msg = [audioUrl && 'audio local → IA', audioUrlFr && 'audio FR → module'].filter(Boolean).join(', ');
+      toast.success(`✅ "${formTextes.titre}" ajouté${msg ? ` (${msg})` : ''} !`);
+      setShowModal(false);
+      setFormTextes(f => ({ ...EMPTY.textes, languageId: f.languageId }));
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erreur lors de la création');
+    } finally { setSaving(false); }
+  };
+
   const handleSubmit = () => {
-    const handlers = { audio: handleAudioSubmit, dict: handleDictSubmit, phrases: handlePhrasesSubmit, secours: handleSecoursSubmit, civisme: handleCivismeSubmit, sens: handleSensSubmit };
+    const handlers = { audio: handleAudioSubmit, dict: handleDictSubmit, phrases: handlePhrasesSubmit, secours: handleSecoursSubmit, civisme: handleCivismeSubmit, sens: handleSensSubmit, culture: handleCultureSubmit, textes: handleTextesSubmit };
     handlers[activeTab]?.();
   };
 
   // ── LABELS BOUTON AJOUTER ──────────────────────────────────────────────────
-  const addLabel = { audio: 'Ajouter un audio', dict: 'Ajouter un mot', phrases: 'Ajouter une phrase', secours: 'Ajouter une consigne', civisme: 'Ajouter un contenu', sens: 'Ajouter un sens' };
+  const addLabel = { audio: 'Ajouter un audio', dict: 'Ajouter un mot', phrases: 'Ajouter une phrase', secours: 'Ajouter une consigne', civisme: 'Ajouter un contenu', sens: 'Ajouter un sens', culture: 'Ajouter un contenu culturel', textes: 'Ajouter un texte' };
   const currentTab = TABS.find(t => t.id === activeTab);
 
   // ── RENDU ──────────────────────────────────────────────────────────────────
@@ -1234,6 +1318,122 @@ export default function IALinguistiquePage() {
                       placeholder="ex: Souvent confondu avec le terme…" />
                   </div>
                   <AudioUploadField file={formSens.file} onChange={file => setFormSens(f => ({ ...f, file }))} />
+                </>
+              )}
+
+              {/* ── FORMULAIRE CULTURE & TRADITIONS ───────────────────────── */}
+              {activeTab === 'culture' && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Langue <span className="text-gray-400 font-normal">(optionnel)</span></label>
+                      <LanguageSelect languages={languages} value={formCulture.languageId}
+                        onChange={v => setFormCulture(f => ({ ...f, languageId: v }))}
+                        allLabel="Universelle (toutes langues)" showAll={true} className="w-full" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                      <select className="input" value={formCulture.type}
+                        onChange={e => setFormCulture(f => ({ ...f, type: e.target.value }))}>
+                        {CULTURE_TYPES.map(t => (
+                          <option key={t.cle} value={t.cle}>{t.emoji} {t.nom}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Contenu en langue locale *</label>
+                    <textarea className="input h-24 resize-none" value={formCulture.contenu}
+                      onChange={e => setFormCulture(f => ({ ...f, contenu: e.target.value }))}
+                      placeholder="ex: Nyɔpɛ yé, wɛ te po." />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Traduction française</label>
+                      <input className="input" value={formCulture.traduction}
+                        onChange={e => setFormCulture(f => ({ ...f, traduction: e.target.value }))}
+                        placeholder="ex: Ensemble, on ne tombe pas." />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Source ethnique</label>
+                      <input className="input" value={formCulture.sourceEthnique}
+                        onChange={e => setFormCulture(f => ({ ...f, sourceEthnique: e.target.value }))}
+                        placeholder="ex: Bété, Baoulé, Dioula…" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <AudioUploadField
+                      file={formCulture.file}
+                      onChange={file => setFormCulture(f => ({ ...f, file }))}
+                      label="🎙️ Audio en langue locale"
+                      sublabel="(optionnel — enrichit l'IA)"
+                      enrichIA={true}
+                    />
+                    <AudioUploadField
+                      file={formCulture.fileFr}
+                      onChange={fileFr => setFormCulture(f => ({ ...f, fileFr }))}
+                      label="🇫🇷 Audio en français"
+                      sublabel="(traduction lue en français)"
+                      enrichIA={false}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* ── FORMULAIRE TEXTES & RÉCITS ─────────────────────────────── */}
+              {activeTab === 'textes' && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Langue *</label>
+                      <LanguageSelect languages={languages} value={formTextes.languageId}
+                        onChange={v => setFormTextes(f => ({ ...f, languageId: v }))}
+                        allLabel="-- Sélectionner --" showAll={false} className="w-full" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                      <select className="input" value={formTextes.type}
+                        onChange={e => setFormTextes(f => ({ ...f, type: e.target.value }))}>
+                        {TEXTES_TYPES.map(t => (
+                          <option key={t.key} value={t.key}>{t.emoji} {t.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+                    <input className="input font-medium" value={formTextes.titre}
+                      onChange={e => setFormTextes(f => ({ ...f, titre: e.target.value }))}
+                      placeholder="ex: L'araignée et le chasseur" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Contenu en langue locale *</label>
+                    <textarea className="input h-32 resize-none" value={formTextes.contenu}
+                      onChange={e => setFormTextes(f => ({ ...f, contenu: e.target.value }))}
+                      placeholder="Texte du conte, de l'histoire ou du récit en langue locale…" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Traduction française</label>
+                    <textarea className="input h-24 resize-none" value={formTextes.traduction}
+                      onChange={e => setFormTextes(f => ({ ...f, traduction: e.target.value }))}
+                      placeholder="Traduction du texte en français…" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <AudioUploadField
+                      file={formTextes.file}
+                      onChange={file => setFormTextes(f => ({ ...f, file }))}
+                      label="🎙️ Audio en langue locale"
+                      sublabel="(optionnel — enrichit l'IA)"
+                      enrichIA={true}
+                    />
+                    <AudioUploadField
+                      file={formTextes.fileFr}
+                      onChange={fileFr => setFormTextes(f => ({ ...f, fileFr }))}
+                      label="🇫🇷 Audio en français"
+                      sublabel="(narration en français)"
+                      enrichIA={false}
+                    />
+                  </div>
                 </>
               )}
 

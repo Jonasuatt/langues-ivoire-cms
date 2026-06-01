@@ -461,13 +461,14 @@ export default function CulturalPage() {
             <Cog6ToothIcon className="w-4 h-4" />
             Rubriques
           </button>
-          <button
-            onClick={() => setModalContenu('create')}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
-          >
-            <PlusIcon className="w-4 h-4" /> Nouveau contenu
-          </button>
+          <a href="/ia-linguistique"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+            🎙️ Créer via IA Linguistique
+          </a>
         </div>
+      </div>
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-5 text-sm text-indigo-800 flex items-center gap-2">
+        ℹ️ La création de nouveaux contenus se fait désormais depuis <a href="/ia-linguistique" className="font-semibold underline hover:text-indigo-600">IA Linguistique → onglet Culture &amp; Traditions</a>. Cette page reste disponible pour les <strong>modifications</strong>.
       </div>
 
       {/* ── Vue Gestion des rubriques ── */}

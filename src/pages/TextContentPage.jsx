@@ -371,13 +371,10 @@ export default function TextContentPage() {
               </p>
             </div>
           </div>
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-orange-500/30"
-          >
-            <PlusIcon className="w-5 h-5" />
-            Nouveau texte
-          </button>
+          <a href="/ia-linguistique"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg">
+            🎙️ Créer via IA Linguistique
+          </a>
         </div>
 
         {/* Stats */}
@@ -389,7 +386,13 @@ export default function TextContentPage() {
         </div>
       </div>
 
-      <div className="px-8 py-6 space-y-4">
+      <div className="px-8 pt-4">
+        <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-4 text-sm text-indigo-800 flex items-center gap-2">
+          ℹ️ La création de nouveaux textes se fait désormais depuis <a href="/ia-linguistique" className="font-semibold underline hover:text-indigo-600">IA Linguistique → onglet Textes &amp; Récits</a>. Cette page reste disponible pour les <strong>modifications</strong>.
+        </div>
+      </div>
+
+      <div className="px-8 pb-6 space-y-4">
 
         {/* ── Filters ── */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
@@ -470,9 +473,9 @@ export default function TextContentPage() {
               {filterType || filterLang || filterStatus
                 ? 'Essayez de modifier vos filtres ou'
                 : 'Commencez par'}{' '}
-              <button onClick={openAdd} className="text-violet-600 underline hover:text-violet-700">
-                ajouter un nouveau texte
-              </button>
+              <a href="/ia-linguistique" className="text-indigo-600 underline hover:text-indigo-700">
+                créer via IA Linguistique
+              </a>
             </p>
           </div>
         ) : (
