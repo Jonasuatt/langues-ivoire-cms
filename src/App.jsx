@@ -42,6 +42,7 @@ import PartenairePage from './pages/PartenairePage';
 import MathematiquePage from './pages/MathematiquePage';
 import MonnaiePage from './pages/MonnaiePage';
 import InstitutionsPage from './pages/InstitutionsPage';
+import ValidationCommitteePage from './pages/ValidationCommitteePage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -79,6 +80,7 @@ export default function App() {
           {/* Nouvelles routes */}
           <Route path="videos" element={<VideosPage />} />
           <Route path="ia-linguistique" element={<IALinguistiquePage />} />
+          <Route path="validation-committee" element={<ValidationCommitteePage />} />
           <Route path="test-agents" element={<TestAgentsPage />} />
           <Route path="bienvenue-sons" element={<BienvenueEtSonsPage />} />
           <Route path="langues" element={<LanguesPage />} />
