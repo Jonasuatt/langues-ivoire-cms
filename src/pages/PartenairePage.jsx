@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import {
-  analyticsAPI, tutorsAPI, certificatesAPI, languagesAPI, adminAPI,
+  analyticsAPI, tutorsAPI, certificatesAPI, languagesAPI, adminAPI, committeeAPI,
 } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -293,13 +293,14 @@ function Skeleton({ className }) {
 export default function PartenairePage() {
   const { user } = useAuth();
 
-  const [stats,     setStats]     = useState(null);
-  const [languages, setLanguages] = useState([]);
-  const [certs,     setCerts]     = useState([]);
-  const [tutors,    setTutors]    = useState([]);
-  const [members,   setMembers]   = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [loadedAt,    setLoadedAt]    = useState(null);
+  const [stats,          setStats]          = useState(null);
+  const [languages,      setLanguages]      = useState([]);
+  const [certs,          setCerts]          = useState([]);
+  const [tutors,         setTutors]         = useState([]);
+  const [members,        setMembers]        = useState([]);
+  const [committeeStats, setCommitteeStats] = useState(null);
+  const [loading,        setLoading]        = useState(true);
+  const [loadedAt,       setLoadedAt]       = useState(null);
   const [selectedLangId, setSelectedLangId] = useState(null);
 
   useEffect(() => {
@@ -309,7 +310,8 @@ export default function PartenairePage() {
       certificatesAPI.getAll({ limit: 500 }).catch(() => ({ data: { data: [] } })),
       tutorsAPI.getAll().catch(() => ({ data: [] })),
       adminAPI.getUsers({ limit: 200 }).catch(() => ({ data: { data: [] } })),
-    ]).then(([s, lang, cert, tut, users]) => {
+      committeeAPI.getStats().catch(() => ({ data: null })),
+    ]).then(([s, lang, cert, tut, users, committee]) => {
       setStats(s.data ?? {});
       setLanguages(Array.isArray(lang.data) ? lang.data : lang.data?.data ?? []);
       setCerts(cert.data?.data ?? cert.data ?? []);
@@ -318,6 +320,7 @@ export default function PartenairePage() {
       setMembers(allUsers.filter(u =>
         ['EDITOR', 'CONTRIBUTOR', 'ADMIN', 'SUPER_ADMIN'].includes(u.role)
       ));
+      setCommitteeStats(committee.data ?? null);
       setLoadedAt(new Date());
     }).finally(() => setLoading(false));
   }, []);
@@ -509,6 +512,82 @@ export default function PartenairePage() {
               sub="Communauté active"
               color="bg-rose-500"
             />
+          </div>
+        )}
+
+        {/* ── COMITÉ DE VALIDATION ILA ─────────────────────────────────────── */}
+        {!loading && committeeStats && (
+          <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6 fade-in-up">
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <ShieldCheckIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-lg font-black text-gray-900">Comité de Validation ILA-UFHB</h2>
+                </div>
+                <p className="text-sm text-gray-500 ml-10">Certification scientifique des voix · Quorum 3 experts sur 5</p>
+              </div>
+              <span className="text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                <CheckCircleIcon className="w-4 h-4" />
+                {committeeStats.certified} certifié{committeeStats.certified > 1 ? 's' : ''} ILA
+              </span>
+            </div>
+
+            {/* KPI cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+              <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
+                <p className="text-3xl font-black text-gray-800"><AnimatedNumber value={committeeStats.total} /></p>
+                <p className="text-xs text-gray-500 font-medium mt-1">Total soumis</p>
+              </div>
+              <div className="bg-green-50 rounded-xl p-4 text-center border border-green-100">
+                <p className="text-3xl font-black text-green-700"><AnimatedNumber value={committeeStats.certified} /></p>
+                <p className="text-xs text-green-600 font-medium mt-1">✅ Certifiés ILA</p>
+              </div>
+              <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+                <p className="text-3xl font-black text-blue-700">
+                  <AnimatedNumber value={committeeStats.submitted + committeeStats.inReview} />
+                </p>
+                <p className="text-xs text-blue-600 font-medium mt-1">⏳ En examen</p>
+              </div>
+              <div className="bg-red-50 rounded-xl p-4 text-center border border-red-100">
+                <p className="text-3xl font-black text-red-600"><AnimatedNumber value={committeeStats.rejected} /></p>
+                <p className="text-xs text-red-500 font-medium mt-1">❌ Rejetés</p>
+              </div>
+            </div>
+
+            {/* Pipeline progress bar */}
+            {committeeStats.total > 0 && (
+              <div>
+                <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                  <span className="font-semibold">Pipeline de certification</span>
+                  <span>{Math.round(committeeStats.certified / committeeStats.total * 100)}% certifiés</span>
+                </div>
+                <div className="h-3 bg-gray-100 rounded-full overflow-hidden flex">
+                  <div className="bg-green-500 transition-all duration-700"
+                    style={{ width: `${committeeStats.certified / committeeStats.total * 100}%` }} />
+                  <div className="bg-blue-400 transition-all duration-700"
+                    style={{ width: `${(committeeStats.submitted + committeeStats.inReview) / committeeStats.total * 100}%` }} />
+                  <div className="bg-amber-400 transition-all duration-700"
+                    style={{ width: `${committeeStats.revision / committeeStats.total * 100}%` }} />
+                  <div className="bg-red-400 transition-all duration-700"
+                    style={{ width: `${committeeStats.rejected / committeeStats.total * 100}%` }} />
+                </div>
+                <div className="flex gap-4 mt-2 flex-wrap">
+                  {[
+                    { color: 'bg-green-500', label: 'Certifiés ILA' },
+                    { color: 'bg-blue-400',  label: 'En examen' },
+                    { color: 'bg-amber-400', label: 'En révision' },
+                    { color: 'bg-red-400',   label: 'Rejetés' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${item.color}`} />
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
