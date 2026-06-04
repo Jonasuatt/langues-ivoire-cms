@@ -900,6 +900,58 @@ export const GUIDE_MODULES = [
   },
 
   {
+    id: 'validation-committee',
+    route: '/validation-committee',
+    section: 'communaute',
+    icon: '🔬',
+    title: 'Comité de Validation ILA',
+    subtitle: 'Certification scientifique des contributions audio',
+    color: 'teal',
+    roles: ['EXPERT', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Le Comité de Validation ILA-UFHB certifie les enregistrements audio soumis par les locuteurs natifs. Chaque contribution doit obtenir au moins 3 votes favorables sur 5 experts (quorum 3/5) pour recevoir le statut "Certifié ILA" et intégrer la base de référence des tuteurs IA.',
+    objectifs: [
+      'Garantir la qualité phonétique et linguistique des enregistrements audio',
+      'Certifier les voix de référence pour les 9 langues MVP',
+      'Alimenter les tuteurs IA avec des données audio certifiées ILA',
+    ],
+    features: [
+      'Vue filtrée par statut : À examiner, Certifiés ILA, Révisions demandées, Rejetés',
+      'Filtre par langue et par recherche textuelle',
+      'Lecteur audio intégré pour écouter chaque contribution avant de voter',
+      'Vote en 3 options : ✅ Approuvé, ⚠️ Révision demandée, ❌ Rejeté',
+      'Commentaire obligatoire pour les votes Révision ou Rejet',
+      'Indicateur de progression du quorum (votes / 5 experts)',
+      'Modification du vote possible tant que le quorum n\'est pas atteint',
+      'Réinitialisation du statut possible pour l\'administrateur',
+    ],
+    steps: [
+      { title: 'Parcourir les contributions à examiner', desc: 'L\'onglet "À examiner" liste les contributions en statut SUBMITTED ou IN_REVIEW. Utiliser le filtre Langue pour se concentrer sur les langues maîtrisées.', warning: null },
+      { title: 'Écouter l\'enregistrement', desc: 'Cliquer sur le bouton ▶ Écouter pour lancer la lecture de la contribution. Évaluer la clarté, la prononciation et la fidélité linguistique.', warning: null },
+      { title: 'Voter', desc: 'Cliquer sur "✅ Approuver" si l\'enregistrement est correct, "⚠️ Révision" pour signaler des corrections nécessaires, ou "❌ Rejeter" si la qualité est insuffisante. Un commentaire est obligatoire pour les deux dernières options.', warning: null },
+      { title: 'Vérifier le quorum', desc: 'Après votre vote, le compteur indique le nombre de votes reçus sur les 5 experts. Dès que 3 votes convergent, le statut change automatiquement en CERTIFIED_ILA, REVISION_REQUESTED ou REJECTED.', warning: 'Un vote ne peut pas être modifié une fois le quorum atteint.' },
+    ],
+    workflows: [
+      {
+        title: 'Certifier une série de contributions en Dioula',
+        steps: [
+          'Sélectionner le filtre Langue → Dioula',
+          'Aller dans l\'onglet "À examiner"',
+          'Pour chaque contribution : écouter, vérifier la transcription, voter',
+          'Si révision demandée : expliquer la correction attendue dans le commentaire',
+          'Vérifier l\'onglet "Certifiés ILA" en fin de session pour confirmer les certifications',
+        ],
+      },
+    ],
+    tip: 'Concentrez-vous sur les langues que vous maîtrisez linguistiquement. Un vote de qualité prime sur un vote rapide — le comité est garant de la crédibilité scientifique de la base audio ILA.',
+    warnings: [
+      'Seuls les membres du comité avec le rôle Expert ILA peuvent voter. L\'attribution du rôle se fait depuis Administration → Utilisateurs (Super-Admin uniquement).',
+      'Un enregistrement rejeté n\'est pas supprimé — il reste visible pour l\'historique et peut être réinitialisé si un nouveau locuteur fournit une meilleure version.',
+    ],
+    audioNaming: null,
+  },
+
+  {
     id: 'badges',
     route: '/badges',
     section: 'communaute',
@@ -1574,6 +1626,56 @@ export const GUIDE_MODULES = [
     warnings: [
       'La suppression définitive est irréversible. Préférez la désactivation pour conserver l\'historique.',
       'Un logo de mauvaise qualité (pixelisé ou trop petit) nuit à l\'image de l\'application. Utilisez des logos vectoriels (SVG) ou PNG haute résolution (min 200×200 px).',
+    ],
+    audioNaming: null,
+  },
+
+  {
+    id: 'partenaire',
+    route: '/partenaire',
+    section: 'partenaires',
+    icon: '📊',
+    title: 'Tableau de Bord Partenaires',
+    subtitle: 'Vue stratégique pour investisseurs et décideurs',
+    color: 'emerald',
+    roles: ['PARTNER', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Tableau de bord stratégique réservé aux partenaires et investisseurs du projet Langues Ivoire. Il présente les indicateurs clés de performance (KPIs) en temps réel : utilisateurs inscrits, taux d\'engagement, langues couvertes, certificats délivrés et impact de mission. Conçu pour faciliter les présentations institutionnelles et les rapports de suivi.',
+    objectifs: [
+      'Visualiser l\'impact social et culturel du projet en un coup d\'œil',
+      'Suivre la croissance des utilisateurs et l\'engagement dans l\'app mobile',
+      'Présenter les tuteurs IA et les données de certification aux décideurs',
+    ],
+    features: [
+      'KPIs en temps réel : utilisateurs, actifs, certifiés, leçons complétées',
+      'Graphique d\'activité hebdomadaire (inscriptions vs actifs)',
+      'Distribution des langues apprises (camembert interactif)',
+      'Présentation des tuteurs IA (Zélé, Kouadio) et leurs statistiques',
+      'Carte de Côte d\'Ivoire avec couverture linguistique par région',
+      'Section Mission & Impact : chiffres clés pour les rapports officiels',
+      'Export PDF du rapport complet (bouton en haut de page)',
+    ],
+    steps: [
+      { title: 'Consulter les KPIs du moment', desc: 'Les 4 cartes de KPIs en haut de page (Utilisateurs, Actifs, Certifiés, Leçons) se mettent à jour automatiquement. Elles reflètent l\'état réel de la base de données.', warning: null },
+      { title: 'Lire les graphiques d\'activité', desc: 'Le graphique linéaire "Activité 7 derniers jours" montre la tendance des inscriptions et des connexions actives. Une courbe croissante indique une bonne traction.', warning: null },
+      { title: 'Explorer la couverture linguistique', desc: 'La carte CI et le graphique de distribution montrent quelles langues sont les plus apprises. Utile pour justifier les priorités éditoriales auprès des bailleurs.', warning: null },
+      { title: 'Exporter pour une présentation', desc: 'Cliquer sur "📄 Exporter PDF" en haut à droite pour générer un rapport complet avec tous les KPIs, graphiques et statistiques de mission.', warning: null },
+    ],
+    workflows: [
+      {
+        title: 'Préparer une présentation investisseur',
+        steps: [
+          'Ouvrir le Tableau Partenaires la veille de la réunion',
+          'Vérifier que les KPIs sont à jour (rafraîchir si besoin)',
+          'Identifier les 3 chiffres les plus parlants (ex : +1 200 utilisateurs ce mois)',
+          'Exporter le PDF et l\'intégrer dans la présentation PowerPoint',
+          'Pendant la réunion : montrer le tableau en direct pour l\'aspect dynamique',
+        ],
+      },
+    ],
+    tip: 'Pour les réunions institutionnelles (MENET, ILA, mairies), ce tableau remplace avantageusement un rapport statique. Il montre la réalité en temps réel et renforce la crédibilité du projet.',
+    warnings: [
+      'Les données sont issues de la base de production — elles reflètent l\'état réel de l\'application. Ne pas confondre avec des projections ou des estimations.',
     ],
     audioNaming: null,
   },
