@@ -10,12 +10,13 @@ import {
 import LanguageSelect from '../components/LanguageSelect';
 
 // ── Rôles ──────────────────────────────────────────────────────────────
-const ALL_ROLES = ['USER', 'CONTRIBUTOR', 'EDITOR', 'PARTNER', 'ADMIN', 'SUPER_ADMIN'];
+const ALL_ROLES = ['USER', 'CONTRIBUTOR', 'EDITOR', 'EXPERT', 'PARTNER', 'ADMIN', 'SUPER_ADMIN'];
 
 const ROLE_CONFIG = {
   USER:        { label: 'Utilisateur',          color: 'bg-gray-100 text-gray-600',       dot: 'bg-gray-400',    cms: false,    mobile: true  },
   CONTRIBUTOR: { label: 'Contributeur',          color: 'bg-blue-100 text-blue-700',       dot: 'bg-blue-500',    cms: true,     mobile: true  },
   EDITOR:      { label: 'Éditeur',               color: 'bg-purple-100 text-purple-700',   dot: 'bg-purple-500',  cms: true,     mobile: true  },
+  EXPERT:      { label: 'Expert ILA',            color: 'bg-teal-100 text-teal-700',       dot: 'bg-teal-500',    cms: 'expert', mobile: false },
   PARTNER:     { label: 'Partenaire',            color: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500', cms: 'partner',mobile: true  },
   ADMIN:       { label: 'Administrateur',        color: 'bg-red-100 text-red-700',         dot: 'bg-red-500',     cms: false,    mobile: false },
   SUPER_ADMIN: { label: 'Super-Administrateur',  color: 'bg-amber-100 text-amber-800',     dot: 'bg-amber-500',   cms: false,    mobile: false },
@@ -25,6 +26,7 @@ const ROLE_DESC = {
   SUPER_ADMIN: '⚠️ Accès total au CMS, finances, gestion des comptes.',
   ADMIN:       '🔐 Accès complet au CMS. Peut créer des comptes Éditeur, Contributeur et Partenaire.',
   EDITOR:      '✏️ Consulte et modifie le contenu des modules assignés. Un titre/fonction peut lui être attribué.',
+  EXPERT:      '🔬 Membre du comité scientifique ILA-UFHB. Accès au module Comité de Validation pour voter sur les contributions audio (quorum 3/5).',
   CONTRIBUTOR: '📝 Contribue aux modules sélectionnés. Accès en lecture/écriture limité. Un titre/fonction peut lui être attribué.',
   PARTNER:     '🤝 Accès illimité (Premium) à l\'application mobile + vue Partenaire dans le CMS. Idéal pour les décideurs et institutions.',
   USER:        '📱 Utilisateur mobile uniquement. Aucun accès au CMS.',
@@ -33,6 +35,7 @@ const ROLE_DESC = {
 // Titres suggérés selon le rôle
 const TITRES_SUGGES = {
   EDITOR:      ['Linguiste', 'Responsable éditorial', 'Coordinateur de langue', 'Chargé de contenu', 'Chercheur en linguistique', 'Expert culturel'],
+  EXPERT:      ['Linguiste ILA-UFHB', 'Chercheur en sciences du langage', 'Maître de conférences', 'Professeur de linguistique', 'Expert phonétique', 'Membre du comité scientifique'],
   CONTRIBUTOR: ['Locuteur natif', 'Contributeur linguistique', 'Assistant de recherche', 'Traducteur', 'Enregistreur natif', 'Ambassadeur culturel'],
   PARTNER:     ['Partenaire institutionnel', 'Investisseur', 'Décideur', 'Représentant ONG', 'Partenaire académique', 'Sponsor'],
 };
@@ -78,7 +81,7 @@ function isPartner(role)    { return ROLE_CONFIG[role]?.cms === 'partner'; }
 function hasMobileAccess(role) { return ROLE_CONFIG[role]?.mobile === true; }
 
 function creatableRoles(currentRole) {
-  if (currentRole === 'SUPER_ADMIN') return ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR', 'PARTNER'];
+  if (currentRole === 'SUPER_ADMIN') return ['SUPER_ADMIN', 'ADMIN', 'EXPERT', 'EDITOR', 'CONTRIBUTOR', 'PARTNER'];
   if (currentRole === 'ADMIN')       return ['EDITOR', 'CONTRIBUTOR', 'PARTNER'];
   return [];
 }
@@ -95,7 +98,7 @@ function assignableRoles(currentRole) {
   return [];
 }
 
-function needsTitre(role) { return ['EDITOR', 'CONTRIBUTOR', 'PARTNER'].includes(role); }
+function needsTitre(role) { return ['EDITOR', 'EXPERT', 'CONTRIBUTOR', 'PARTNER'].includes(role); }
 
 // ── Composant sélection de modules ────────────────────────────────────
 function ModuleSelector({ selected, onChange }) {
@@ -280,7 +283,7 @@ export default function UsersPage() {
         {ALL_ROLES.map(r => (
           <span key={r} className={`badge text-xs ${ROLE_CONFIG[r].color}`}>
             {ROLE_CONFIG[r].label}
-            {ROLE_CONFIG[r].cms && <span className="ml-1 opacity-50">· modules</span>}
+            {ROLE_CONFIG[r].cms === true && <span className="ml-1 opacity-50">· modules</span>}
           </span>
         ))}
       </div>

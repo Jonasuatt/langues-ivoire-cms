@@ -11,13 +11,14 @@ import {
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
   LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
   BanknotesIcon, MapPinIcon, PresentationChartLineIcon,
-  CalculatorIcon,
+  CalculatorIcon, ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 
 export const ROLE_LABELS = {
   USER:        'Utilisateur',
   CONTRIBUTOR: 'Contributeur',
   EDITOR:      'Éditeur',
+  EXPERT:      'Expert ILA',
   PARTNER:     'Partenaire',
   ADMIN:       'Administrateur',
   SUPER_ADMIN: 'Super-Administrateur',
@@ -27,6 +28,7 @@ export const ROLE_COLORS = {
   USER:        'bg-gray-100 text-gray-600',
   CONTRIBUTOR: 'bg-blue-100 text-blue-700',
   EDITOR:      'bg-purple-100 text-purple-700',
+  EXPERT:      'bg-teal-100 text-teal-700',
   PARTNER:     'bg-emerald-100 text-emerald-700',
   ADMIN:       'bg-red-100 text-red-700',
   SUPER_ADMIN: 'bg-amber-100 text-amber-800',
@@ -56,6 +58,7 @@ const NAV_SECTIONS = [
       { to: '/certificates', label: 'Certificats', icon: AcademicCapIcon },
       { to: '/ia-linguistique', label: 'IA Linguistique', icon: CpuChipIcon },
       { to: '/voix-audio', label: 'Import Audio', icon: MicrophoneIcon },
+      { to: '/validation-committee', label: 'Comité ILA', icon: ShieldCheckIcon, expertOrAdmin: true },
     ],
   },
   {
@@ -123,6 +126,7 @@ export default function Layout() {
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   const isPartnerOrAdmin = isAdmin || user?.role === 'PARTNER';
+  const isExpertOrAdmin  = isAdmin || user?.role === 'EXPERT';
 
   // Charge le nombre de messages non-lus (OUVERT) en polling toutes les 60s
   useEffect(() => {
@@ -165,7 +169,11 @@ export default function Layout() {
               )}
               <div className="space-y-0.5">
                 {section.items
-                  .filter(item => (!item.adminOnly || isAdmin) && (!item.partnerOrAdmin || isPartnerOrAdmin))
+                  .filter(item =>
+                    (!item.adminOnly || isAdmin) &&
+                    (!item.partnerOrAdmin || isPartnerOrAdmin) &&
+                    (!item.expertOrAdmin || isExpertOrAdmin)
+                  )
                   .map(({ to, label, icon: Icon, exact }) => (
                     <NavLink
                       key={to}
