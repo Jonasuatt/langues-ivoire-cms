@@ -58,7 +58,6 @@ const NAV_SECTIONS = [
       { to: '/certificates', label: 'Certificats', icon: AcademicCapIcon },
       { to: '/ia-linguistique', label: 'IA Linguistique', icon: CpuChipIcon },
       { to: '/voix-audio', label: 'Import Audio', icon: MicrophoneIcon },
-      { to: '/validation-committee', label: 'Comité ILA', icon: ShieldCheckIcon, expertOrAdmin: true },
     ],
   },
   {
@@ -107,6 +106,7 @@ const NAV_SECTIONS = [
     adminOnly: true,
     items: [
       { to: '/users', label: 'Utilisateurs', icon: UsersIcon, adminOnly: true },
+      { to: '/validation-committee', label: 'Comité ILA', icon: ShieldCheckIcon, adminOnly: true },
     ],
   },
   {
