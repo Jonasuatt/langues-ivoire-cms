@@ -1,10 +1,11 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import PageHelp from '../components/PageHelp';
 import { audioContribAPI, committeeAPI } from '../services/api';
 import {
   DocumentArrowDownIcon, ChartBarIcon,
   CheckCircleIcon, ClockIcon, XCircleIcon,
   GlobeAltIcon, UserGroupIcon, ArrowPathIcon,
+  PrinterIcon,
 } from '@heroicons/react/24/outline';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -28,6 +29,45 @@ function StatCard({ icon: Icon, value, label, sub, color = 'text-gray-800', bgCo
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
     </div>
   );
+}
+
+// ─── Export PDF ───────────────────────────────────────────────────────────────
+async function exportPDF(ref) {
+  const { default: jsPDF }      = await import('jspdf');
+  const { default: html2canvas } = await import('html2canvas');
+
+  const el = ref.current;
+  if (!el) return;
+
+  const canvas = await html2canvas(el, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+  });
+
+  const imgData   = canvas.toDataURL('image/png');
+  const pdf       = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW     = pdf.internal.pageSize.getWidth();
+  const pageH     = pdf.internal.pageSize.getHeight();
+  const margin    = 12;
+  const printW    = pageW - margin * 2;
+  const printH    = (canvas.height * printW) / canvas.width;
+  const pageCount = Math.ceil(printH / (pageH - margin * 2));
+
+  for (let i = 0; i < pageCount; i++) {
+    if (i > 0) pdf.addPage();
+    const srcY  = i * (pageH - margin * 2) * (canvas.width / printW);
+    const srcH  = (pageH - margin * 2) * (canvas.width / printW);
+    const slice = document.createElement('canvas');
+    slice.width  = canvas.width;
+    slice.height = Math.min(srcH, canvas.height - srcY);
+    slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, slice.height, 0, 0, canvas.width, slice.height);
+    pdf.addImage(slice.toDataURL('image/png'), 'PNG', margin, margin, printW, (slice.height * printW) / canvas.width);
+  }
+
+  const date = new Date().toISOString().slice(0, 10);
+  pdf.save(`rapport_ila_${date}.pdf`);
 }
 
 // ─── Export CSV ───────────────────────────────────────────────────────────────
@@ -55,10 +95,18 @@ function exportCSV(langStats, expertStats) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function RapportEditeursPage() {
+  const reportRef = useRef(null);
   const [contribs, setContribs]   = useState([]);
   const [votes, setVotes]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    setExportingPDF(true);
+    try { await exportPDF(reportRef); }
+    finally { setExportingPDF(false); }
+  };
 
   const load = async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
@@ -137,7 +185,7 @@ export default function RapportEditeursPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8">
+    <div ref={reportRef} className="p-6 max-w-6xl mx-auto space-y-8">
       {/* En-tête */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -155,10 +203,21 @@ export default function RapportEditeursPage() {
           </button>
           <button
             onClick={() => exportCSV(langStats, expertStats)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
             <DocumentArrowDownIcon className="w-4 h-4" />
-            Exporter CSV
+            CSV
+          </button>
+          <button
+            onClick={handleExportPDF}
+            disabled={exportingPDF}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-white bg-primary-500 rounded-xl hover:bg-primary-600 disabled:opacity-60 transition-colors"
+          >
+            {exportingPDF
+              ? <ArrowPathIcon className="w-4 h-4 animate-spin" />
+              : <PrinterIcon className="w-4 h-4" />
+            }
+            {exportingPDF ? 'Génération…' : 'Exporter PDF'}
           </button>
         </div>
         <PageHelp pageId="rapport-editeurs" />
