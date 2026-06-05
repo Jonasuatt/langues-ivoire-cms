@@ -4,7 +4,7 @@
  * Vue stratégique : KPIs, graphiques, équipe, agents IA, impact mission.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   analyticsAPI, tutorsAPI, certificatesAPI, languagesAPI, adminAPI, committeeAPI,
 } from '../services/api';
@@ -50,6 +50,10 @@ const MOCK_LANGUES = [
 const CERT_COLORS   = ['#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#f59e0b'];
 const LANG_COLORS   = ['#0B3D2E', '#F47920', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#f59e0b', '#06b6d4', '#ec4899'];
 const NIVEAU_LABELS = { A1: 'Débutant', A2: 'Élémentaire', B1: 'Intermédiaire', B2: 'Inter. avancé', C1: 'Avancé' };
+const ROLE_LABELS  = { USER: 'Apprenants', CONTRIBUTOR: 'Contributeurs', EDITOR: 'Éditeurs', EXPERT: 'Experts ILA', ADMIN: 'Admins', SUPER_ADMIN: 'Super Admins', PARTNER: 'Partenaires' };
+const ROLE_COLORS  = { USER: '#3b82f6', CONTRIBUTOR: '#f59e0b', EDITOR: '#8b5cf6', EXPERT: '#14b8a6', ADMIN: '#ef4444', SUPER_ADMIN: '#dc2626', PARTNER: '#10b981' };
+const STREAK_COLORS = ['#e5e7eb', '#86efac', '#4ade80', '#22c55e', '#16a34a'];
+const AGE_COLORS    = ['#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#1d4ed8'];
 
 // ─── Animated counter hook ────────────────────────────────────────────────────
 function useCountUp(target, duration = 1500) {
@@ -298,10 +302,13 @@ export default function PartenairePage() {
   const [certs,          setCerts]          = useState([]);
   const [tutors,         setTutors]         = useState([]);
   const [members,        setMembers]        = useState([]);
+  const [allUsers,       setAllUsers]       = useState([]);
   const [committeeStats, setCommitteeStats] = useState(null);
   const [loading,        setLoading]        = useState(true);
   const [loadedAt,       setLoadedAt]       = useState(null);
   const [selectedLangId, setSelectedLangId] = useState(null);
+  const [exportingStats, setExportingStats] = useState(false);
+  const statsRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
@@ -309,15 +316,16 @@ export default function PartenairePage() {
       languagesAPI.getAll().catch(() => ({ data: [] })),
       certificatesAPI.getAll({ limit: 500 }).catch(() => ({ data: { data: [] } })),
       tutorsAPI.getAll().catch(() => ({ data: [] })),
-      adminAPI.getUsers({ limit: 200 }).catch(() => ({ data: { data: [] } })),
+      adminAPI.getUsers({ limit: 1000 }).catch(() => ({ data: { data: [] } })),
       committeeAPI.getStats().catch(() => ({ data: null })),
     ]).then(([s, lang, cert, tut, users, committee]) => {
       setStats(s.data ?? {});
       setLanguages(Array.isArray(lang.data) ? lang.data : lang.data?.data ?? []);
       setCerts(cert.data?.data ?? cert.data ?? []);
       setTutors(Array.isArray(tut.data) ? tut.data : []);
-      const allUsers = users.data?.data ?? users.data ?? [];
-      setMembers(allUsers.filter(u =>
+      const allUsers_data = users.data?.data ?? users.data ?? [];
+      setAllUsers(allUsers_data);
+      setMembers(allUsers_data.filter(u =>
         ['EDITOR', 'CONTRIBUTOR', 'ADMIN', 'SUPER_ADMIN'].includes(u.role)
       ));
       setCommitteeStats(committee.data ?? null);
@@ -357,6 +365,141 @@ export default function PartenairePage() {
 
   const editors      = members.filter(m => m.role === 'EDITOR' || m.role === 'ADMIN' || m.role === 'SUPER_ADMIN');
   const contributors = members.filter(m => m.role === 'CONTRIBUTOR');
+
+  // ── Statistiques apprenants ────────────────────────────────────────────────
+  const userStats = useMemo(() => {
+    if (allUsers.length === 0) return null;
+
+    // Niveaux préférés
+    const niveaux = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 };
+    allUsers.forEach(u => { if (u.niveauPref && niveaux[u.niveauPref] !== undefined) niveaux[u.niveauPref]++; });
+    const niveauData = ['A1','A2','B1','B2','C1'].map((k, i) => ({
+      name: k, label: NIVEAU_LABELS[k], value: niveaux[k],
+      fill: CERT_COLORS[i],
+    })).filter(d => d.value > 0);
+
+    // Premium vs Gratuit
+    const nbPremium = allUsers.filter(u => u.isPremium).length;
+    const premiumData = [
+      { name: '⭐ Premium', value: nbPremium, fill: '#f59e0b' },
+      { name: '🆓 Gratuit',  value: allUsers.length - nbPremium, fill: '#e5e7eb' },
+    ].filter(d => d.value > 0);
+
+    // Langues favorites (languesFavorites = String[])
+    const langCount = {};
+    allUsers.forEach(u => { (u.languesFavorites || []).forEach(code => { langCount[code] = (langCount[code] || 0) + 1; }); });
+    const langData = Object.entries(langCount)
+      .sort((a, b) => b[1] - a[1]).slice(0, 8)
+      .map(([code, value]) => ({ name: code, value }));
+
+    // Inscriptions par mois (6 derniers mois)
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      return { key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleDateString('fr-FR', { month:'short', year:'2-digit' }), value: 0 };
+    });
+    allUsers.forEach(u => {
+      if (!u.createdAt) return;
+      const d = new Date(u.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const m = months.find(m => m.key === key);
+      if (m) m.value++;
+    });
+
+    // Tranches d'âge
+    const AGE_TR = [
+      { label: '< 18 ans', min: 0, max: 17 },
+      { label: '18–25', min: 18, max: 25 },
+      { label: '26–35', min: 26, max: 35 },
+      { label: '36–45', min: 36, max: 45 },
+      { label: '46+',  min: 46, max: 999 },
+    ];
+    const ageData = AGE_TR.map((t, i) => ({ name: t.label, value: 0, fill: AGE_COLORS[i], min: t.min, max: t.max }));
+    let withAge = 0;
+    allUsers.forEach(u => {
+      if (!u.dateNaissance) return;
+      const age = Math.floor((Date.now() - new Date(u.dateNaissance)) / (365.25 * 86400000));
+      const t = ageData.find(t => age >= t.min && age <= t.max);
+      if (t) { t.value++; withAge++; }
+    });
+
+    // Distribution streaks
+    const STREAK_TR = [
+      { label: '0 jour',   min: 0,   max: 0   },
+      { label: '1–7 j',    min: 1,   max: 7   },
+      { label: '8–30 j',   min: 8,   max: 30  },
+      { label: '31–99 j',  min: 31,  max: 99  },
+      { label: '100+ j',   min: 100, max: Infinity },
+    ];
+    const streakData = STREAK_TR.map((t, i) => ({ name: t.label, value: 0, fill: STREAK_COLORS[i], min: t.min, max: t.max }));
+    allUsers.forEach(u => {
+      const s = u.streak ?? 0;
+      const t = streakData.find(t => s >= t.min && s <= t.max);
+      if (t) t.value++;
+    });
+
+    // Rôles
+    const roleOrder = ['USER','CONTRIBUTOR','EDITOR','EXPERT','ADMIN','SUPER_ADMIN','PARTNER'];
+    const roleCount = {};
+    allUsers.forEach(u => { roleCount[u.role] = (roleCount[u.role] || 0) + 1; });
+    const roleData = roleOrder.filter(r => roleCount[r] > 0).map(r => ({
+      name: ROLE_LABELS[r] || r, value: roleCount[r], fill: ROLE_COLORS[r] || '#9ca3af',
+    }));
+
+    // KPIs synthèse
+    const nbActifs   = allUsers.filter(u => (u.streak ?? 0) > 0).length;
+    const avgStreak  = Math.round(allUsers.reduce((s, u) => s + (u.streak ?? 0), 0) / allUsers.length);
+    const avgXp      = Math.round(allUsers.reduce((s, u) => s + (u.bonusXp ?? 0), 0) / allUsers.length);
+    const topNiveau  = niveauData.sort((a, b) => b.value - a.value)[0]?.name ?? '—';
+
+    return { niveauData, premiumData, langData, months, ageData, withAge, streakData, roleData,
+             nbPremium, nbActifs, avgStreak, avgXp, topNiveau };
+  }, [allUsers]);
+
+  // ── Export PDF section statistiques ───────────────────────────────────────
+  const exportStatsPDF = async () => {
+    if (!statsRef.current) return;
+    setExportingStats(true);
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'), import('html2canvas'),
+      ]);
+      const canvas = await html2canvas(statsRef.current, { scale: 2, useCORS: true, logging: false });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 12;
+      const usableW = pageW - margin * 2;
+      const imgH = (canvas.height * usableW) / canvas.width;
+      const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      pdf.setFillColor(11, 61, 46);
+      pdf.rect(0, 0, pageW, 18, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(13); pdf.setFont('helvetica', 'bold');
+      pdf.text('Statistiques des Apprenants — Langues Ivoire', margin, 12);
+      pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
+      pdf.text(`Généré le ${today} · ${allUsers.length} utilisateurs`, pageW - margin, 12, { align: 'right' });
+
+      const contentY = 22;
+      const availH = pageH - contentY - margin;
+      let yOffset = 0;
+      while (yOffset < imgH) {
+        if (yOffset > 0) pdf.addPage();
+        const sliceH = Math.min(availH, imgH - yOffset);
+        const srcY = (yOffset / imgH) * canvas.height;
+        const srcH = (sliceH / imgH) * canvas.height;
+        const sl = document.createElement('canvas');
+        sl.width = canvas.width; sl.height = srcH;
+        sl.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+        pdf.addImage(sl.toDataURL('image/png'), 'PNG', margin, yOffset === 0 ? contentY : margin, usableW, sliceH);
+        yOffset += availH;
+      }
+      pdf.save(`stats_apprenants_${new Date().toISOString().slice(0,10)}.pdf`);
+    } catch (e) { console.error(e); }
+    finally { setExportingStats(false); }
+  };
 
   const totalWords = stats?.content?.totalWords ?? 0;
   const totalLessons = stats?.content?.totalLessonsCompleted ?? 0;
@@ -715,6 +858,224 @@ export default function PartenairePage() {
           <p className="text-xs text-gray-400 text-center mt-4">
             Benchmarks secteur EdTech · J+1: 50–70% · J+7: 35–50% · J+30: 20–35%
           </p>
+        </div>
+
+        {/* ── STATISTIQUES APPRENANTS ──────────────────────────────────────── */}
+        <div className="print-break" ref={statsRef}>
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div>
+              <h2 className="text-xl font-black text-gray-900">Statistiques des Apprenants</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Analyse démographique &amp; pédagogique · {allUsers.length} utilisateurs
+              </p>
+            </div>
+            <button onClick={exportStatsPDF} disabled={exportingStats}
+              className="no-print inline-flex items-center gap-2 bg-primary-600 text-white font-bold px-4 py-2.5 rounded-xl shadow hover:bg-primary-700 transition-colors disabled:opacity-50 text-sm">
+              {exportingStats
+                ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/><span>Export…</span></>
+                : <><DocumentArrowDownIcon className="w-4 h-4"/><span>Exporter PDF</span></>
+              }
+            </button>
+          </div>
+
+          {loading || !userStats ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1,2,3,4].map(i => <Skeleton key={i} className="h-24"/>)}
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {[1,2].map(i => <Skeleton key={i} className="h-64"/>)}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+
+              {/* KPIs synthèse */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { icon: UsersIcon,         label: 'Apprenants actifs',   value: userStats.nbActifs,  sub: 'Streak > 0 jour',      color: 'bg-blue-600' },
+                  { icon: ArrowTrendingUpIcon,label: 'Streak moyen',        value: userStats.avgStreak, sub: 'Jours consécutifs',     color: 'bg-green-600' },
+                  { icon: SparklesIcon,       label: 'XP moyen / apprenant',value: userStats.avgXp,    sub: 'Hors leçons complétées',color: 'bg-violet-600' },
+                  { icon: StarIcon,           label: 'Abonnés Premium',     value: userStats.nbPremium, sub: `${allUsers.length > 0 ? Math.round(userStats.nbPremium/allUsers.length*100) : 0}% des utilisateurs`, color: 'bg-amber-500' },
+                ].map(k => (
+                  <div key={k.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${k.color}`}>
+                      <k.icon className="w-5 h-5 text-white"/>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-gray-900"><AnimatedNumber value={k.value}/></p>
+                      <p className="text-sm font-semibold text-gray-700 leading-tight">{k.label}</p>
+                      {k.sub && <p className="text-xs text-gray-400 mt-0.5">{k.sub}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Row 1 : Niveaux + Premium */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Niveaux d'apprentissage */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Niveaux d'Apprentissage</h3>
+                  <p className="text-sm text-gray-500 mb-5">Niveau préféré déclaré par les apprenants</p>
+                  {userStats.niveauData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-52 text-gray-400">
+                      <AcademicCapIcon className="w-10 h-10 mb-2 opacity-30"/>
+                      <p className="text-sm">Données de niveau non renseignées</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={userStats.niveauData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f4f8"/>
+                        <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#374151', fontWeight: 600 }} axisLine={false} tickLine={false}/>
+                        <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<CustomTooltip/>} formatter={(v, n, p) => [v, p.payload.label]}/>
+                        <Bar dataKey="value" name="Apprenants" radius={[6, 6, 0, 0]}>
+                          {userStats.niveauData.map((d, i) => <Cell key={i} fill={d.fill}/>)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Premium vs Gratuit + Rôles */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Abonnements &amp; Rôles</h3>
+                  <p className="text-sm text-gray-500 mb-4">Répartition Premium / Gratuit et profils</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Donut Premium */}
+                    <div className="flex flex-col items-center">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Premium</p>
+                      <ResponsiveContainer width="100%" height={140}>
+                        <PieChart>
+                          <Pie data={userStats.premiumData} cx="50%" cy="50%" innerRadius={38} outerRadius={58} paddingAngle={2} dataKey="value">
+                            {userStats.premiumData.map((d, i) => <Cell key={i} fill={d.fill}/>)}
+                          </Pie>
+                          <Tooltip formatter={(v, name) => [v, name]}/>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="flex gap-3 text-xs mt-1">
+                        {userStats.premiumData.map(d => (
+                          <span key={d.name} className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full" style={{ background: d.fill }}/>
+                            {d.name} ({d.value})
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Rôles liste */}
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Rôles</p>
+                      <div className="space-y-1.5">
+                        {userStats.roleData.map(r => (
+                          <div key={r.name} className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: r.fill }}/>
+                            <span className="text-xs text-gray-700 flex-1 truncate">{r.name}</span>
+                            <span className="text-xs font-bold text-gray-900">{r.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 2 : Langues + Inscriptions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Langues favorites */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Langues Apprises</h3>
+                  <p className="text-sm text-gray-500 mb-5">Langues favorites déclarées (top 8)</p>
+                  {userStats.langData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-52 text-gray-400">
+                      <LanguageIcon className="w-10 h-10 mb-2 opacity-30"/>
+                      <p className="text-sm">Aucune langue favorite renseignée</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={userStats.langData} layout="vertical" margin={{ left: 4, right: 12, top: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f4f8"/>
+                        <XAxis type="number" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#374151', fontWeight: 600 }} width={56} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<CustomTooltip/>}/>
+                        <Bar dataKey="value" name="Apprenants" radius={[0, 6, 6, 0]}>
+                          {userStats.langData.map((_, i) => <Cell key={i} fill={LANG_COLORS[i % LANG_COLORS.length]}/>)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Inscriptions par mois */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Nouvelles Inscriptions</h3>
+                  <p className="text-sm text-gray-500 mb-5">6 derniers mois</p>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={userStats.months} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f4f8"/>
+                      <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#374151' }} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                      <Tooltip content={<CustomTooltip/>}/>
+                      <Bar dataKey="value" name="Inscriptions" fill="#0B3D2E" radius={[6, 6, 0, 0]}/>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Row 3 : Âge + Streaks */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Tranches d'âge */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <div className="flex items-start justify-between mb-1">
+                    <h3 className="text-base font-black text-gray-900">Tranches d'Âge</h3>
+                    {userStats.withAge === 0 && (
+                      <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">Date naissance non renseignée</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mb-5">Distribution par groupe d'âge</p>
+                  {userStats.withAge === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-52 text-gray-400">
+                      <UsersIcon className="w-10 h-10 mb-2 opacity-30"/>
+                      <p className="text-sm">Données d'âge non disponibles</p>
+                      <p className="text-xs mt-1 text-center max-w-48">Les apprenants n'ont pas encore renseigné leur date de naissance</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={userStats.ageData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f4f8"/>
+                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }} axisLine={false} tickLine={false}/>
+                        <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<CustomTooltip/>}/>
+                        <Bar dataKey="value" name="Apprenants" radius={[6, 6, 0, 0]}>
+                          {userStats.ageData.map((d, i) => <Cell key={i} fill={d.fill}/>)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Distribution streaks */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Distribution des Streaks</h3>
+                  <p className="text-sm text-gray-500 mb-5">Régularité d'apprentissage des utilisateurs</p>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={userStats.streakData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f4f8"/>
+                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                      <Tooltip content={<CustomTooltip/>}/>
+                      <Bar dataKey="value" name="Apprenants" radius={[6, 6, 0, 0]}>
+                        {userStats.streakData.map((d, i) => <Cell key={i} fill={d.fill}/>)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    Streak moyen : <strong>{userStats.avgStreak} jour{userStats.avgStreak > 1 ? 's' : ''}</strong>
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
 
         {/* ── CARTE DE CÔTE D'IVOIRE ───────────────────────────────────────── */}

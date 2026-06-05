@@ -6,7 +6,7 @@
  *  2. 🤝 Contributions       — dons et parrainages des utilisateurs / organisations
  *  3. 📊 Comptabilité        — tableau de bord financier consolidé
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PageHelp from '../components/PageHelp';
 import { financeAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,7 +16,7 @@ import {
   BanknotesIcon, ChartBarIcon, UserGroupIcon,
   ArrowDownTrayIcon, BuildingLibraryIcon,
   StarIcon, UserCircleIcon, ShieldCheckIcon,
-  ArrowPathIcon, NoSymbolIcon,
+  ArrowPathIcon, NoSymbolIcon, DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -1361,6 +1361,68 @@ export default function FinancePage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   const [activeTab, setActiveTab] = useState('tarifs');
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const reportRef = useRef(null);
+
+  const TAB_LABELS = {
+    tarifs: 'Tarifs & Paiements',
+    contributions: 'Contributions',
+    comptabilite: 'Comptabilité',
+  };
+
+  const exportPDF = async () => {
+    if (!reportRef.current) return;
+    setExportingPDF(true);
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, logging: false });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 12;
+      const usableW = pageW - margin * 2;
+      const imgH = (canvas.height * usableW) / canvas.width;
+      const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      // En-tête
+      pdf.setFillColor(11, 61, 46);
+      pdf.rect(0, 0, pageW, 18, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(13);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Finance — ${TAB_LABELS[activeTab]}`, margin, 12);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Généré le ${today}`, pageW - margin, 12, { align: 'right' });
+
+      // Contenu paginé
+      const contentY = 22;
+      const availH = pageH - contentY - margin;
+      let yOffset = 0;
+      while (yOffset < imgH) {
+        if (yOffset > 0) { pdf.addPage(); }
+        const sliceH = Math.min(availH, imgH - yOffset);
+        const srcY = (yOffset / imgH) * canvas.height;
+        const srcH = (sliceH / imgH) * canvas.height;
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = srcH;
+        sliceCanvas.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+        pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, yOffset === 0 ? contentY : margin, usableW, sliceH);
+        yOffset += availH;
+      }
+
+      pdf.save(`finance_${activeTab}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   const TABS = [
     { key: 'tarifs',        label: '💰 Tarifs & Paiements',      icon: BanknotesIcon    },
@@ -1381,6 +1443,13 @@ export default function FinancePage() {
             Gestion des droits, paiements, contributions et comptabilité de la plateforme
           </p>
         </div>
+        <button onClick={exportPDF} disabled={exportingPDF}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary-300 bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors text-sm font-semibold disabled:opacity-50">
+          {exportingPDF
+            ? <><span className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"/><span>Export…</span></>
+            : <><DocumentArrowDownIcon className="w-4 h-4"/><span>Exporter PDF</span></>
+          }
+        </button>
       </div>
 
       {/* Onglets */}
@@ -1399,9 +1468,11 @@ export default function FinancePage() {
       </div>
 
       {/* Contenu des onglets */}
-      {activeTab === 'tarifs'        && <TarifsTab isAdmin={isAdmin}/>}
-      {activeTab === 'contributions' && <ContributionsTab/>}
-      {activeTab === 'comptabilite'  && <ComptabiliteTab/>}
+      <div ref={reportRef}>
+        {activeTab === 'tarifs'        && <TarifsTab isAdmin={isAdmin}/>}
+        {activeTab === 'contributions' && <ContributionsTab/>}
+        {activeTab === 'comptabilite'  && <ComptabiliteTab/>}
+      </div>
       <PageHelp pageId="finance" />
     </div>
   );
