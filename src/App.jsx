@@ -43,6 +43,7 @@ import MathematiquePage from './pages/MathematiquePage';
 import MonnaiePage from './pages/MonnaiePage';
 import InstitutionsPage from './pages/InstitutionsPage';
 import ValidationCommitteePage from './pages/ValidationCommitteePage';
+import RapportEditeursPage from './pages/RapportEditeursPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -101,6 +102,7 @@ export default function App() {
           <Route path="guide" element={<UserGuidePage />} />
           {/* Admin only */}
           <Route path="users" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><UsersPage /></ProtectedRoute>} />
+          <Route path="rapport-editeurs" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><RapportEditeursPage /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

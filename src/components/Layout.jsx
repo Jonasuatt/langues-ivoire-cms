@@ -107,6 +107,7 @@ const NAV_SECTIONS = [
     items: [
       { to: '/users', label: 'Utilisateurs', icon: UsersIcon, adminOnly: true },
       { to: '/validation-committee', label: 'Comité ILA', icon: ShieldCheckIcon, adminOnly: true },
+      { to: '/rapport-editeurs', label: 'Rapport d\'activité', icon: PresentationChartLineIcon, adminOnly: true },
     ],
   },
   {
