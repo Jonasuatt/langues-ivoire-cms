@@ -256,8 +256,8 @@ export default function Layout() {
 
       {/* Contenu principal */}
       <main className="flex-1 overflow-y-auto min-w-0">
-        {/* Barre supérieure mobile avec bouton hamburger */}
-        <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 md:hidden">
+        {/* Barre supérieure avec bouton hamburger — visible mobile toujours, desktop seulement si sidebar fermé */}
+        <div className={`sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 ${sidebarOpen ? 'md:hidden' : ''}`}>
           <button
             onClick={toggleSidebar}
             className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary-500 hover:bg-primary-600 flex items-center justify-center transition-colors"
