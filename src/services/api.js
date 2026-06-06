@@ -186,6 +186,17 @@ export const financeAPI = {
   getResume: (params) => api.get('/finance/resume', { params }),
 };
 
+export const depensesAPI = {
+  getAll:        (params) => api.get('/depenses', { params }),
+  getResume:     (params) => api.get('/depenses/resume', { params }),
+  create:        (data)   => api.post('/depenses', data),
+  update:        (id, data) => api.patch(`/depenses/${id}`, data),
+  delete:        (id)     => api.delete(`/depenses/${id}`),
+  uploadPJ:      (formData) => api.post('/depenses/upload-pj', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+};
+
 export const textContentAPI = {
   list: (params) => api.get('/text-contents/admin/list', { params }),
   create: (data) => api.post('/text-contents/admin', data),
