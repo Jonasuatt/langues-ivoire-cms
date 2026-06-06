@@ -7,6 +7,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   analyticsAPI, tutorsAPI, certificatesAPI, languagesAPI, adminAPI, committeeAPI,
+  financeAPI,
 } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -15,7 +16,7 @@ import {
   DocumentArrowDownIcon, CalendarDaysIcon, ChartBarIcon,
   UserGroupIcon, CpuChipIcon, ShieldCheckIcon, StarIcon,
   ArrowTrendingUpIcon, LightBulbIcon, BuildingLibraryIcon,
-  LanguageIcon,
+  LanguageIcon, BanknotesIcon,
 } from '@heroicons/react/24/outline';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -304,6 +305,8 @@ export default function PartenairePage() {
   const [members,        setMembers]        = useState([]);
   const [allUsers,       setAllUsers]       = useState([]);
   const [committeeStats, setCommitteeStats] = useState(null);
+  const [financeResume,  setFinanceResume]  = useState(null);
+  const [tarifs,         setTarifs]         = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [loadedAt,       setLoadedAt]       = useState(null);
   const [selectedLangId, setSelectedLangId] = useState(null);
@@ -318,7 +321,9 @@ export default function PartenairePage() {
       tutorsAPI.getAll().catch(() => ({ data: [] })),
       adminAPI.getUsers({ limit: 1000 }).catch(() => ({ data: { data: [] } })),
       committeeAPI.getStats().catch(() => ({ data: null })),
-    ]).then(([s, lang, cert, tut, users, committee]) => {
+      financeAPI.getResume().catch(() => ({ data: {} })),
+      financeAPI.getTarifs().catch(() => ({ data: [] })),
+    ]).then(([s, lang, cert, tut, users, committee, finResume, finTarifs]) => {
       setStats(s.data ?? {});
       setLanguages(Array.isArray(lang.data) ? lang.data : lang.data?.data ?? []);
       setCerts(cert.data?.data ?? cert.data ?? []);
@@ -329,6 +334,8 @@ export default function PartenairePage() {
         ['EDITOR', 'CONTRIBUTOR', 'ADMIN', 'SUPER_ADMIN'].includes(u.role)
       ));
       setCommitteeStats(committee.data ?? null);
+      setFinanceResume(finResume.data ?? {});
+      setTarifs(Array.isArray(finTarifs.data) ? finTarifs.data : []);
       setLoadedAt(new Date());
     }).finally(() => setLoading(false));
   }, []);
@@ -657,6 +664,140 @@ export default function PartenairePage() {
             />
           </div>
         )}
+
+        {/* ── PHASE 0 — INVESTISSEMENT PRÉ-CANDIDATURE ────────────────────── */}
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 fade-in-up">
+          <div className="flex items-center gap-3 mb-6 flex-wrap">
+            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+              <BanknotesIcon className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-black text-gray-900">Investissement Phase 0 — Avant toute subvention</h2>
+              <p className="text-sm text-gray-500">Capital engagé par les partenaires fondateurs avant toute demande externe</p>
+            </div>
+            <span className="text-sm font-black bg-amber-500 text-white px-4 py-2 rounded-xl flex-shrink-0">~93 280 USD</span>
+          </div>
+
+          {/* Tableau de valorisation */}
+          <div className="bg-white rounded-xl border border-amber-100 overflow-hidden mb-5">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-amber-500 text-white">
+                  <th className="text-left px-4 py-3 font-bold">Composant développé</th>
+                  <th className="text-center px-3 py-3 font-bold hidden sm:table-cell">Durée</th>
+                  <th className="text-right px-4 py-3 font-bold hidden xs:table-cell">Coût FCFA</th>
+                  <th className="text-right px-4 py-3 font-bold">Valorisation USD</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { label: 'App mobile (45 écrans, offline, IA, gamification)', duree: '18 mois-éq.', fcfa: '21 600 000', usd: '~35 400' },
+                  { label: 'CMS Back-Office (43 modules de gestion)',            duree: '12 mois-éq.', fcfa: '12 000 000', usd: '~19 700' },
+                  { label: 'API REST (33 routes, auth JWT, PostgreSQL)',         duree: '9 mois-éq.',  fcfa: '9 000 000',  usd: '~14 750' },
+                  { label: 'IA Linguistique & Tuteurs Ethniques Virtuels',       duree: '6 mois-éq.',  fcfa: '7 200 000',  usd: '~11 800' },
+                  { label: 'Design UI/UX + identité visuelle',                   duree: '3 mois-éq.',  fcfa: '2 100 000',  usd: '~3 440'  },
+                  { label: 'Infrastructure cloud (Railway, Netlify, EAS)',       duree: '18 mois',     fcfa: '1 800 000',  usd: '~2 950'  },
+                  { label: 'Tests, débogage, déploiements continus',             duree: '4 mois-éq.',  fcfa: '3 200 000',  usd: '~5 250'  },
+                ].map((r, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-amber-50/40'}>
+                    <td className="px-4 py-2.5 text-gray-800 font-medium text-xs sm:text-sm">{r.label}</td>
+                    <td className="px-3 py-2.5 text-center text-gray-500 text-xs hidden sm:table-cell">{r.duree}</td>
+                    <td className="px-4 py-2.5 text-right text-gray-500 font-mono text-xs hidden xs:table-cell">{r.fcfa} FCFA</td>
+                    <td className="px-4 py-2.5 text-right text-amber-700 font-bold text-sm">{r.usd} USD</td>
+                  </tr>
+                ))}
+                <tr className="bg-amber-500 text-white">
+                  <td className="px-4 py-3 font-black text-sm">TOTAL PHASE 0</td>
+                  <td className="px-3 py-3 hidden sm:table-cell" />
+                  <td className="px-4 py-3 text-right font-mono text-xs hidden xs:table-cell">56 900 000 FCFA</td>
+                  <td className="px-4 py-3 text-right font-black">~93 280 USD</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Sources de financement */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+            {[
+              { label: 'ONG AGI',    sub: 'Africa Global International', color: 'bg-emerald-500', desc: 'Partenaire fondateur institutionnel', Icon: BuildingLibraryIcon },
+              { label: 'SFP',        sub: 'Sans Frontière Properties',   color: 'bg-blue-500',    desc: 'Partenaire fondateur immobilier',    Icon: BuildingLibraryIcon },
+              { label: 'Fondateur',  sub: 'Ouattara Nogolourgo Jonas',   color: 'bg-violet-500',  desc: 'Apport personnel & technique',       Icon: UserGroupIcon },
+            ].map(f => (
+              <div key={f.label} className="bg-white rounded-xl p-4 border border-amber-100 flex items-center gap-3">
+                <div className={`w-10 h-10 ${f.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <f.Icon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-black text-gray-900 text-sm">{f.label}</p>
+                  <p className="text-xs text-gray-500 italic leading-tight">{f.sub}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-amber-700 text-center font-semibold bg-amber-100 rounded-lg py-2 px-4">
+            ✅ 93 280 USD investis AVANT toute demande externe — preuve d'engagement et de capacité d'exécution technique prouvée
+          </p>
+        </div>
+
+        {/* ── REVENUS & MODÈLE ÉCONOMIQUE ──────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <ArrowTrendingUpIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-gray-900">Revenus & Modèle Économique</h2>
+              <p className="text-sm text-gray-500">Données réelles · Phase démo — données définitives au lancement officiel</p>
+            </div>
+          </div>
+
+          {/* KPIs finance */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: 'Total encaissé',         value: financeResume?.totalEncaisse  ?? 0, color: 'bg-green-600',  suffix: ' FCFA' },
+              { label: 'En attente paiement',    value: financeResume?.totalEnAttente ?? 0, color: 'bg-amber-500',  suffix: ' FCFA' },
+              { label: 'Encaissé ce mois',       value: financeResume?.encaisseMonth  ?? 0, color: 'bg-blue-600',   suffix: ' FCFA' },
+              { label: 'Abonnés Premium actifs', value: allUsers.filter(u => u.isPremium).length, color: 'bg-violet-600', suffix: '' },
+            ].map(k => (
+              <div key={k.label} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className={`w-8 h-8 ${k.color} rounded-lg flex items-center justify-center mb-2`}>
+                  <BanknotesIcon className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-xl font-black text-gray-900"><AnimatedNumber value={k.value} />{k.suffix}</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5 leading-tight">{k.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Grille tarifaire */}
+          <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">Grille tarifaire en vigueur</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {(tarifs.length > 0 ? tarifs.map(t => ({
+              label: t.nom, prix: `${t.prix?.toLocaleString('fr-FR')} FCFA`, desc: t.description ?? '', color: 'border-gray-200 bg-gray-50',
+            })) : [
+              { label: 'Abonnement Premium',   prix: '500 FCFA/mois',  desc: 'Accès illimité, certifications, hors-ligne', color: 'border-green-200 bg-green-50' },
+              { label: 'Annonce Partenaire',   prix: '5 000 FCFA',     desc: 'Visibilité dans l\'app mobile',               color: 'border-blue-200 bg-blue-50'   },
+              { label: 'Publicité Standard',   prix: '15 000 FCFA',    desc: 'Campagne push + in-app',                     color: 'border-violet-200 bg-violet-50'},
+              { label: 'Certification Langue', prix: 'Sur devis',      desc: 'Contrat institutionnel école/entreprise',    color: 'border-amber-200 bg-amber-50' },
+            ]).map(t => (
+              <div key={t.label} className={`rounded-xl border p-4 ${t.color}`}>
+                <p className="font-black text-gray-900 text-sm leading-tight">{t.label}</p>
+                <p className="text-base font-black text-primary-700 mt-1">{t.prix}</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">{t.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Projection Phase B */}
+          <div className="bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl p-4 text-white">
+            <p className="text-sm font-black mb-1">📈 Projection Phase B (2029) — Autofinancement complet</p>
+            <p className="text-xs text-white/80">
+              2 000 000 utilisateurs × 5% taux de conversion premium × 500 FCFA/mois
+              = <strong className="text-white text-sm">50 000 USD/mois</strong> — projet entièrement autofinancé dès 2028
+            </p>
+          </div>
+        </div>
 
         {/* ── COMITÉ DE VALIDATION ILA ─────────────────────────────────────── */}
         {!loading && committeeStats && (
@@ -1434,6 +1575,134 @@ export default function PartenairePage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ── PIPELINE DES PARTENARIATS ────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <BuildingLibraryIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-gray-900">Pipeline des Partenariats</h2>
+              <p className="text-sm text-gray-500">Statut des partenariats institutionnels et financiers en cours</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {[
+              { nom: 'ONG AGI — Africa Global International',           role: 'Partenaire fondateur financier', statut: 'ACTIF', dotColor: 'bg-green-500',   badgeColor: 'bg-green-100 text-green-700 border-green-200',    detail: 'Co-financement Phase 0 · Soutien institutionnel actif' },
+              { nom: 'SFP — Sans Frontière Properties',                 role: 'Partenaire fondateur financier', statut: 'ACTIF', dotColor: 'bg-green-500',   badgeColor: 'bg-green-100 text-green-700 border-green-200',    detail: 'Co-financement Phase 0 · Réseau entreprises et immobilier' },
+              { nom: 'LINGUA Africa (Microsoft AI / Gates / Masakhane)',role: 'Bailleur de fonds Phase A',      statut: 'CANDIDATURE DÉPOSÉE', dotColor: 'bg-blue-500', badgeColor: 'bg-blue-100 text-blue-700 border-blue-200', detail: '250 000 USD cash + 400 000 USD Azure compute · Deadline 15 juin 2026' },
+              { nom: 'ILA — Institut de Linguistique Appliquée (UFHB)', role: 'Partenaire scientifique',        statut: 'EN NÉGOCIATION', dotColor: 'bg-amber-500', badgeColor: 'bg-amber-100 text-amber-700 border-amber-200', detail: 'Validation phonétique · Sélection des locuteurs · Publications scientifiques' },
+              { nom: 'Ministère de l\'Éducation Nationale CI',          role: 'Partenaire institutionnel',      statut: 'EN PROSPECTION', dotColor: 'bg-violet-400', badgeColor: 'bg-violet-100 text-violet-700 border-violet-200', detail: 'Intégration dans 100 établissements pilotes · Phase A 2027' },
+              { nom: 'Google for Education / Google.org',               role: 'Bailleur de fonds complémentaire', statut: 'EN PROSPECTION', dotColor: 'bg-violet-400', badgeColor: 'bg-violet-100 text-violet-700 border-violet-200', detail: 'Financement complémentaire Phase B · Expansion CEDEAO 7 pays' },
+            ].map((p, i) => (
+              <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50 hover:bg-white hover:shadow-sm transition-all">
+                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${p.dotColor}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <p className="font-black text-gray-900 text-sm">{p.nom}</p>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${p.badgeColor}`}>{p.statut}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 italic">{p.role}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{p.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── ROADMAP FINANCIÈRE ───────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <LightBulbIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-gray-900">Roadmap Financière — Vision 6 ans</h2>
+              <p className="text-sm text-gray-500">Phase A avec LINGUA Africa (2026–2028) + Phase B autofinancement (2029–2031)</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Phase A */}
+            <div className="bg-gradient-to-br from-primary-50 to-emerald-50 border border-primary-200 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span className="bg-primary-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">PHASE A · 2026–2028</span>
+                <span className="text-xs text-primary-600 font-bold">Avec LINGUA Africa</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  ['T3 2026',    'Recrutement 20 locuteurs natifs · Setup studio d\'enregistrement'],
+                  ['T4 2026',    '40 000 utterances annotées · 1er modèle ASR Baoulé fine-tuné'],
+                  ['T1 2027',    'Lancement officiel Play Store & App Store avec données réelles'],
+                  ['T2–T4 2027', '50 langues intégrées · 500 000 utterances publiées sur Hugging Face'],
+                  ['2028',       '70+ langues · 2 000 000 utilisateurs · 800K utterances CC BY 4.0'],
+                ].map(([period, milestone], i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-xs font-bold text-primary-600 bg-primary-100 px-2 py-1 rounded-lg flex-shrink-0 min-w-[4.5rem] text-center leading-tight">{period}</span>
+                    <p className="text-xs text-gray-700 leading-relaxed pt-1">{milestone}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-primary-200">
+                <p className="text-xs font-black text-primary-700">💰 Budget Phase A : 250 000 USD + 400 000 USD Azure compute</p>
+              </div>
+            </div>
+            {/* Phase B */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span className="bg-green-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">PHASE B · 2029–2031</span>
+                <span className="text-xs text-green-700 font-bold">Autofinancement</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  ['2029', 'Abonnements premium 500 FCFA/mois · Certifications institutionnelles (écoles, entreprises)'],
+                  ['2029', 'Cession de licences des corpus validés à des institutions de recherche'],
+                  ['2030', 'Expansion CEDEAO — 7 pays : Burkina Faso, Mali, Ghana, Guinée, Sénégal…'],
+                  ['2031', 'N°1 Afrique de l\'Ouest — Préservation numérique des langues ethniques'],
+                ].map(([period, milestone], i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg flex-shrink-0 min-w-[4.5rem] text-center leading-tight">{period}</span>
+                    <p className="text-xs text-gray-700 leading-relaxed pt-1">{milestone}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-green-200">
+                <p className="text-xs font-black text-green-700">📈 Projection : 50 000 USD/mois dès 2028 — projet autofinancé</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── DOCUMENTS PARTENAIRES ────────────────────────────────────────── */}
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 text-white">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <DocumentArrowDownIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black">Documents Partenaires</h2>
+              <p className="text-sm text-white/60">Exportez les rapports officiels du projet</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Tableau de Bord (PDF)',        desc: 'Export complet de cette page partenaires',   icon: '📋', action: () => window.print(),    color: 'bg-primary-600 hover:bg-primary-500' },
+              { label: 'Statistiques Apprenants',      desc: 'Rapport démographique & pédagogique',        icon: '📊', action: exportStatsPDF,          color: 'bg-blue-600 hover:bg-blue-500'      },
+              { label: 'Rapport d\'Activité Éditeurs', desc: 'Disponible dans le module Rapport',          icon: '📈', action: () => window.open('/rapport-editeurs', '_blank'), color: 'bg-violet-600 hover:bg-violet-500' },
+            ].map((d, i) => (
+              <button key={i} onClick={d.action} className={`${d.color} rounded-xl p-4 text-left transition-colors flex items-start gap-3 w-full`}>
+                <span className="text-2xl flex-shrink-0">{d.icon}</span>
+                <div>
+                  <p className="font-black text-sm leading-tight">{d.label}</p>
+                  <p className="text-xs text-white/70 mt-0.5 leading-tight">{d.desc}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-white/40 text-center mt-4">
+            Document confidentiel · Réservé aux partenaires &amp; investisseurs autorisés · Langues Ivoire © {new Date().getFullYear()}
+          </p>
         </div>
 
         {/* ── IMPACT & MISSION ─────────────────────────────────────────────── */}
