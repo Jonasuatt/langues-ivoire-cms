@@ -122,8 +122,13 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [unreadMessages, setUnreadMessages] = useState(0);
+  // Sidebar fermée par défaut sur mobile (< 768px), ouverte sur desktop
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
 
   const handleLogout = () => { logout(); navigate('/login'); };
+  const toggleSidebar = () => setSidebarOpen(v => !v);
+  // Ferme la sidebar quand on clique sur un lien (utile sur mobile)
+  const handleNavClick = () => { if (window.innerWidth < 768) setSidebarOpen(false); };
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   const isPartnerOrAdmin = isAdmin || user?.role === 'PARTNER';
@@ -143,16 +148,41 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Overlay sombre sur mobile quand le sidebar est ouvert */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 md:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 bg-primary-500 text-white flex flex-col">
-        {/* Logo */}
+      <aside
+        className={`
+          fixed md:relative z-30 h-full
+          w-64 flex-shrink-0 bg-primary-500 text-white flex flex-col
+          transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-0 md:overflow-hidden'}
+        `}
+      >
+        {/* Logo + bouton fermeture */}
         <div className="p-4 border-b border-white/10">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Langues Ivoire" className="w-12 h-12 object-contain rounded-lg" />
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="font-bold text-sm leading-tight">LANGUES IVOIRE</p>
               <p className="text-xs text-white/60">Back-Office CMS</p>
             </div>
+            {/* Bouton fermer (croix) — toujours visible dans le sidebar */}
+            <button
+              onClick={toggleSidebar}
+              className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              title="Fermer le menu"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -180,6 +210,7 @@ export default function Layout() {
                       key={to}
                       to={to}
                       end={exact}
+                      onClick={handleNavClick}
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           isActive
@@ -224,7 +255,22 @@ export default function Layout() {
       </aside>
 
       {/* Contenu principal */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto min-w-0">
+        {/* Barre supérieure mobile avec bouton hamburger */}
+        <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 md:hidden">
+          <button
+            onClick={toggleSidebar}
+            className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary-500 hover:bg-primary-600 flex items-center justify-center transition-colors"
+            title="Ouvrir le menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <img src="/logo.png" alt="" className="w-7 h-7 object-contain rounded" />
+          <span className="font-bold text-sm text-primary-500 truncate">LANGUES IVOIRE CMS</span>
+        </div>
+
         <Outlet />
       </main>
     </div>
