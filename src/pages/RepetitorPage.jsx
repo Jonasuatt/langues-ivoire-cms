@@ -25,6 +25,7 @@ import {
   ArchiveBoxIcon, ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { repetitorAPI, languagesAPI } from '../services/api';
+import FileUploadField from '../components/FileUploadField';
 import PageHelp from '../components/PageHelp';
 
 // ── Constantes UI ─────────────────────────────────────────────────────────────
@@ -421,13 +422,14 @@ function MotModal({ open, onClose, onSave, languages, editData }) {
         mot:         editData.mot         ?? '',
         traduction:  editData.traduction  ?? '',
         audioUrl:    editData.audioUrl    ?? '',
+        genreVoix:   editData.genreVoix   ?? '',
         emoji:       editData.emoji       ?? '',
         categorie:   editData.categorie   ?? 'general',
         niveau:      editData.niveau      ?? 'debutant',
         ordre:       editData.ordre       ?? 0,
       });
     } else {
-      setForm({ languageId: '', languageNom: '', mot: '', traduction: '', audioUrl: '', emoji: '', categorie: 'general', niveau: 'debutant', ordre: 0 });
+      setForm({ languageId: '', languageNom: '', mot: '', traduction: '', audioUrl: '', genreVoix: '', emoji: '', categorie: 'general', niveau: 'debutant', ordre: 0 });
     }
   }, [editData, open]);
 
@@ -481,14 +483,42 @@ function MotModal({ open, onClose, onSave, languages, editData }) {
               />
             </div>
           </div>
+          {/* Upload audio + genre de voix */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">URL audio (certifié ILA) *</label>
-            <input
-              value={form.audioUrl} onChange={e => set('audioUrl', e.target.value)}
-              placeholder="https://res.cloudinary.com/…"
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+            <FileUploadField
+              type="audio"
+              label="Audio natif certifié ILA *"
+              value={form.audioUrl}
+              onChange={url => set('audioUrl', url)}
             />
           </div>
+
+          {/* Genre de voix */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-2">Genre de la voix</label>
+            <div className="flex gap-2">
+              {[
+                { value: '',  label: '— Non précisé', icon: '🎙️' },
+                { value: 'M', label: 'Voix masculine', icon: '👨' },
+                { value: 'F', label: 'Voix féminine',  icon: '👩' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => set('genreVoix', opt.value)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${
+                    form.genreVoix === opt.value
+                      ? 'border-teal-500 bg-teal-50 text-teal-700'
+                      : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="text-base">{opt.icon}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Emoji illustratif</label>
@@ -682,14 +712,24 @@ function MotsTab({ languages }) {
                 </span>
               </div>
 
-              {/* Langue + catégorie */}
-              <div className="flex items-center gap-2 mb-3">
+              {/* Langue + catégorie + genre */}
+              <div className="flex flex-wrap items-center gap-1.5 mb-3">
                 <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full capitalize font-medium">
                   {m.languageNom ?? m.languageId}
                 </span>
                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
                   {m.categorie}
                 </span>
+                {m.genreVoix === 'M' && (
+                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                    👨 Homme
+                  </span>
+                )}
+                {m.genreVoix === 'F' && (
+                  <span className="text-xs bg-pink-50 text-pink-700 px-2 py-0.5 rounded-full font-medium">
+                    👩 Femme
+                  </span>
+                )}
               </div>
 
               {/* Audio */}
