@@ -1208,6 +1208,83 @@ export const GUIDE_MODULES = [
     audioNaming: null,
   },
 
+  {
+    id: 'repetitor',
+    route: '/repetitor',
+    section: 'ia',
+    icon: '🦜',
+    title: 'RÉPÉTO',
+    subtitle: 'Compagnon Vocal ILA — Phase 1 : Mode Écho',
+    color: 'teal',
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+    description:
+      'RÉPÉTO est un jeu vocal conçu pour tous les apprenants, y compris les plus jeunes qui ne savent pas encore lire. L\'application joue un mot en langue locale et l\'apprenant le répète à voix haute. En Phase 1 (Mode Écho), chaque enregistrement est conservé pour constituer un corpus audio unique des langues ethniques ivoiriennes. Notre objectif : après un corpus suffisamment large grâce à nos locuteurs, passer à la Phase 2 — Reconnaissance Vocale ILA.',
+    objectifs: [
+      'Rendre l\'apprentissage des langues accessibles aux non-lecteurs et aux très jeunes enfants',
+      'Constituer un corpus audio varié (enfants, adultes, dialectes régionaux) pour les langues ivoiriennes',
+      'Préparer les données d\'entraînement pour la future IA de reconnaissance vocale ILA',
+      'Gamifier la répétition pour maximiser l\'engagement et la rétention',
+    ],
+    features: [
+      '📊 Tableau de bord : KPIs (sessions, mots actifs, langues, pipeline ILA)',
+      '📊 Répartition des sessions par langue et par groupe d\'âge',
+      '🎙️ Onglet Sessions : liste de toutes les répétitions enregistrées depuis l\'app mobile',
+      '🎙️ Écoute des enregistrements enfants + comparaison avec l\'audio natif ILA',
+      '🔵 Actions de statut : BRUT → SOUMIS_ILA → ARCHIVÉ',
+      '📝 Onglet Mots du jeu : catalogue des mots RÉPÉTO par langue',
+      '📝 Ajout/modification/suppression de mots (mot, traduction, audio certifié, emoji, catégorie, niveau)',
+      '▶/⏸ Activation/désactivation de mots sans suppression',
+      '🚀 Bannière Phase 1 + roadmap Phase 2 et Phase 3 visible dans l\'interface',
+      'Filtres par langue, statut, âge sur toutes les listes',
+    ],
+    steps: [
+      {
+        title: 'Ajouter les premiers mots du catalogue',
+        desc: 'Allez dans l\'onglet "Mots du jeu" → cliquez "+ Ajouter un mot". Choisissez une langue, saisissez le mot en langue locale, sa traduction française et l\'URL audio certifiée ILA. Ajoutez un emoji pour rendre le jeu plus visuels.',
+      },
+      {
+        title: 'Vérifier l\'audio natif',
+        desc: 'Sur chaque carte mot, cliquez "Écouter l\'audio natif". C\'est cet audio que les apprenants vont entendre avant de répéter. Il doit être clair, sans bruit de fond, prononcé par un locuteur natif certifié.',
+        warning: 'Utilisez uniquement des audios certifiés par le comité ILA. Un audio incorrect enseignera une mauvaise prononciation à grande échelle.',
+      },
+      {
+        title: 'Organiser les mots par niveau et catégorie',
+        desc: 'Définissez un niveau (Débutant / Intermédiaire / Avancé) et une catégorie (animaux, famille, couleurs…) pour chaque mot. L\'application mobile utilisera ces métadonnées pour proposer des sessions adaptées à l\'âge et au niveau de l\'apprenant.',
+      },
+      {
+        title: 'Consulter les sessions enregistrées',
+        desc: 'Dans l\'onglet "Sessions", écoutez les répétitions des apprenants. Comparez avec l\'audio natif. Identifiez les répétitions de qualité qui pourraient enrichir le corpus ILA.',
+      },
+      {
+        title: 'Soumettre les meilleures sessions au pipeline ILA',
+        desc: 'Pour une session de qualité, cliquez l\'icône ✓ (soumettre au comité ILA). La session passe en statut "Soumis ILA" et sera visible dans le module Comité ILA pour évaluation scientifique.',
+      },
+      {
+        title: 'Archiver ou supprimer les sessions inutilisables',
+        desc: 'Sessions trop bruyantes, incompréhensibles ou hors-sujet : archivez (⬜) ou supprimez (🗑️). Ne soumettez au comité que des enregistrements de qualité exploitable.',
+      },
+    ],
+    workflows: [
+      {
+        title: 'Enrichissement mensuel du corpus RÉPÉTO',
+        steps: [
+          'Consulter l\'onglet Tableau de bord → compter les nouvelles sessions BRUT du mois',
+          'Écouter chaque session BRUT — comparer avec l\'audio natif',
+          'Sessions de bonne qualité → cliquer ✓ pour soumettre au pipeline ILA',
+          'Sessions inutilisables → archiver ou supprimer',
+          'Vérifier que les nouvelles langues MVP ont bien leurs mots dans le catalogue',
+          'Ajouter 5 à 10 nouveaux mots par langue chaque mois pour diversifier le jeu',
+        ],
+      },
+    ],
+    warnings: [
+      'Phase 1 uniquement : RÉPÉTO ne fait PAS encore de reconnaissance vocale. C\'est un jeu de répétition simple. L\'IA viendra en Phase 2, après constitution du corpus.',
+      'Les enregistrements contiennent des voix d\'enfants. Traitez-les avec confidentialité — ne les partagez jamais en dehors du pipeline ILA.',
+      'Un mot sans audio certifié ILA ne peut pas être ajouté. Validez d\'abord l\'audio via le module Comité ILA.',
+    ],
+    tip: 'Commencez avec 10 à 15 mots simples (couleurs, animaux, chiffres 1 à 5) pour chaque langue MVP. Les mots courts, bien illustrés par un emoji, génèrent les meilleurs taux d\'engagement chez les jeunes apprenants.',
+  },
+
   // ─────────────────────────────────────────────
   // SECTION : PARAMÈTRES APPLICATION
   // ─────────────────────────────────────────────

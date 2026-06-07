@@ -252,4 +252,21 @@ export const committeeAPI = {
   reset:      (id)         => api.patch(`/validation-committee/${id}/reset`),
 };
 
+// ── RÉPÉTO — Compagnon Vocal ILA ──────────────────────────────────────────────
+export const repetitorAPI = {
+  // Stats du tableau de bord
+  getStats:        ()           => api.get('/repetitor/stats'),
+
+  // Mots du jeu
+  getMots:         (params)     => api.get('/repetitor/mots', { params }),
+  createMot:       (data)       => api.post('/repetitor/mots', data),
+  updateMot:       (id, data)   => api.patch(`/repetitor/mots/${id}`, data),
+  deleteMot:       (id)         => api.delete(`/repetitor/mots/${id}`),
+
+  // Sessions enregistrées
+  getSessions:     (params)     => api.get('/repetitor/sessions', { params }),
+  updateSession:   (id, data)   => api.patch(`/repetitor/sessions/${id}`, data),
+  deleteSession:   (id)         => api.delete(`/repetitor/sessions/${id}`),
+};
+
 export default api;

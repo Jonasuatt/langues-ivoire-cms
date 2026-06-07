@@ -66,6 +66,7 @@ const NAV_SECTIONS = [
       { to: '/tutors', label: 'Tuteurs IA', icon: UserGroupIcon },
       { to: '/test-agents', label: 'Test Agents IA', icon: BeakerIcon },
       { to: '/bienvenue-sons', label: 'Bienvenue & Sons', icon: MusicalNoteIcon },
+      { to: '/repetitor', label: '🦜 RÉPÉTO — Vocal ILA', icon: MicrophoneIcon, adminOnly: true },
     ],
   },
   {
