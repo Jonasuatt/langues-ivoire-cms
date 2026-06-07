@@ -246,6 +246,7 @@ export const committeeAPI = {
   getStats:   ()           => api.get('/validation-committee/stats'),
   getAll:     (params)     => api.get('/validation-committee', { params }),
   getOne:     (id)         => api.get(`/validation-committee/${id}`),
+  getRapport: (params)     => api.get('/validation-committee/rapport', { params }),
   castVote:   (id, data)   => api.post(`/validation-committee/${id}/vote`, data),
   removeVote: (id)         => api.delete(`/validation-committee/${id}/vote`),
   reset:      (id)         => api.patch(`/validation-committee/${id}/reset`),
