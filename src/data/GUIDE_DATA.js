@@ -2045,7 +2045,7 @@ export const GUIDE_MODULES = [
     section: 'admin',
     icon: '📚',
     title: 'Guide d\'Utilisation',
-    subtitle: 'Formation complète au CMS — 30+ modules documentés',
+    subtitle: 'Formation complète au CMS — 31+ modules documentés',
     color: 'gray',
     roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'],
     description:
@@ -2066,6 +2066,7 @@ export const GUIDE_MODULES = [
       'Conseils "pro" et avertissements pour éviter les erreurs fréquentes',
       'Notation des conventions audio (nommage des fichiers)',
       'Modules récents : Finance → Dépenses, Comité ILA → Rapport, Monnaie FCFA, Mathématique',
+      '🦜 RÉPÉTO (nouveau) : module IA vocale Phase 1 — mots du jeu, enregistrements enfants, pipeline corpus ILA',
     ],
     steps: [
       { title: 'Choisir votre parcours par rôle', desc: 'En haut du guide, sélectionner votre rôle (Éditeur, Expert ILA, Admin…) pour afficher un parcours de formation personnalisé avec les modules prioritaires pour votre poste.', warning: null },

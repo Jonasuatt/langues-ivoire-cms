@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   analyticsAPI, tutorsAPI, certificatesAPI, languagesAPI, adminAPI, committeeAPI,
-  financeAPI,
+  financeAPI, repetitorAPI,
 } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -16,7 +16,7 @@ import {
   DocumentArrowDownIcon, CalendarDaysIcon, ChartBarIcon,
   UserGroupIcon, CpuChipIcon, ShieldCheckIcon, StarIcon,
   ArrowTrendingUpIcon, LightBulbIcon, BuildingLibraryIcon,
-  LanguageIcon, BanknotesIcon,
+  LanguageIcon, BanknotesIcon, MicrophoneIcon,
 } from '@heroicons/react/24/outline';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -307,6 +307,7 @@ export default function PartenairePage() {
   const [committeeStats, setCommitteeStats] = useState(null);
   const [financeResume,  setFinanceResume]  = useState(null);
   const [tarifs,         setTarifs]         = useState([]);
+  const [repetitorStats, setRepetitorStats] = useState(null);
   const [loading,        setLoading]        = useState(true);
   const [loadedAt,       setLoadedAt]       = useState(null);
   const [selectedLangId, setSelectedLangId] = useState(null);
@@ -323,7 +324,8 @@ export default function PartenairePage() {
       committeeAPI.getStats().catch(() => ({ data: null })),
       financeAPI.getResume().catch(() => ({ data: {} })),
       financeAPI.getTarifs().catch(() => ({ data: [] })),
-    ]).then(([s, lang, cert, tut, users, committee, finResume, finTarifs]) => {
+      repetitorAPI.getStats().catch(() => ({ data: null })),
+    ]).then(([s, lang, cert, tut, users, committee, finResume, finTarifs, rep]) => {
       setStats(s.data ?? {});
       setLanguages(Array.isArray(lang.data) ? lang.data : lang.data?.data ?? []);
       setCerts(cert.data?.data ?? cert.data ?? []);
@@ -336,6 +338,7 @@ export default function PartenairePage() {
       setCommitteeStats(committee.data ?? null);
       setFinanceResume(finResume.data ?? {});
       setTarifs(Array.isArray(finTarifs.data) ? finTarifs.data : []);
+      if (rep.data) setRepetitorStats(rep.data);
       setLoadedAt(new Date());
     }).finally(() => setLoading(false));
   }, []);
@@ -869,6 +872,125 @@ export default function PartenairePage() {
                       {item.label}
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── RÉPÉTO — CORPUS VOCAL ILA ───────────────────────────────────── */}
+        {!loading && repetitorStats && (
+          <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6 fade-in-up">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <MicrophoneIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-lg font-black text-gray-900">🦜 RÉPÉTO — Corpus Vocal ILA</h2>
+                </div>
+                <p className="text-sm text-gray-500 ml-10">Enregistrements enfants · Constitution du corpus pour l'IA vocale</p>
+              </div>
+              <span className="text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                🔬 Phase 1 — Mode Écho
+              </span>
+            </div>
+
+            {/* Phase 1 roadmap banner */}
+            <div className="bg-gradient-to-r from-teal-700 to-teal-500 rounded-xl p-4 mb-5 text-white">
+              <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Stratégie IA Vocale</p>
+              <div className="flex items-center gap-2 flex-wrap text-sm font-semibold">
+                <span className="bg-white bg-opacity-25 px-3 py-1 rounded-full">Phase 1 · Mode Écho ✅</span>
+                <span className="opacity-50">→</span>
+                <span className="bg-white bg-opacity-10 px-3 py-1 rounded-full opacity-70">Phase 2 · Reconnaissance ILA 🔜</span>
+                <span className="opacity-50">→</span>
+                <span className="bg-white bg-opacity-10 px-3 py-1 rounded-full opacity-50">Phase 3 · IA Vocale Native 🔭</span>
+              </div>
+              <p className="text-xs mt-2 opacity-75">
+                Objectif : constituer un corpus audio suffisamment large pour entraîner un modèle de reconnaissance
+                vocale spécifique aux langues ivoiriennes.
+              </p>
+            </div>
+
+            {/* KPI cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+              <div className="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+                <p className="text-3xl font-black text-teal-700"><AnimatedNumber value={repetitorStats.totalMots} /></p>
+                <p className="text-xs text-teal-600 font-medium mt-1">🎯 Mots du jeu</p>
+              </div>
+              <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+                <p className="text-3xl font-black text-blue-700"><AnimatedNumber value={repetitorStats.totalSessions} /></p>
+                <p className="text-xs text-blue-600 font-medium mt-1">🎙️ Enregistrements</p>
+              </div>
+              <div className="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+                <p className="text-3xl font-black text-amber-600"><AnimatedNumber value={repetitorStats.soumisILA} /></p>
+                <p className="text-xs text-amber-600 font-medium mt-1">📤 Soumis ILA</p>
+              </div>
+              <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
+                <p className="text-3xl font-black text-purple-700"><AnimatedNumber value={repetitorStats.languesActives} /></p>
+                <p className="text-xs text-purple-600 font-medium mt-1">🌍 Langues actives</p>
+              </div>
+            </div>
+
+            {/* Pipeline pipeline bar */}
+            {repetitorStats.totalSessions > 0 && (
+              <div className="mb-5">
+                <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                  <span className="font-semibold">Pipeline du corpus</span>
+                  <span>
+                    {Math.round((repetitorStats.soumisILA / repetitorStats.totalSessions) * 100)}% soumis à ILA
+                  </span>
+                </div>
+                <div className="h-3 bg-gray-100 rounded-full overflow-hidden flex">
+                  <div
+                    className="bg-amber-400 transition-all duration-700"
+                    style={{ width: `${(repetitorStats.soumisILA / repetitorStats.totalSessions) * 100}%` }}
+                  />
+                  <div
+                    className="bg-gray-300 transition-all duration-700"
+                    style={{ width: `${((repetitorStats.totalSessions - repetitorStats.soumisILA - repetitorStats.archives) / repetitorStats.totalSessions) * 100}%` }}
+                  />
+                </div>
+                <div className="flex gap-4 mt-1.5 flex-wrap">
+                  {[
+                    { color: 'bg-amber-400', label: 'Soumis ILA' },
+                    { color: 'bg-teal-500',  label: 'Archivés' },
+                    { color: 'bg-gray-300',  label: 'Brut (non traité)' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${item.color}`} />
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Distribution par langue */}
+            {repetitorStats.sessionsByLangue?.length > 0 && (
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Répartition par langue</p>
+                <div className="space-y-2">
+                  {repetitorStats.sessionsByLangue.slice(0, 6).map((item, i) => {
+                    const max = repetitorStats.sessionsByLangue[0]?.count || 1;
+                    const pct = Math.round((item.count / max) * 100);
+                    const colors = ['bg-teal-500', 'bg-blue-500', 'bg-amber-500', 'bg-purple-500', 'bg-rose-500', 'bg-emerald-500'];
+                    return (
+                      <div key={item.languageId} className="flex items-center gap-3">
+                        <span className="text-xs font-semibold text-gray-600 w-20 shrink-0 truncate">
+                          {item.languageNom}
+                        </span>
+                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${colors[i % colors.length]}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-400 w-8 text-right shrink-0">{item.count}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
