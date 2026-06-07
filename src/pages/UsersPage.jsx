@@ -307,16 +307,16 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['Utilisateur', 'Titre / Fonction', 'Email', 'Rôle', 'Modules CMS', 'Mobile', 'Streak', 'Contribs', 'Dernière activité', 'Actions'].map(h => (
+                {['Utilisateur', 'Titre / Fonction', 'Email', 'Rôle', 'Modules CMS', 'Mobile', 'Streak', 'Contribs', 'Téléphone', 'Sexe', 'Âge', 'Dernière activité', 'Actions'].map(h => (
                   <th key={h} className="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={9} className="text-center py-12 text-gray-400">Chargement…</td></tr>
+                <tr><td colSpan={13} className="text-center py-12 text-gray-400">Chargement…</td></tr>
               ) : users.length === 0 ? (
-                <tr><td colSpan={9} className="text-center py-12 text-gray-400">Aucun utilisateur trouvé</td></tr>
+                <tr><td colSpan={13} className="text-center py-12 text-gray-400">Aucun utilisateur trouvé</td></tr>
               ) : users.map(u => {
                 const editable = canEditUser(myRole, u.role);
                 const userMods = u.modules ?? [];
@@ -397,6 +397,23 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-center"><span className="font-semibold text-accent">{u.streak ?? 0}🔥</span></td>
                     <td className="px-4 py-3 text-center text-gray-600">{u._count?.contributions ?? 0}</td>
+                    {/* Téléphone */}
+                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                      {u.telephone || <span className="text-gray-300 italic">—</span>}
+                    </td>
+                    {/* Sexe */}
+                    <td className="px-4 py-3 text-xs text-center">
+                      {u.genre === 'M' ? <span title="Homme">♂</span>
+                        : u.genre === 'F' ? <span title="Femme">♀</span>
+                        : u.genre === 'AUTRE' ? <span title="Autre" className="text-gray-400">⚬</span>
+                        : <span className="text-gray-300 italic">—</span>}
+                    </td>
+                    {/* Âge */}
+                    <td className="px-4 py-3 text-xs text-center text-gray-500">
+                      {u.dateNaissance
+                        ? Math.floor((Date.now() - new Date(u.dateNaissance)) / (1000 * 60 * 60 * 24 * 365.25))
+                        : <span className="text-gray-300 italic">—</span>}
+                    </td>
                     <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
                       {u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleDateString('fr-FR') : 'Jamais'}
                     </td>

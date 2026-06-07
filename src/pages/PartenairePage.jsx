@@ -4,9 +4,10 @@
  * Vue stratégique : KPIs, graphiques, équipe, agents IA, impact mission.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   analyticsAPI, tutorsAPI, certificatesAPI, languagesAPI, adminAPI, committeeAPI,
+  financeAPI, repetitorAPI,
 } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -15,7 +16,7 @@ import {
   DocumentArrowDownIcon, CalendarDaysIcon, ChartBarIcon,
   UserGroupIcon, CpuChipIcon, ShieldCheckIcon, StarIcon,
   ArrowTrendingUpIcon, LightBulbIcon, BuildingLibraryIcon,
-  LanguageIcon,
+  LanguageIcon, BanknotesIcon, MicrophoneIcon,
 } from '@heroicons/react/24/outline';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -50,6 +51,10 @@ const MOCK_LANGUES = [
 const CERT_COLORS   = ['#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#f59e0b'];
 const LANG_COLORS   = ['#0B3D2E', '#F47920', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#f59e0b', '#06b6d4', '#ec4899'];
 const NIVEAU_LABELS = { A1: 'Débutant', A2: 'Élémentaire', B1: 'Intermédiaire', B2: 'Inter. avancé', C1: 'Avancé' };
+const ROLE_LABELS  = { USER: 'Apprenants', CONTRIBUTOR: 'Contributeurs', EDITOR: 'Éditeurs', EXPERT: 'Experts ILA', ADMIN: 'Admins', SUPER_ADMIN: 'Super Admins', PARTNER: 'Partenaires' };
+const ROLE_COLORS  = { USER: '#3b82f6', CONTRIBUTOR: '#f59e0b', EDITOR: '#8b5cf6', EXPERT: '#14b8a6', ADMIN: '#ef4444', SUPER_ADMIN: '#dc2626', PARTNER: '#10b981' };
+const STREAK_COLORS = ['#e5e7eb', '#86efac', '#4ade80', '#22c55e', '#16a34a'];
+const AGE_COLORS    = ['#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#1d4ed8'];
 
 // ─── Animated counter hook ────────────────────────────────────────────────────
 function useCountUp(target, duration = 1500) {
@@ -298,10 +303,16 @@ export default function PartenairePage() {
   const [certs,          setCerts]          = useState([]);
   const [tutors,         setTutors]         = useState([]);
   const [members,        setMembers]        = useState([]);
+  const [allUsers,       setAllUsers]       = useState([]);
   const [committeeStats, setCommitteeStats] = useState(null);
+  const [financeResume,  setFinanceResume]  = useState(null);
+  const [tarifs,         setTarifs]         = useState([]);
+  const [repetitorStats, setRepetitorStats] = useState(null);
   const [loading,        setLoading]        = useState(true);
   const [loadedAt,       setLoadedAt]       = useState(null);
   const [selectedLangId, setSelectedLangId] = useState(null);
+  const [exportingStats, setExportingStats] = useState(false);
+  const statsRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
@@ -309,18 +320,25 @@ export default function PartenairePage() {
       languagesAPI.getAll().catch(() => ({ data: [] })),
       certificatesAPI.getAll({ limit: 500 }).catch(() => ({ data: { data: [] } })),
       tutorsAPI.getAll().catch(() => ({ data: [] })),
-      adminAPI.getUsers({ limit: 200 }).catch(() => ({ data: { data: [] } })),
+      adminAPI.getUsers({ limit: 1000 }).catch(() => ({ data: { data: [] } })),
       committeeAPI.getStats().catch(() => ({ data: null })),
-    ]).then(([s, lang, cert, tut, users, committee]) => {
+      financeAPI.getResume().catch(() => ({ data: {} })),
+      financeAPI.getTarifs().catch(() => ({ data: [] })),
+      repetitorAPI.getStats().catch(() => ({ data: null })),
+    ]).then(([s, lang, cert, tut, users, committee, finResume, finTarifs, rep]) => {
       setStats(s.data ?? {});
       setLanguages(Array.isArray(lang.data) ? lang.data : lang.data?.data ?? []);
       setCerts(cert.data?.data ?? cert.data ?? []);
       setTutors(Array.isArray(tut.data) ? tut.data : []);
-      const allUsers = users.data?.data ?? users.data ?? [];
-      setMembers(allUsers.filter(u =>
+      const allUsers_data = users.data?.data ?? users.data ?? [];
+      setAllUsers(allUsers_data);
+      setMembers(allUsers_data.filter(u =>
         ['EDITOR', 'CONTRIBUTOR', 'ADMIN', 'SUPER_ADMIN'].includes(u.role)
       ));
       setCommitteeStats(committee.data ?? null);
+      setFinanceResume(finResume.data ?? {});
+      setTarifs(Array.isArray(finTarifs.data) ? finTarifs.data : []);
+      if (rep.data) setRepetitorStats(rep.data);
       setLoadedAt(new Date());
     }).finally(() => setLoading(false));
   }, []);
@@ -357,6 +375,141 @@ export default function PartenairePage() {
 
   const editors      = members.filter(m => m.role === 'EDITOR' || m.role === 'ADMIN' || m.role === 'SUPER_ADMIN');
   const contributors = members.filter(m => m.role === 'CONTRIBUTOR');
+
+  // ── Statistiques apprenants ────────────────────────────────────────────────
+  const userStats = useMemo(() => {
+    if (allUsers.length === 0) return null;
+
+    // Niveaux préférés
+    const niveaux = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 };
+    allUsers.forEach(u => { if (u.niveauPref && niveaux[u.niveauPref] !== undefined) niveaux[u.niveauPref]++; });
+    const niveauData = ['A1','A2','B1','B2','C1'].map((k, i) => ({
+      name: k, label: NIVEAU_LABELS[k], value: niveaux[k],
+      fill: CERT_COLORS[i],
+    })).filter(d => d.value > 0);
+
+    // Premium vs Gratuit
+    const nbPremium = allUsers.filter(u => u.isPremium).length;
+    const premiumData = [
+      { name: '⭐ Premium', value: nbPremium, fill: '#f59e0b' },
+      { name: '🆓 Gratuit',  value: allUsers.length - nbPremium, fill: '#e5e7eb' },
+    ].filter(d => d.value > 0);
+
+    // Langues favorites (languesFavorites = String[])
+    const langCount = {};
+    allUsers.forEach(u => { (u.languesFavorites || []).forEach(code => { langCount[code] = (langCount[code] || 0) + 1; }); });
+    const langData = Object.entries(langCount)
+      .sort((a, b) => b[1] - a[1]).slice(0, 8)
+      .map(([code, value]) => ({ name: code, value }));
+
+    // Inscriptions par mois (6 derniers mois)
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      return { key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleDateString('fr-FR', { month:'short', year:'2-digit' }), value: 0 };
+    });
+    allUsers.forEach(u => {
+      if (!u.createdAt) return;
+      const d = new Date(u.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const m = months.find(m => m.key === key);
+      if (m) m.value++;
+    });
+
+    // Tranches d'âge
+    const AGE_TR = [
+      { label: '< 18 ans', min: 0, max: 17 },
+      { label: '18–25', min: 18, max: 25 },
+      { label: '26–35', min: 26, max: 35 },
+      { label: '36–45', min: 36, max: 45 },
+      { label: '46+',  min: 46, max: 999 },
+    ];
+    const ageData = AGE_TR.map((t, i) => ({ name: t.label, value: 0, fill: AGE_COLORS[i], min: t.min, max: t.max }));
+    let withAge = 0;
+    allUsers.forEach(u => {
+      if (!u.dateNaissance) return;
+      const age = Math.floor((Date.now() - new Date(u.dateNaissance)) / (365.25 * 86400000));
+      const t = ageData.find(t => age >= t.min && age <= t.max);
+      if (t) { t.value++; withAge++; }
+    });
+
+    // Distribution streaks
+    const STREAK_TR = [
+      { label: '0 jour',   min: 0,   max: 0   },
+      { label: '1–7 j',    min: 1,   max: 7   },
+      { label: '8–30 j',   min: 8,   max: 30  },
+      { label: '31–99 j',  min: 31,  max: 99  },
+      { label: '100+ j',   min: 100, max: Infinity },
+    ];
+    const streakData = STREAK_TR.map((t, i) => ({ name: t.label, value: 0, fill: STREAK_COLORS[i], min: t.min, max: t.max }));
+    allUsers.forEach(u => {
+      const s = u.streak ?? 0;
+      const t = streakData.find(t => s >= t.min && s <= t.max);
+      if (t) t.value++;
+    });
+
+    // Rôles
+    const roleOrder = ['USER','CONTRIBUTOR','EDITOR','EXPERT','ADMIN','SUPER_ADMIN','PARTNER'];
+    const roleCount = {};
+    allUsers.forEach(u => { roleCount[u.role] = (roleCount[u.role] || 0) + 1; });
+    const roleData = roleOrder.filter(r => roleCount[r] > 0).map(r => ({
+      name: ROLE_LABELS[r] || r, value: roleCount[r], fill: ROLE_COLORS[r] || '#9ca3af',
+    }));
+
+    // KPIs synthèse
+    const nbActifs   = allUsers.filter(u => (u.streak ?? 0) > 0).length;
+    const avgStreak  = Math.round(allUsers.reduce((s, u) => s + (u.streak ?? 0), 0) / allUsers.length);
+    const avgXp      = Math.round(allUsers.reduce((s, u) => s + (u.bonusXp ?? 0), 0) / allUsers.length);
+    const topNiveau  = niveauData.sort((a, b) => b.value - a.value)[0]?.name ?? '—';
+
+    return { niveauData, premiumData, langData, months, ageData, withAge, streakData, roleData,
+             nbPremium, nbActifs, avgStreak, avgXp, topNiveau };
+  }, [allUsers]);
+
+  // ── Export PDF section statistiques ───────────────────────────────────────
+  const exportStatsPDF = async () => {
+    if (!statsRef.current) return;
+    setExportingStats(true);
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'), import('html2canvas'),
+      ]);
+      const canvas = await html2canvas(statsRef.current, { scale: 2, useCORS: true, logging: false });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 12;
+      const usableW = pageW - margin * 2;
+      const imgH = (canvas.height * usableW) / canvas.width;
+      const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      pdf.setFillColor(11, 61, 46);
+      pdf.rect(0, 0, pageW, 18, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(13); pdf.setFont('helvetica', 'bold');
+      pdf.text('Statistiques des Apprenants — Langues Ivoire', margin, 12);
+      pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
+      pdf.text(`Généré le ${today} · ${allUsers.length} utilisateurs`, pageW - margin, 12, { align: 'right' });
+
+      const contentY = 22;
+      const availH = pageH - contentY - margin;
+      let yOffset = 0;
+      while (yOffset < imgH) {
+        if (yOffset > 0) pdf.addPage();
+        const sliceH = Math.min(availH, imgH - yOffset);
+        const srcY = (yOffset / imgH) * canvas.height;
+        const srcH = (sliceH / imgH) * canvas.height;
+        const sl = document.createElement('canvas');
+        sl.width = canvas.width; sl.height = srcH;
+        sl.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+        pdf.addImage(sl.toDataURL('image/png'), 'PNG', margin, yOffset === 0 ? contentY : margin, usableW, sliceH);
+        yOffset += availH;
+      }
+      pdf.save(`stats_apprenants_${new Date().toISOString().slice(0,10)}.pdf`);
+    } catch (e) { console.error(e); }
+    finally { setExportingStats(false); }
+  };
 
   const totalWords = stats?.content?.totalWords ?? 0;
   const totalLessons = stats?.content?.totalLessonsCompleted ?? 0;
@@ -515,6 +668,140 @@ export default function PartenairePage() {
           </div>
         )}
 
+        {/* ── PHASE 0 — INVESTISSEMENT PRÉ-CANDIDATURE ────────────────────── */}
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 fade-in-up">
+          <div className="flex items-center gap-3 mb-6 flex-wrap">
+            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+              <BanknotesIcon className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-black text-gray-900">Investissement Phase 0 — Avant toute subvention</h2>
+              <p className="text-sm text-gray-500">Capital engagé par les partenaires fondateurs avant toute demande externe</p>
+            </div>
+            <span className="text-sm font-black bg-amber-500 text-white px-4 py-2 rounded-xl flex-shrink-0">~93 280 USD</span>
+          </div>
+
+          {/* Tableau de valorisation */}
+          <div className="bg-white rounded-xl border border-amber-100 overflow-hidden mb-5">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-amber-500 text-white">
+                  <th className="text-left px-4 py-3 font-bold">Composant développé</th>
+                  <th className="text-center px-3 py-3 font-bold hidden sm:table-cell">Durée</th>
+                  <th className="text-right px-4 py-3 font-bold hidden xs:table-cell">Coût FCFA</th>
+                  <th className="text-right px-4 py-3 font-bold">Valorisation USD</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { label: 'App mobile (45 écrans, offline, IA, gamification)', duree: '18 mois-éq.', fcfa: '21 600 000', usd: '~35 400' },
+                  { label: 'CMS Back-Office (43 modules de gestion)',            duree: '12 mois-éq.', fcfa: '12 000 000', usd: '~19 700' },
+                  { label: 'API REST (33 routes, auth JWT, PostgreSQL)',         duree: '9 mois-éq.',  fcfa: '9 000 000',  usd: '~14 750' },
+                  { label: 'IA Linguistique & Tuteurs Ethniques Virtuels',       duree: '6 mois-éq.',  fcfa: '7 200 000',  usd: '~11 800' },
+                  { label: 'Design UI/UX + identité visuelle',                   duree: '3 mois-éq.',  fcfa: '2 100 000',  usd: '~3 440'  },
+                  { label: 'Infrastructure cloud (Railway, Netlify, EAS)',       duree: '18 mois',     fcfa: '1 800 000',  usd: '~2 950'  },
+                  { label: 'Tests, débogage, déploiements continus',             duree: '4 mois-éq.',  fcfa: '3 200 000',  usd: '~5 250'  },
+                ].map((r, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-amber-50/40'}>
+                    <td className="px-4 py-2.5 text-gray-800 font-medium text-xs sm:text-sm">{r.label}</td>
+                    <td className="px-3 py-2.5 text-center text-gray-500 text-xs hidden sm:table-cell">{r.duree}</td>
+                    <td className="px-4 py-2.5 text-right text-gray-500 font-mono text-xs hidden xs:table-cell">{r.fcfa} FCFA</td>
+                    <td className="px-4 py-2.5 text-right text-amber-700 font-bold text-sm">{r.usd} USD</td>
+                  </tr>
+                ))}
+                <tr className="bg-amber-500 text-white">
+                  <td className="px-4 py-3 font-black text-sm">TOTAL PHASE 0</td>
+                  <td className="px-3 py-3 hidden sm:table-cell" />
+                  <td className="px-4 py-3 text-right font-mono text-xs hidden xs:table-cell">56 900 000 FCFA</td>
+                  <td className="px-4 py-3 text-right font-black">~93 280 USD</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Sources de financement */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+            {[
+              { label: 'ONG AGI',    sub: 'Africa Global International', color: 'bg-emerald-500', desc: 'Partenaire fondateur institutionnel', Icon: BuildingLibraryIcon },
+              { label: 'SFP',        sub: 'Sans Frontière Properties',   color: 'bg-blue-500',    desc: 'Partenaire fondateur immobilier',    Icon: BuildingLibraryIcon },
+              { label: 'Fondateur',  sub: 'Ouattara Nogolourgo Jonas',   color: 'bg-violet-500',  desc: 'Apport personnel & technique',       Icon: UserGroupIcon },
+            ].map(f => (
+              <div key={f.label} className="bg-white rounded-xl p-4 border border-amber-100 flex items-center gap-3">
+                <div className={`w-10 h-10 ${f.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <f.Icon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-black text-gray-900 text-sm">{f.label}</p>
+                  <p className="text-xs text-gray-500 italic leading-tight">{f.sub}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-amber-700 text-center font-semibold bg-amber-100 rounded-lg py-2 px-4">
+            ✅ 93 280 USD investis AVANT toute demande externe — preuve d'engagement et de capacité d'exécution technique prouvée
+          </p>
+        </div>
+
+        {/* ── REVENUS & MODÈLE ÉCONOMIQUE ──────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <ArrowTrendingUpIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-gray-900">Revenus & Modèle Économique</h2>
+              <p className="text-sm text-gray-500">Données réelles · Phase démo — données définitives au lancement officiel</p>
+            </div>
+          </div>
+
+          {/* KPIs finance */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: 'Total encaissé',         value: financeResume?.totalEncaisse  ?? 0, color: 'bg-green-600',  suffix: ' FCFA' },
+              { label: 'En attente paiement',    value: financeResume?.totalEnAttente ?? 0, color: 'bg-amber-500',  suffix: ' FCFA' },
+              { label: 'Encaissé ce mois',       value: financeResume?.encaisseMonth  ?? 0, color: 'bg-blue-600',   suffix: ' FCFA' },
+              { label: 'Abonnés Premium actifs', value: allUsers.filter(u => u.isPremium).length, color: 'bg-violet-600', suffix: '' },
+            ].map(k => (
+              <div key={k.label} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className={`w-8 h-8 ${k.color} rounded-lg flex items-center justify-center mb-2`}>
+                  <BanknotesIcon className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-xl font-black text-gray-900"><AnimatedNumber value={k.value} />{k.suffix}</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5 leading-tight">{k.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Grille tarifaire */}
+          <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">Grille tarifaire en vigueur</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {(tarifs.length > 0 ? tarifs.map(t => ({
+              label: t.nom, prix: `${t.prix?.toLocaleString('fr-FR')} FCFA`, desc: t.description ?? '', color: 'border-gray-200 bg-gray-50',
+            })) : [
+              { label: 'Abonnement Premium',   prix: '500 FCFA/mois',  desc: 'Accès illimité, certifications, hors-ligne', color: 'border-green-200 bg-green-50' },
+              { label: 'Annonce Partenaire',   prix: '5 000 FCFA',     desc: 'Visibilité dans l\'app mobile',               color: 'border-blue-200 bg-blue-50'   },
+              { label: 'Publicité Standard',   prix: '15 000 FCFA',    desc: 'Campagne push + in-app',                     color: 'border-violet-200 bg-violet-50'},
+              { label: 'Certification Langue', prix: 'Sur devis',      desc: 'Contrat institutionnel école/entreprise',    color: 'border-amber-200 bg-amber-50' },
+            ]).map(t => (
+              <div key={t.label} className={`rounded-xl border p-4 ${t.color}`}>
+                <p className="font-black text-gray-900 text-sm leading-tight">{t.label}</p>
+                <p className="text-base font-black text-primary-700 mt-1">{t.prix}</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">{t.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Projection Phase B */}
+          <div className="bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl p-4 text-white">
+            <p className="text-sm font-black mb-1">📈 Projection Phase B (2029) — Autofinancement complet</p>
+            <p className="text-xs text-white/80">
+              2 000 000 utilisateurs × 5% taux de conversion premium × 500 FCFA/mois
+              = <strong className="text-white text-sm">50 000 USD/mois</strong> — projet entièrement autofinancé dès 2028
+            </p>
+          </div>
+        </div>
+
         {/* ── COMITÉ DE VALIDATION ILA ─────────────────────────────────────── */}
         {!loading && committeeStats && (
           <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6 fade-in-up">
@@ -585,6 +872,125 @@ export default function PartenairePage() {
                       {item.label}
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── RÉPÉTO — CORPUS VOCAL ILA ───────────────────────────────────── */}
+        {!loading && repetitorStats && (
+          <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6 fade-in-up">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <MicrophoneIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-lg font-black text-gray-900">🦜 RÉPÉTO — Corpus Vocal ILA</h2>
+                </div>
+                <p className="text-sm text-gray-500 ml-10">Enregistrements enfants · Constitution du corpus pour l'IA vocale</p>
+              </div>
+              <span className="text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                🔬 Phase 1 — Mode Écho
+              </span>
+            </div>
+
+            {/* Phase 1 roadmap banner */}
+            <div className="bg-gradient-to-r from-teal-700 to-teal-500 rounded-xl p-4 mb-5 text-white">
+              <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Stratégie IA Vocale</p>
+              <div className="flex items-center gap-2 flex-wrap text-sm font-semibold">
+                <span className="bg-white bg-opacity-25 px-3 py-1 rounded-full">Phase 1 · Mode Écho ✅</span>
+                <span className="opacity-50">→</span>
+                <span className="bg-white bg-opacity-10 px-3 py-1 rounded-full opacity-70">Phase 2 · Reconnaissance ILA 🔜</span>
+                <span className="opacity-50">→</span>
+                <span className="bg-white bg-opacity-10 px-3 py-1 rounded-full opacity-50">Phase 3 · IA Vocale Native 🔭</span>
+              </div>
+              <p className="text-xs mt-2 opacity-75">
+                Objectif : constituer un corpus audio suffisamment large pour entraîner un modèle de reconnaissance
+                vocale spécifique aux langues ivoiriennes.
+              </p>
+            </div>
+
+            {/* KPI cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+              <div className="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+                <p className="text-3xl font-black text-teal-700"><AnimatedNumber value={repetitorStats.totalMots} /></p>
+                <p className="text-xs text-teal-600 font-medium mt-1">🎯 Mots du jeu</p>
+              </div>
+              <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+                <p className="text-3xl font-black text-blue-700"><AnimatedNumber value={repetitorStats.totalSessions} /></p>
+                <p className="text-xs text-blue-600 font-medium mt-1">🎙️ Enregistrements</p>
+              </div>
+              <div className="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+                <p className="text-3xl font-black text-amber-600"><AnimatedNumber value={repetitorStats.soumisILA} /></p>
+                <p className="text-xs text-amber-600 font-medium mt-1">📤 Soumis ILA</p>
+              </div>
+              <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
+                <p className="text-3xl font-black text-purple-700"><AnimatedNumber value={repetitorStats.languesActives} /></p>
+                <p className="text-xs text-purple-600 font-medium mt-1">🌍 Langues actives</p>
+              </div>
+            </div>
+
+            {/* Pipeline pipeline bar */}
+            {repetitorStats.totalSessions > 0 && (
+              <div className="mb-5">
+                <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                  <span className="font-semibold">Pipeline du corpus</span>
+                  <span>
+                    {Math.round((repetitorStats.soumisILA / repetitorStats.totalSessions) * 100)}% soumis à ILA
+                  </span>
+                </div>
+                <div className="h-3 bg-gray-100 rounded-full overflow-hidden flex">
+                  <div
+                    className="bg-amber-400 transition-all duration-700"
+                    style={{ width: `${(repetitorStats.soumisILA / repetitorStats.totalSessions) * 100}%` }}
+                  />
+                  <div
+                    className="bg-gray-300 transition-all duration-700"
+                    style={{ width: `${((repetitorStats.totalSessions - repetitorStats.soumisILA - repetitorStats.archives) / repetitorStats.totalSessions) * 100}%` }}
+                  />
+                </div>
+                <div className="flex gap-4 mt-1.5 flex-wrap">
+                  {[
+                    { color: 'bg-amber-400', label: 'Soumis ILA' },
+                    { color: 'bg-teal-500',  label: 'Archivés' },
+                    { color: 'bg-gray-300',  label: 'Brut (non traité)' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${item.color}`} />
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Distribution par langue */}
+            {repetitorStats.sessionsByLangue?.length > 0 && (
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Répartition par langue</p>
+                <div className="space-y-2">
+                  {repetitorStats.sessionsByLangue.slice(0, 6).map((item, i) => {
+                    const max = repetitorStats.sessionsByLangue[0]?.count || 1;
+                    const pct = Math.round((item.count / max) * 100);
+                    const colors = ['bg-teal-500', 'bg-blue-500', 'bg-amber-500', 'bg-purple-500', 'bg-rose-500', 'bg-emerald-500'];
+                    return (
+                      <div key={item.languageId} className="flex items-center gap-3">
+                        <span className="text-xs font-semibold text-gray-600 w-20 shrink-0 truncate">
+                          {item.languageNom}
+                        </span>
+                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${colors[i % colors.length]}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-400 w-8 text-right shrink-0">{item.count}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -715,6 +1121,224 @@ export default function PartenairePage() {
           <p className="text-xs text-gray-400 text-center mt-4">
             Benchmarks secteur EdTech · J+1: 50–70% · J+7: 35–50% · J+30: 20–35%
           </p>
+        </div>
+
+        {/* ── STATISTIQUES APPRENANTS ──────────────────────────────────────── */}
+        <div className="print-break" ref={statsRef}>
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div>
+              <h2 className="text-xl font-black text-gray-900">Statistiques des Apprenants</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Analyse démographique &amp; pédagogique · {allUsers.length} utilisateurs
+              </p>
+            </div>
+            <button onClick={exportStatsPDF} disabled={exportingStats}
+              className="no-print inline-flex items-center gap-2 bg-primary-600 text-white font-bold px-4 py-2.5 rounded-xl shadow hover:bg-primary-700 transition-colors disabled:opacity-50 text-sm">
+              {exportingStats
+                ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/><span>Export…</span></>
+                : <><DocumentArrowDownIcon className="w-4 h-4"/><span>Exporter PDF</span></>
+              }
+            </button>
+          </div>
+
+          {loading || !userStats ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1,2,3,4].map(i => <Skeleton key={i} className="h-24"/>)}
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {[1,2].map(i => <Skeleton key={i} className="h-64"/>)}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+
+              {/* KPIs synthèse */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { icon: UsersIcon,         label: 'Apprenants actifs',   value: userStats.nbActifs,  sub: 'Streak > 0 jour',      color: 'bg-blue-600' },
+                  { icon: ArrowTrendingUpIcon,label: 'Streak moyen',        value: userStats.avgStreak, sub: 'Jours consécutifs',     color: 'bg-green-600' },
+                  { icon: SparklesIcon,       label: 'XP moyen / apprenant',value: userStats.avgXp,    sub: 'Hors leçons complétées',color: 'bg-violet-600' },
+                  { icon: StarIcon,           label: 'Abonnés Premium',     value: userStats.nbPremium, sub: `${allUsers.length > 0 ? Math.round(userStats.nbPremium/allUsers.length*100) : 0}% des utilisateurs`, color: 'bg-amber-500' },
+                ].map(k => (
+                  <div key={k.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${k.color}`}>
+                      <k.icon className="w-5 h-5 text-white"/>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-gray-900"><AnimatedNumber value={k.value}/></p>
+                      <p className="text-sm font-semibold text-gray-700 leading-tight">{k.label}</p>
+                      {k.sub && <p className="text-xs text-gray-400 mt-0.5">{k.sub}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Row 1 : Niveaux + Premium */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Niveaux d'apprentissage */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Niveaux d'Apprentissage</h3>
+                  <p className="text-sm text-gray-500 mb-5">Niveau préféré déclaré par les apprenants</p>
+                  {userStats.niveauData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-52 text-gray-400">
+                      <AcademicCapIcon className="w-10 h-10 mb-2 opacity-30"/>
+                      <p className="text-sm">Données de niveau non renseignées</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={userStats.niveauData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f4f8"/>
+                        <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#374151', fontWeight: 600 }} axisLine={false} tickLine={false}/>
+                        <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<CustomTooltip/>} formatter={(v, n, p) => [v, p.payload.label]}/>
+                        <Bar dataKey="value" name="Apprenants" radius={[6, 6, 0, 0]}>
+                          {userStats.niveauData.map((d, i) => <Cell key={i} fill={d.fill}/>)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Premium vs Gratuit + Rôles */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Abonnements &amp; Rôles</h3>
+                  <p className="text-sm text-gray-500 mb-4">Répartition Premium / Gratuit et profils</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Donut Premium */}
+                    <div className="flex flex-col items-center">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Premium</p>
+                      <ResponsiveContainer width="100%" height={140}>
+                        <PieChart>
+                          <Pie data={userStats.premiumData} cx="50%" cy="50%" innerRadius={38} outerRadius={58} paddingAngle={2} dataKey="value">
+                            {userStats.premiumData.map((d, i) => <Cell key={i} fill={d.fill}/>)}
+                          </Pie>
+                          <Tooltip formatter={(v, name) => [v, name]}/>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="flex gap-3 text-xs mt-1">
+                        {userStats.premiumData.map(d => (
+                          <span key={d.name} className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full" style={{ background: d.fill }}/>
+                            {d.name} ({d.value})
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Rôles liste */}
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Rôles</p>
+                      <div className="space-y-1.5">
+                        {userStats.roleData.map(r => (
+                          <div key={r.name} className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: r.fill }}/>
+                            <span className="text-xs text-gray-700 flex-1 truncate">{r.name}</span>
+                            <span className="text-xs font-bold text-gray-900">{r.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 2 : Langues + Inscriptions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Langues favorites */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Langues Apprises</h3>
+                  <p className="text-sm text-gray-500 mb-5">Langues favorites déclarées (top 8)</p>
+                  {userStats.langData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-52 text-gray-400">
+                      <LanguageIcon className="w-10 h-10 mb-2 opacity-30"/>
+                      <p className="text-sm">Aucune langue favorite renseignée</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={userStats.langData} layout="vertical" margin={{ left: 4, right: 12, top: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f4f8"/>
+                        <XAxis type="number" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#374151', fontWeight: 600 }} width={56} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<CustomTooltip/>}/>
+                        <Bar dataKey="value" name="Apprenants" radius={[0, 6, 6, 0]}>
+                          {userStats.langData.map((_, i) => <Cell key={i} fill={LANG_COLORS[i % LANG_COLORS.length]}/>)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Inscriptions par mois */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Nouvelles Inscriptions</h3>
+                  <p className="text-sm text-gray-500 mb-5">6 derniers mois</p>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={userStats.months} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f4f8"/>
+                      <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#374151' }} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                      <Tooltip content={<CustomTooltip/>}/>
+                      <Bar dataKey="value" name="Inscriptions" fill="#0B3D2E" radius={[6, 6, 0, 0]}/>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Row 3 : Âge + Streaks */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Tranches d'âge */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <div className="flex items-start justify-between mb-1">
+                    <h3 className="text-base font-black text-gray-900">Tranches d'Âge</h3>
+                    {userStats.withAge === 0 && (
+                      <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">Date naissance non renseignée</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mb-5">Distribution par groupe d'âge</p>
+                  {userStats.withAge === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-52 text-gray-400">
+                      <UsersIcon className="w-10 h-10 mb-2 opacity-30"/>
+                      <p className="text-sm">Données d'âge non disponibles</p>
+                      <p className="text-xs mt-1 text-center max-w-48">Les apprenants n'ont pas encore renseigné leur date de naissance</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={userStats.ageData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f4f8"/>
+                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }} axisLine={false} tickLine={false}/>
+                        <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                        <Tooltip content={<CustomTooltip/>}/>
+                        <Bar dataKey="value" name="Apprenants" radius={[6, 6, 0, 0]}>
+                          {userStats.ageData.map((d, i) => <Cell key={i} fill={d.fill}/>)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Distribution streaks */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-black text-gray-900 mb-1">Distribution des Streaks</h3>
+                  <p className="text-sm text-gray-500 mb-5">Régularité d'apprentissage des utilisateurs</p>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={userStats.streakData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f4f8"/>
+                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false}/>
+                      <Tooltip content={<CustomTooltip/>}/>
+                      <Bar dataKey="value" name="Apprenants" radius={[6, 6, 0, 0]}>
+                        {userStats.streakData.map((d, i) => <Cell key={i} fill={d.fill}/>)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    Streak moyen : <strong>{userStats.avgStreak} jour{userStats.avgStreak > 1 ? 's' : ''}</strong>
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
 
         {/* ── CARTE DE CÔTE D'IVOIRE ───────────────────────────────────────── */}
@@ -1073,6 +1697,134 @@ export default function PartenairePage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ── PIPELINE DES PARTENARIATS ────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <BuildingLibraryIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-gray-900">Pipeline des Partenariats</h2>
+              <p className="text-sm text-gray-500">Statut des partenariats institutionnels et financiers en cours</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {[
+              { nom: 'ONG AGI — Africa Global International',           role: 'Partenaire fondateur financier', statut: 'ACTIF', dotColor: 'bg-green-500',   badgeColor: 'bg-green-100 text-green-700 border-green-200',    detail: 'Co-financement Phase 0 · Soutien institutionnel actif' },
+              { nom: 'SFP — Sans Frontière Properties',                 role: 'Partenaire fondateur financier', statut: 'ACTIF', dotColor: 'bg-green-500',   badgeColor: 'bg-green-100 text-green-700 border-green-200',    detail: 'Co-financement Phase 0 · Réseau entreprises et immobilier' },
+              { nom: 'LINGUA Africa (Microsoft AI / Gates / Masakhane)',role: 'Bailleur de fonds Phase A',      statut: 'CANDIDATURE DÉPOSÉE', dotColor: 'bg-blue-500', badgeColor: 'bg-blue-100 text-blue-700 border-blue-200', detail: '250 000 USD cash + 400 000 USD Azure compute · Deadline 15 juin 2026' },
+              { nom: 'ILA — Institut de Linguistique Appliquée (UFHB)', role: 'Partenaire scientifique',        statut: 'EN NÉGOCIATION', dotColor: 'bg-amber-500', badgeColor: 'bg-amber-100 text-amber-700 border-amber-200', detail: 'Validation phonétique · Sélection des locuteurs · Publications scientifiques' },
+              { nom: 'Ministère de l\'Éducation Nationale CI',          role: 'Partenaire institutionnel',      statut: 'EN PROSPECTION', dotColor: 'bg-violet-400', badgeColor: 'bg-violet-100 text-violet-700 border-violet-200', detail: 'Intégration dans 100 établissements pilotes · Phase A 2027' },
+              { nom: 'Google for Education / Google.org',               role: 'Bailleur de fonds complémentaire', statut: 'EN PROSPECTION', dotColor: 'bg-violet-400', badgeColor: 'bg-violet-100 text-violet-700 border-violet-200', detail: 'Financement complémentaire Phase B · Expansion CEDEAO 7 pays' },
+            ].map((p, i) => (
+              <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50 hover:bg-white hover:shadow-sm transition-all">
+                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${p.dotColor}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <p className="font-black text-gray-900 text-sm">{p.nom}</p>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${p.badgeColor}`}>{p.statut}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 italic">{p.role}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{p.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── ROADMAP FINANCIÈRE ───────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <LightBulbIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-gray-900">Roadmap Financière — Vision 6 ans</h2>
+              <p className="text-sm text-gray-500">Phase A avec LINGUA Africa (2026–2028) + Phase B autofinancement (2029–2031)</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Phase A */}
+            <div className="bg-gradient-to-br from-primary-50 to-emerald-50 border border-primary-200 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span className="bg-primary-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">PHASE A · 2026–2028</span>
+                <span className="text-xs text-primary-600 font-bold">Avec LINGUA Africa</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  ['T3 2026',    'Recrutement 20 locuteurs natifs · Setup studio d\'enregistrement'],
+                  ['T4 2026',    '40 000 utterances annotées · 1er modèle ASR Baoulé fine-tuné'],
+                  ['T1 2027',    'Lancement officiel Play Store & App Store avec données réelles'],
+                  ['T2–T4 2027', '50 langues intégrées · 500 000 utterances publiées sur Hugging Face'],
+                  ['2028',       '70+ langues · 2 000 000 utilisateurs · 800K utterances CC BY 4.0'],
+                ].map(([period, milestone], i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-xs font-bold text-primary-600 bg-primary-100 px-2 py-1 rounded-lg flex-shrink-0 min-w-[4.5rem] text-center leading-tight">{period}</span>
+                    <p className="text-xs text-gray-700 leading-relaxed pt-1">{milestone}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-primary-200">
+                <p className="text-xs font-black text-primary-700">💰 Budget Phase A : 250 000 USD + 400 000 USD Azure compute</p>
+              </div>
+            </div>
+            {/* Phase B */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span className="bg-green-600 text-white text-xs font-black px-3 py-1.5 rounded-lg">PHASE B · 2029–2031</span>
+                <span className="text-xs text-green-700 font-bold">Autofinancement</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  ['2029', 'Abonnements premium 500 FCFA/mois · Certifications institutionnelles (écoles, entreprises)'],
+                  ['2029', 'Cession de licences des corpus validés à des institutions de recherche'],
+                  ['2030', 'Expansion CEDEAO — 7 pays : Burkina Faso, Mali, Ghana, Guinée, Sénégal…'],
+                  ['2031', 'N°1 Afrique de l\'Ouest — Préservation numérique des langues ethniques'],
+                ].map(([period, milestone], i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-lg flex-shrink-0 min-w-[4.5rem] text-center leading-tight">{period}</span>
+                    <p className="text-xs text-gray-700 leading-relaxed pt-1">{milestone}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-green-200">
+                <p className="text-xs font-black text-green-700">📈 Projection : 50 000 USD/mois dès 2028 — projet autofinancé</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── DOCUMENTS PARTENAIRES ────────────────────────────────────────── */}
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 text-white">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <DocumentArrowDownIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black">Documents Partenaires</h2>
+              <p className="text-sm text-white/60">Exportez les rapports officiels du projet</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Tableau de Bord (PDF)',        desc: 'Export complet de cette page partenaires',   icon: '📋', action: () => window.print(),    color: 'bg-primary-600 hover:bg-primary-500' },
+              { label: 'Statistiques Apprenants',      desc: 'Rapport démographique & pédagogique',        icon: '📊', action: exportStatsPDF,          color: 'bg-blue-600 hover:bg-blue-500'      },
+              { label: 'Rapport d\'Activité Éditeurs', desc: 'Disponible dans le module Rapport',          icon: '📈', action: () => window.open('/rapport-editeurs', '_blank'), color: 'bg-violet-600 hover:bg-violet-500' },
+            ].map((d, i) => (
+              <button key={i} onClick={d.action} className={`${d.color} rounded-xl p-4 text-left transition-colors flex items-start gap-3 w-full`}>
+                <span className="text-2xl flex-shrink-0">{d.icon}</span>
+                <div>
+                  <p className="font-black text-sm leading-tight">{d.label}</p>
+                  <p className="text-xs text-white/70 mt-0.5 leading-tight">{d.desc}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-white/40 text-center mt-4">
+            Document confidentiel · Réservé aux partenaires &amp; investisseurs autorisés · Langues Ivoire © {new Date().getFullYear()}
+          </p>
         </div>
 
         {/* ── IMPACT & MISSION ─────────────────────────────────────────────── */}

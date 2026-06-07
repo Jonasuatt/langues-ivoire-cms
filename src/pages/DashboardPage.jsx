@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { analyticsAPI, contributionsAPI, supportAPI, certificatesAPI, tutorsAPI } from '../services/api';
+import { analyticsAPI, contributionsAPI, supportAPI, certificatesAPI, tutorsAPI, repetitorAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   UsersIcon, BookOpenIcon, ClockIcon, ArrowTrendingUpIcon,
@@ -87,6 +87,7 @@ const MODULE_SECTIONS = [
       { emoji: '🧑‍🏫', label: 'Tuteurs IA',       color: 'bg-primary-500', key: 'tutors',        unit: 'tuteurs',  to: '/tutors' },
       { emoji: '🧪', label: 'Test Agents IA',     color: 'bg-emerald-600', key: 'testAgents',    unit: 'agents',   to: '/test-agents' },
       { emoji: '🎵', label: 'Bienvenue & Sons',   color: 'bg-pink-500',    key: 'bienvenue',     unit: 'messages', to: '/bienvenue-sons' },
+      { emoji: '🦜', label: 'RÉPÉTO',             color: 'bg-teal-600',    key: 'repetitor',     unit: 'mots actifs', to: '/repetitor', adminOnly: true },
     ],
   },
   {
@@ -158,12 +159,13 @@ function ModuleCard({ emoji, label, color, value, unit, to }) {
 export default function DashboardPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
-  const [stats, setStats]       = useState(null);
-  const [pending, setPending]   = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [certs, setCerts]       = useState([]);
-  const [tutors, setTutors]     = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [stats, setStats]               = useState(null);
+  const [pending, setPending]           = useState([]);
+  const [messages, setMessages]         = useState([]);
+  const [certs, setCerts]               = useState([]);
+  const [tutors, setTutors]             = useState([]);
+  const [repetitorStats, setRepetitorStats] = useState(null);
+  const [loading, setLoading]           = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -172,11 +174,13 @@ export default function DashboardPage() {
       supportAPI.getAll({ limit: 200 }).catch(() => ({ data: { data: [] } })),
       certificatesAPI.getAll({ limit: 200 }).catch(() => ({ data: { data: [] } })),
       tutorsAPI.getAll().catch(() => ({ data: [] })),
-    ]).then(([s, c, msg, cert, tut]) => {
+      repetitorAPI.getStats().catch(() => ({ data: null })),
+    ]).then(([s, c, msg, cert, tut, rep]) => {
       setStats(s.data);
       setPending(c.data.data ?? c.data ?? []);
       setMessages(msg.data.data ?? msg.data ?? []);
       setCerts(cert.data.data ?? cert.data ?? []);
+      if (rep.data) setRepetitorStats(rep.data);
       setTutors(Array.isArray(tut.data) ? tut.data : []);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
@@ -294,13 +298,17 @@ export default function DashboardPage() {
                     <span className="text-xs text-gray-400">({section.items.length})</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {section.items.map(m => (
+                    {section.items
+                      .filter(m => !m.adminOnly || isAdmin)
+                      .map(m => (
                       <ModuleCard
                         key={m.key}
                         emoji={m.emoji}
                         label={m.label}
                         color={m.color}
-                        value={stats?.modules?.[m.key]}
+                        value={m.key === 'repetitor'
+                          ? repetitorStats?.totalMots
+                          : stats?.modules?.[m.key]}
                         unit={m.unit}
                         to={m.to}
                       />
@@ -312,6 +320,46 @@ export default function DashboardPage() {
           );
         })()}
       </div>
+
+      {/* ── Bannière RÉPÉTO Phase 1 (admin seulement) ── */}
+      {isAdmin && (
+        <div className="mb-8">
+          <Link to="/repetitor">
+            <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl flex-shrink-0">
+                  🦜
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-white font-black text-base">RÉPÉTO</span>
+                    <span className="bg-white/20 text-white text-xs font-bold px-2.5 py-0.5 rounded-full border border-white/30">
+                      Phase 1 — Mode Écho
+                    </span>
+                  </div>
+                  <p className="text-white/80 text-sm">
+                    Corpus en construction · {repetitorStats?.totalSessions ?? 0} session{(repetitorStats?.totalSessions ?? 0) > 1 ? 's' : ''} enregistrée{(repetitorStats?.totalSessions ?? 0) > 1 ? 's' : ''} · {repetitorStats?.totalMots ?? 0} mot{(repetitorStats?.totalMots ?? 0) > 1 ? 's' : ''} actif{(repetitorStats?.totalMots ?? 0) > 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-6 flex-shrink-0">
+                {[
+                  { label: 'Sessions', val: repetitorStats?.totalSessions ?? 0 },
+                  { label: 'Mots actifs', val: repetitorStats?.totalMots ?? 0 },
+                  { label: 'Langues', val: repetitorStats?.languesActives ?? 0 },
+                  { label: 'Pipeline ILA', val: repetitorStats?.soumisILA ?? 0 },
+                ].map(k => (
+                  <div key={k.label} className="text-center">
+                    <p className="text-white font-black text-xl">{k.val}</p>
+                    <p className="text-white/70 text-xs">{k.label}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="text-white/50 text-sm hidden sm:block">→</div>
+            </div>
+          </Link>
+        </div>
+      )}
 
       {/* Graphique + Contributions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

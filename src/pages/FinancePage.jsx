@@ -6,9 +6,9 @@
  *  2. 🤝 Contributions       — dons et parrainages des utilisateurs / organisations
  *  3. 📊 Comptabilité        — tableau de bord financier consolidé
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PageHelp from '../components/PageHelp';
-import { financeAPI } from '../services/api';
+import { financeAPI, depensesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon,
@@ -16,7 +16,9 @@ import {
   BanknotesIcon, ChartBarIcon, UserGroupIcon,
   ArrowDownTrayIcon, BuildingLibraryIcon,
   StarIcon, UserCircleIcon, ShieldCheckIcon,
-  ArrowPathIcon, NoSymbolIcon,
+  ArrowPathIcon, NoSymbolIcon, DocumentArrowDownIcon,
+  PaperClipIcon, FunnelIcon, ArrowTrendingDownIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -1356,16 +1358,562 @@ function PremiumTab() {
   );
 }
 
+// ─── Constantes dépenses ─────────────────────────────────────────────────────
+const OBJETS_DEPENSE = [
+  { value: 'SALAIRE',        label: '👤 Salaire / Prestataire'   },
+  { value: 'INFRASTRUCTURE', label: '🖥️ Infrastructure / Cloud'   },
+  { value: 'MATERIEL',       label: '🛠️ Matériel / Équipement'   },
+  { value: 'MARKETING',      label: '📣 Marketing / Communication' },
+  { value: 'TRANSPORT',      label: '🚗 Transport / Déplacement'  },
+  { value: 'ABONNEMENT',     label: '📦 Abonnement / Licence'     },
+  { value: 'FORMATION',      label: '🎓 Formation / Conférence'   },
+  { value: 'JURIDIQUE',      label: '⚖️ Juridique / Administratif'},
+  { value: 'AUTRE',          label: '📋 Autre'                    },
+];
+
+const STATUTS_DEPENSE = [
+  { value: 'EN_ATTENTE', label: '⏳ En attente', color: 'bg-amber-100 text-amber-700 border-amber-200'  },
+  { value: 'VALIDEE',    label: '✅ Validée',    color: 'bg-green-100 text-green-700 border-green-200'  },
+  { value: 'REJETEE',    label: '❌ Rejetée',    color: 'bg-red-100 text-red-700 border-red-200'        },
+];
+
+// ─── Modal Dépense ────────────────────────────────────────────────────────────
+function ModalDepense({ item, onClose, onSave }) {
+  const EMPTY = {
+    sujet: '', objet: 'INFRASTRUCTURE', description: '', montant: '',
+    date: new Date().toISOString().slice(0, 10), statut: 'EN_ATTENTE',
+    reference: '', fournisseur: '', pieceJointeUrl: '', pieceJointeNom: '', pieceJointeType: '',
+  };
+  const [form, setForm] = useState(item ? {
+    sujet:           item.sujet || '',
+    objet:           item.objet || 'INFRASTRUCTURE',
+    description:     item.description || '',
+    montant:         item.montant || '',
+    date:            item.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+    statut:          item.statut || 'EN_ATTENTE',
+    reference:       item.reference || '',
+    fournisseur:     item.fournisseur || '',
+    pieceJointeUrl:  item.pieceJointeUrl || '',
+    pieceJointeNom:  item.pieceJointeNom || '',
+    pieceJointeType: item.pieceJointeType || '',
+  } : EMPTY);
+  const [saving,     setSaving]     = useState(false);
+  const [uploading,  setUploading]  = useState(false);
+  const fileRef = useRef(null);
+  const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleUploadPJ = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const { data } = await depensesAPI.uploadPJ(fd);
+      f('pieceJointeUrl',  data.url);
+      f('pieceJointeNom',  data.nom);
+      f('pieceJointeType', data.type);
+      toast.success('Pièce jointe uploadée');
+    } catch {
+      toast.error('Erreur upload pièce jointe');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!form.sujet)   { toast.error('Le sujet est requis');  return; }
+    if (!form.montant) { toast.error('Le montant est requis'); return; }
+    if (!form.date)    { toast.error('La date est requise');   return; }
+    setSaving(true);
+    try { await onSave(form); onClose(); }
+    catch { toast.error('Erreur lors de la sauvegarde'); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg font-bold text-gray-900 mb-5">
+          {item ? 'Modifier la dépense' : 'Enregistrer une dépense'}
+        </h2>
+
+        <div className="space-y-4">
+          {/* Sujet */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sujet *</label>
+            <input className="input" value={form.sujet} onChange={e => f('sujet', e.target.value)}
+              placeholder="Ex: Facture Railway Mai 2026"/>
+          </div>
+
+          {/* Objet + Statut */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie *</label>
+              <select className="input" value={form.objet} onChange={e => f('objet', e.target.value)}>
+                {OBJETS_DEPENSE.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+              <select className="input" value={form.statut} onChange={e => f('statut', e.target.value)}>
+                {STATUTS_DEPENSE.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Montant + Date */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Montant (FCFA) *</label>
+              <input className="input" type="number" min="0" value={form.montant}
+                onChange={e => f('montant', e.target.value)} placeholder="25000"/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+              <input className="input" type="date" value={form.date} onChange={e => f('date', e.target.value)}/>
+            </div>
+          </div>
+
+          {/* Fournisseur + Référence */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fournisseur</label>
+              <input className="input" value={form.fournisseur} onChange={e => f('fournisseur', e.target.value)}
+                placeholder="Nom du prestataire"/>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">N° Facture / Ref.</label>
+              <input className="input" value={form.reference} onChange={e => f('reference', e.target.value)}
+                placeholder="FAC-2026-001"/>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description / Objet détaillé</label>
+            <textarea className="input resize-none" rows={2} value={form.description}
+              onChange={e => f('description', e.target.value)}
+              placeholder="Détails de la dépense..."/>
+          </div>
+
+          {/* Pièce jointe */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Pièce jointe (facture, reçu…)</label>
+            {form.pieceJointeUrl ? (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+                <PaperClipIcon className="w-4 h-4 text-green-600 flex-shrink-0"/>
+                <a href={form.pieceJointeUrl} target="_blank" rel="noreferrer"
+                  className="text-sm text-green-700 font-medium truncate flex-1 hover:underline">
+                  {form.pieceJointeNom || 'Voir le fichier'}
+                </a>
+                <button onClick={() => { f('pieceJointeUrl',''); f('pieceJointeNom',''); f('pieceJointeType',''); }}
+                  className="text-red-400 hover:text-red-600 text-xs font-bold flex-shrink-0">✕ Retirer</button>
+              </div>
+            ) : (
+              <div>
+                <input ref={fileRef} type="file" className="hidden"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                  onChange={handleUploadPJ}/>
+                <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary-400 hover:text-primary-600 transition-colors text-sm disabled:opacity-50">
+                  {uploading
+                    ? <><span className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"/><span>Upload en cours…</span></>
+                    : <><PaperClipIcon className="w-4 h-4"/><span>Joindre un fichier (PDF, image, Word — max 10 Mo)</span></>
+                  }
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 mt-6">
+          <button onClick={onClose} className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 text-sm font-medium">
+            Annuler
+          </button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+            {saving
+              ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/><span>Enregistrement…</span></>
+              : item ? 'Modifier' : 'Enregistrer la dépense'
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Onglet Dépenses ──────────────────────────────────────────────────────────
+function DepensesTab() {
+  const [depenses,  setDepenses]  = useState([]);
+  const [resume,    setResume]    = useState(null);
+  const [loading,   setLoading]   = useState(true);
+  const [modal,     setModal]     = useState(null);   // null | 'create' | dépense objet
+  const [deleting,  setDeleting]  = useState(null);
+  const [search,    setSearch]    = useState('');
+  const [filtObjet, setFiltObjet] = useState('');
+  const [filtStatut,setFiltStatut]= useState('');
+  const [periode,   setPeriode]   = useState('tout');
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [dep, res] = await Promise.all([
+        depensesAPI.getAll({ limit: 200 }),
+        depensesAPI.getResume({ periode }),
+      ]);
+      setDepenses(dep.data?.data ?? []);
+      setResume(res.data ?? null);
+    } catch { setDepenses([]); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, [periode]);
+
+  const handleSave = async (form) => {
+    if (modal === 'create') {
+      await depensesAPI.create(form);
+      toast.success('Dépense enregistrée');
+    } else {
+      await depensesAPI.update(modal.id, form);
+      toast.success('Dépense modifiée');
+    }
+    load();
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Supprimer cette dépense ?')) return;
+    setDeleting(id);
+    try {
+      await depensesAPI.delete(id);
+      toast.success('Dépense supprimée');
+      load();
+    } catch { toast.error('Erreur suppression'); }
+    finally { setDeleting(null); }
+  };
+
+  // Filtrage local
+  const filtered = depenses.filter(d => {
+    if (filtObjet  && d.objet  !== filtObjet)  return false;
+    if (filtStatut && d.statut !== filtStatut) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return (d.sujet?.toLowerCase().includes(q)
+           || d.fournisseur?.toLowerCase().includes(q)
+           || d.reference?.toLowerCase().includes(q)
+           || d.description?.toLowerCase().includes(q));
+    }
+    return true;
+  });
+
+  const totalFiltre = filtered.reduce((s, d) => s + (d.montant || 0), 0);
+
+  const OBJET_COLORS = {
+    SALAIRE:        'bg-blue-100 text-blue-700',
+    INFRASTRUCTURE: 'bg-violet-100 text-violet-700',
+    MATERIEL:       'bg-amber-100 text-amber-700',
+    MARKETING:      'bg-pink-100 text-pink-700',
+    TRANSPORT:      'bg-cyan-100 text-cyan-700',
+    ABONNEMENT:     'bg-indigo-100 text-indigo-700',
+    FORMATION:      'bg-teal-100 text-teal-700',
+    JURIDIQUE:      'bg-orange-100 text-orange-700',
+    AUTRE:          'bg-gray-100 text-gray-600',
+  };
+
+  return (
+    <div className="space-y-6">
+
+      {/* ── KPIs résumé ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Total dépenses',     value: resume?.totalMontant     ?? 0, color: 'bg-red-500',    icon: ArrowTrendingDownIcon },
+          { label: 'Dépenses validées',  value: resume?.montantValide    ?? 0, color: 'bg-green-600',  icon: CheckCircleIcon       },
+          { label: 'En attente',         value: resume?.montantEnAttente ?? 0, color: 'bg-amber-500',  icon: ClockIcon             },
+          { label: 'Nb. de dépenses',    value: resume?.totalDepenses    ?? 0, color: 'bg-primary-600',icon: ChartBarIcon          },
+        ].map(k => (
+          <div key={k.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div className={`w-10 h-10 ${k.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+              <k.icon className="w-5 h-5 text-white"/>
+            </div>
+            <div>
+              <p className="text-xl font-black text-gray-900">
+                {k.label === 'Nb. de dépenses'
+                  ? k.value
+                  : FCFA(k.value)
+                }
+              </p>
+              <p className="text-xs text-gray-500 font-medium leading-tight mt-0.5">{k.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Répartition par catégorie ─────────────────────────────────── */}
+      {resume?.parObjet?.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <ChartBarIcon className="w-4 h-4 text-primary-500"/>
+            Répartition par catégorie
+          </h3>
+          <div className="space-y-2">
+            {resume.parObjet.sort((a, b) => b.montant - a.montant).map(p => {
+              const pct = resume.totalMontant > 0 ? Math.round(p.montant / resume.totalMontant * 100) : 0;
+              const obj = OBJETS_DEPENSE.find(o => o.value === p.objet);
+              return (
+                <div key={p.objet}>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span className="font-medium">{obj?.label ?? p.objet}</span>
+                    <span className="font-bold">{FCFA(p.montant)} <span className="text-gray-400">({pct}%)</span></span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Barre d'outils ────────────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-2 flex-1">
+          {/* Recherche */}
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/>
+            <input
+              className="input pl-9 w-56 text-sm"
+              placeholder="Rechercher…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+
+          {/* Filtre catégorie */}
+          <select className="input text-sm w-44" value={filtObjet} onChange={e => setFiltObjet(e.target.value)}>
+            <option value="">Toutes catégories</option>
+            {OBJETS_DEPENSE.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+
+          {/* Filtre statut */}
+          <select className="input text-sm w-36" value={filtStatut} onChange={e => setFiltStatut(e.target.value)}>
+            <option value="">Tous statuts</option>
+            {STATUTS_DEPENSE.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+
+          {/* Période résumé */}
+          <select className="input text-sm w-36" value={periode} onChange={e => setPeriode(e.target.value)}>
+            {PERIODE_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+          </select>
+        </div>
+
+        <button onClick={() => setModal('create')}
+          className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 text-sm font-semibold shadow-sm">
+          <PlusIcon className="w-4 h-4"/>
+          Nouvelle dépense
+        </button>
+      </div>
+
+      {/* Total filtré */}
+      {filtered.length > 0 && (
+        <p className="text-xs text-gray-500 font-medium">
+          {filtered.length} dépense{filtered.length > 1 ? 's' : ''} — Total affiché : <strong className="text-red-600">{FCFA(totalFiltre)}</strong>
+        </p>
+      )}
+
+      {/* ── Table des dépenses ────────────────────────────────────────── */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16 text-gray-400">
+          <span className="w-8 h-8 border-4 border-primary-300 border-t-primary-600 rounded-full animate-spin"/>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400">
+          <ArrowTrendingDownIcon className="w-12 h-12 mx-auto mb-3 opacity-30"/>
+          <p className="font-semibold">Aucune dépense enregistrée</p>
+          <p className="text-sm mt-1">Cliquez sur "Nouvelle dépense" pour commencer</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Date</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Sujet / Fournisseur</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden md:table-cell">Catégorie</th>
+                  <th className="text-right px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Montant</th>
+                  <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Statut</th>
+                  <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden sm:table-cell">PJ</th>
+                  <th className="text-center px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map(dep => {
+                  const statut = STATUTS_DEPENSE.find(s => s.value === dep.statut) || STATUTS_DEPENSE[0];
+                  const obj    = OBJETS_DEPENSE.find(o => o.value === dep.objet);
+                  return (
+                    <tr key={dep.id} className="hover:bg-gray-50 transition-colors">
+                      {/* Date */}
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
+                        {fmtDate(dep.date)}
+                      </td>
+
+                      {/* Sujet */}
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-gray-900 text-sm leading-tight">{dep.sujet}</p>
+                        {dep.fournisseur && <p className="text-xs text-gray-400 mt-0.5">{dep.fournisseur}</p>}
+                        {dep.reference   && <p className="text-xs text-gray-400 font-mono">#{dep.reference}</p>}
+                        {dep.description && (
+                          <p className="text-xs text-gray-500 italic mt-0.5 line-clamp-1">{dep.description}</p>
+                        )}
+                      </td>
+
+                      {/* Catégorie */}
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${OBJET_COLORS[dep.objet] || 'bg-gray-100 text-gray-600'}`}>
+                          {obj?.label ?? dep.objet}
+                        </span>
+                      </td>
+
+                      {/* Montant */}
+                      <td className="px-4 py-3 text-right">
+                        <span className="font-black text-red-600 text-sm">{FCFA(dep.montant)}</span>
+                      </td>
+
+                      {/* Statut */}
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${statut.color}`}>
+                          {statut.label}
+                        </span>
+                      </td>
+
+                      {/* Pièce jointe */}
+                      <td className="px-4 py-3 text-center hidden sm:table-cell">
+                        {dep.pieceJointeUrl ? (
+                          <a href={dep.pieceJointeUrl} target="_blank" rel="noreferrer"
+                            title={dep.pieceJointeNom || 'Voir la pièce jointe'}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50 hover:bg-primary-100 text-primary-600 transition-colors">
+                            <PaperClipIcon className="w-4 h-4"/>
+                          </a>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => setModal(dep)} title="Modifier"
+                            className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500 hover:text-amber-700 transition-colors">
+                            <PencilIcon className="w-4 h-4"/>
+                          </button>
+                          <button onClick={() => handleDelete(dep.id)} disabled={deleting === dep.id}
+                            title="Supprimer"
+                            className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors disabled:opacity-40">
+                            {deleting === dep.id
+                              ? <span className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin inline-block"/>
+                              : <TrashIcon className="w-4 h-4"/>
+                            }
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal */}
+      {modal && (
+        <ModalDepense
+          item={modal === 'create' ? null : modal}
+          onClose={() => setModal(null)}
+          onSave={handleSave}
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── Page principale ──────────────────────────────────────────────────────────
 export default function FinancePage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   const [activeTab, setActiveTab] = useState('tarifs');
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const reportRef = useRef(null);
+
+  const TAB_LABELS = {
+    tarifs:        'Tarifs & Paiements',
+    contributions: 'Contributions',
+    depenses:      'Dépenses',
+    comptabilite:  'Comptabilité',
+  };
+
+  const exportPDF = async () => {
+    if (!reportRef.current) return;
+    setExportingPDF(true);
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, logging: false });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 12;
+      const usableW = pageW - margin * 2;
+      const imgH = (canvas.height * usableW) / canvas.width;
+      const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      // En-tête
+      pdf.setFillColor(11, 61, 46);
+      pdf.rect(0, 0, pageW, 18, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(13);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Finance — ${TAB_LABELS[activeTab]}`, margin, 12);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Généré le ${today}`, pageW - margin, 12, { align: 'right' });
+
+      // Contenu paginé
+      const contentY = 22;
+      const availH = pageH - contentY - margin;
+      let yOffset = 0;
+      while (yOffset < imgH) {
+        if (yOffset > 0) { pdf.addPage(); }
+        const sliceH = Math.min(availH, imgH - yOffset);
+        const srcY = (yOffset / imgH) * canvas.height;
+        const srcH = (sliceH / imgH) * canvas.height;
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = srcH;
+        sliceCanvas.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+        pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, yOffset === 0 ? contentY : margin, usableW, sliceH);
+        yOffset += availH;
+      }
+
+      pdf.save(`finance_${activeTab}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   const TABS = [
-    { key: 'tarifs',        label: '💰 Tarifs & Paiements',      icon: BanknotesIcon    },
-    { key: 'contributions', label: '🤝 Contributions',            icon: UserGroupIcon    },
-    { key: 'comptabilite',  label: '📊 Comptabilité',             icon: ChartBarIcon     },
+    { key: 'tarifs',        label: '💰 Tarifs & Paiements',      icon: BanknotesIcon          },
+    { key: 'contributions', label: '🤝 Contributions',            icon: UserGroupIcon          },
+    { key: 'depenses',      label: '💸 Dépenses',                 icon: ArrowTrendingDownIcon  },
+    { key: 'comptabilite',  label: '📊 Comptabilité',             icon: ChartBarIcon           },
   ];
 
   return (
@@ -1381,6 +1929,13 @@ export default function FinancePage() {
             Gestion des droits, paiements, contributions et comptabilité de la plateforme
           </p>
         </div>
+        <button onClick={exportPDF} disabled={exportingPDF}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary-300 bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors text-sm font-semibold disabled:opacity-50">
+          {exportingPDF
+            ? <><span className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"/><span>Export…</span></>
+            : <><DocumentArrowDownIcon className="w-4 h-4"/><span>Exporter PDF</span></>
+          }
+        </button>
       </div>
 
       {/* Onglets */}
@@ -1399,9 +1954,12 @@ export default function FinancePage() {
       </div>
 
       {/* Contenu des onglets */}
-      {activeTab === 'tarifs'        && <TarifsTab isAdmin={isAdmin}/>}
-      {activeTab === 'contributions' && <ContributionsTab/>}
-      {activeTab === 'comptabilite'  && <ComptabiliteTab/>}
+      <div ref={reportRef}>
+        {activeTab === 'tarifs'        && <TarifsTab isAdmin={isAdmin}/>}
+        {activeTab === 'contributions' && <ContributionsTab/>}
+        {activeTab === 'depenses'      && <DepensesTab/>}
+        {activeTab === 'comptabilite'  && <ComptabiliteTab/>}
+      </div>
       <PageHelp pageId="finance" />
     </div>
   );

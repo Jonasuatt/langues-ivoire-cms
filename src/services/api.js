@@ -186,6 +186,17 @@ export const financeAPI = {
   getResume: (params) => api.get('/finance/resume', { params }),
 };
 
+export const depensesAPI = {
+  getAll:        (params) => api.get('/depenses', { params }),
+  getResume:     (params) => api.get('/depenses/resume', { params }),
+  create:        (data)   => api.post('/depenses', data),
+  update:        (id, data) => api.patch(`/depenses/${id}`, data),
+  delete:        (id)     => api.delete(`/depenses/${id}`),
+  uploadPJ:      (formData) => api.post('/depenses/upload-pj', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+};
+
 export const textContentAPI = {
   list: (params) => api.get('/text-contents/admin/list', { params }),
   create: (data) => api.post('/text-contents/admin', data),
@@ -235,9 +246,27 @@ export const committeeAPI = {
   getStats:   ()           => api.get('/validation-committee/stats'),
   getAll:     (params)     => api.get('/validation-committee', { params }),
   getOne:     (id)         => api.get(`/validation-committee/${id}`),
+  getRapport: (params)     => api.get('/validation-committee/rapport', { params }),
   castVote:   (id, data)   => api.post(`/validation-committee/${id}/vote`, data),
   removeVote: (id)         => api.delete(`/validation-committee/${id}/vote`),
   reset:      (id)         => api.patch(`/validation-committee/${id}/reset`),
+};
+
+// ── RÉPÉTO — Compagnon Vocal ILA ──────────────────────────────────────────────
+export const repetitorAPI = {
+  // Stats du tableau de bord
+  getStats:        ()           => api.get('/repetitor/stats'),
+
+  // Mots du jeu
+  getMots:         (params)     => api.get('/repetitor/mots', { params }),
+  createMot:       (data)       => api.post('/repetitor/mots', data),
+  updateMot:       (id, data)   => api.patch(`/repetitor/mots/${id}`, data),
+  deleteMot:       (id)         => api.delete(`/repetitor/mots/${id}`),
+
+  // Sessions enregistrées
+  getSessions:     (params)     => api.get('/repetitor/sessions', { params }),
+  updateSession:   (id, data)   => api.patch(`/repetitor/sessions/${id}`, data),
+  deleteSession:   (id)         => api.delete(`/repetitor/sessions/${id}`),
 };
 
 export default api;
