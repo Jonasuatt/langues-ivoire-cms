@@ -602,7 +602,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Bannière Vision Panafricaine ─────────────────────── */}
-      <div className="rounded-2xl overflow-hidden shadow-lg" style={{ background: '#060C0A' }}>
+      <Link to="/mission" className="block rounded-2xl overflow-hidden shadow-lg hover:shadow-orange-900/30 hover:shadow-xl transition-shadow cursor-pointer" style={{ background: '#060C0A' }}>
         <div className="flex flex-col md:flex-row items-center gap-0">
           {/* Logo Afrique */}
           <div className="flex-shrink-0 flex items-center justify-center p-4 md:p-6" style={{ minWidth: 200 }}>
@@ -648,12 +648,13 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-        <div className="px-6 py-3 border-t border-white/10 text-center">
+        <div className="px-6 py-3 border-t border-white/10 text-center flex items-center justify-center gap-2">
           <p className="text-xs text-gray-500 italic">
             "Préserver les langues, bâtir l'avenir" — LANGUES IVOIRE
           </p>
+          <span className="text-xs text-orange-400 font-semibold">· Voir la page complète →</span>
         </div>
-      </div>
+      </Link>
 
     </div>
   );

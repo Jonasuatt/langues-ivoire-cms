@@ -23,6 +23,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, RadialBarChart, RadialBar,
 } from 'recharts';
+import { Link } from 'react-router-dom';
 import PageHelp from '../components/PageHelp';
 import { CarteCI } from './LanguesPage';
 import { getAvatarPortrait } from '../utils/getAvatar';
@@ -1872,6 +1873,48 @@ export default function PartenairePage() {
               Langues Ivoire · Vision 2025–2030
             </p>
           </div>
+
+          {/* ── Bannière Vision Panafricaine ───────────────────────── */}
+          <Link to="/mission"
+                className="mt-6 block rounded-2xl overflow-hidden shadow-lg hover:shadow-orange-900/30 hover:shadow-xl transition-shadow"
+                style={{ background: '#060C0A' }}>
+            <div className="flex flex-col md:flex-row items-center gap-0">
+              <div className="flex-shrink-0 flex items-center justify-center p-4 md:p-6" style={{ minWidth: 180 }}>
+                <img
+                  src="/logo-afrique.png"
+                  alt="Vision Afrique"
+                  className="w-40 md:w-48 object-contain"
+                  style={{ filter: 'drop-shadow(0 0 16px rgba(244,121,32,0.4))' }}
+                />
+              </div>
+              <div className="flex-1 px-6 py-6 border-t md:border-t-0 md:border-l border-white/10">
+                <p className="text-xs font-bold tracking-widest uppercase text-orange-400 mb-1">Vision 2027</p>
+                <h3 className="text-xl font-extrabold text-white mb-2">De la Côte d'Ivoire à l'Afrique</h3>
+                <p className="text-sm text-gray-300 leading-relaxed mb-4" style={{ maxWidth: 460 }}>
+                  Préserver les langues ethniques ivoiriennes n'est que le début. Notre ambition est
+                  de devenir la plateforme de référence pour toutes les langues menacées d'Afrique.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { val: 'Phase 1', label: 'Côte d\'Ivoire — 9 langues', done: true },
+                    { val: 'Phase 2', label: 'Afrique de l\'Ouest — 2026', done: false },
+                    { val: 'Phase 3', label: 'Panafricain — 2027+', done: false },
+                  ].map(p => (
+                    <div key={p.val}
+                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${p.done ? 'bg-orange-500 text-white' : 'bg-white/10 text-gray-300 border border-white/20'}`}>
+                      {p.done && <span>✓</span>}
+                      <span>{p.val}</span>
+                      <span className="opacity-70">· {p.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-2.5 border-t border-white/10 text-center flex items-center justify-center gap-2">
+              <p className="text-xs text-gray-500 italic">"Préserver les langues, bâtir l'avenir" — LANGUES IVOIRE</p>
+              <span className="text-xs text-orange-400 font-semibold">· Voir la page →</span>
+            </div>
+          </Link>
         </div>
 
         {/* ── FOOTER STRIP ─────────────────────────────────────────────────── */}
