@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import {
   MagnifyingGlassIcon, KeyIcon, PlusIcon,
   Squares2X2Icon, XMarkIcon, CheckIcon, UserCircleIcon,
+  DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
 import LanguageSelect from '../components/LanguageSelect';
 
@@ -206,6 +207,15 @@ export default function UsersPage() {
     catch { toast.error('Erreur'); }
   };
 
+  const validatePhone = async (id, telephone) => {
+    if (!window.confirm(`Valider le numéro ${telephone} pour cet utilisateur ?`)) return;
+    try {
+      await adminAPI.updateUser(id, { phoneVerified: true });
+      toast.success(`✅ Numéro ${telephone} validé — l'utilisateur peut désormais se connecter par téléphone`);
+      load();
+    } catch { toast.error('Erreur lors de la validation'); }
+  };
+
   const togglePremium = async (id, isPremium) => {
     try { await adminAPI.updateUser(id, { isPremium: !isPremium }); toast.success('Statut Premium mis à jour'); load(); }
     catch { toast.error('Erreur'); }
@@ -397,9 +407,32 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-center"><span className="font-semibold text-accent">{u.streak ?? 0}🔥</span></td>
                     <td className="px-4 py-3 text-center text-gray-600">{u._count?.contributions ?? 0}</td>
-                    {/* Téléphone */}
-                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
-                      {u.telephone || <span className="text-gray-300 italic">—</span>}
+                    {/* Téléphone + validation */}
+                    <td className="px-4 py-3 text-xs whitespace-nowrap">
+                      {u.telephone ? (
+                        <div className="flex items-center gap-1.5">
+                          {u.phoneVerified ? (
+                            <span className="flex items-center gap-1 text-green-600 font-medium">
+                              <CheckIcon className="w-3.5 h-3.5" />
+                              {u.telephone}
+                            </span>
+                          ) : (
+                            <>
+                              <span className="text-gray-400">{u.telephone}</span>
+                              <button
+                                onClick={() => validatePhone(u.id, u.telephone)}
+                                className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-50 border border-orange-200 text-orange-700 hover:bg-orange-100 transition-colors"
+                                title="Valider ce numéro pour la connexion par téléphone"
+                              >
+                                <DevicePhoneMobileIcon className="w-3 h-3" />
+                                Valider
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-300 italic">—</span>
+                      )}
                     </td>
                     {/* Sexe */}
                     <td className="px-4 py-3 text-xs text-center">
