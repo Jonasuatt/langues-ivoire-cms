@@ -5,9 +5,10 @@ import {
   ArrowLeftIcon, PlusIcon, PencilIcon, TrashIcon,
   AcademicCapIcon, SpeakerWaveIcon, ChatBubbleLeftRightIcon,
   BookOpenIcon, PuzzlePieceIcon, ChevronUpIcon, ChevronDownIcon,
-  PhotoIcon, VideoCameraIcon, LinkIcon,
+  PhotoIcon, VideoCameraIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import FileUploadField from '../components/FileUploadField';
 
 const STEP_TYPES     = ['VOCABULARY', 'DIALOGUE', 'GRAMMAR', 'EXERCISE'];
 const EXERCISE_TYPES = ['VOCABULARY', 'TRANSLATION', 'GRAMMAR', 'LISTENING', 'GAME', 'IMAGE_WORD'];
@@ -41,57 +42,7 @@ function defaultContenu(type) {
   return { titre: '', description: '' };
 }
 
-// ─── Aperçu miniature image ───────────────────────────────────────────────────
-function ImagePreview({ url, size = 'sm' }) {
-  if (!url) return null;
-  const cls = size === 'lg'
-    ? 'w-full h-48 object-cover rounded-xl mt-2 border border-gray-200'
-    : 'w-16 h-16 object-cover rounded-lg border border-gray-200 flex-shrink-0';
-  return (
-    <img
-      src={url}
-      alt="Aperçu"
-      className={cls}
-      onError={e => { e.target.style.display = 'none'; }}
-    />
-  );
-}
-
-// ─── Champ URL avec aperçu ────────────────────────────────────────────────────
-function MediaField({ label, value, onChange, placeholder, icon: Icon, type = 'image' }) {
-  return (
-    <div>
-      <label className="text-xs text-gray-500 mb-0.5 block flex items-center gap-1">
-        <Icon className="w-3 h-3" /> {label}
-      </label>
-      <input
-        className="input text-sm"
-        value={value || ''}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-      />
-      {type === 'image' && value && (
-        <div className="mt-1.5 flex justify-center">
-          <img
-            src={value}
-            alt="Aperçu"
-            className="max-h-24 rounded-lg border border-gray-200 object-contain"
-            onError={e => { e.target.style.display = 'none'; }}
-          />
-        </div>
-      )}
-      {type === 'video' && value && (
-        <div className="mt-1.5">
-          <video
-            src={value}
-            controls
-            className="w-full max-h-32 rounded-lg border border-gray-200"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
+// ImagePreview et MediaField supprimés — remplacés par FileUploadField
 
 // ─── Formulaire Vocabulaire ──────────────────────────────────────────────────
 function VocabularyForm({ contenu, onChange }) {
@@ -113,13 +64,13 @@ function VocabularyForm({ contenu, onChange }) {
 
       {/* Vidéo illustrative de l'étape */}
       <div className="bg-purple-50 border border-purple-100 rounded-xl p-3">
-        <MediaField
-          label="Vidéo illustrative de l'étape (optionnel)"
-          value={contenu.videoUrl}
-          onChange={v => onChange({ ...contenu, videoUrl: v })}
-          placeholder="https://... .mp4 ou lien YouTube embed"
-          icon={VideoCameraIcon}
+        <FileUploadField
           type="video"
+          label="Vidéo illustrative de l'étape"
+          sublabel="optionnel"
+          value={contenu.videoUrl || ''}
+          onChange={v => onChange({ ...contenu, videoUrl: v })}
+          compact
         />
         <p className="text-xs text-purple-500 mt-1.5">
           💡 Une courte vidéo (5-15s) montrant le contexte culturel du vocabulaire accélère la mémorisation.
@@ -137,51 +88,40 @@ function VocabularyForm({ contenu, onChange }) {
         <div className="space-y-4">
           {mots.map((mot, i) => (
             <div key={i} className="border border-gray-200 rounded-xl p-3 bg-gray-50 relative">
-              <div className="flex gap-3">
-                {/* Aperçu image */}
-                {mot.imageUrl ? (
-                  <img
-                    src={mot.imageUrl}
-                    alt={mot.mot}
-                    className="w-20 h-20 object-cover rounded-xl border border-gray-200 flex-shrink-0"
-                    onError={e => { e.target.style.display = 'none'; }}
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center flex-shrink-0 bg-white">
-                    <PhotoIcon className="w-6 h-6 text-gray-300" />
-                  </div>
-                )}
-                <div className="flex-1 grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Mot en langue *</label>
-                    <input className="input text-sm" value={mot.mot} onChange={e => updateMot(i, 'mot', e.target.value)} placeholder="Akwaba" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Traduction *</label>
-                    <input className="input text-sm" value={mot.traduction} onChange={e => updateMot(i, 'traduction', e.target.value)} placeholder="Bienvenue" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">Transcription phonétique</label>
-                    <input className="input text-sm" value={mot.transcription || ''} onChange={e => updateMot(i, 'transcription', e.target.value)} placeholder="ak-wa-ba" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-0.5 block">URL Audio</label>
-                    <input className="input text-sm" value={mot.audioUrl || ''} onChange={e => updateMot(i, 'audioUrl', e.target.value)} placeholder="https://..." />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="text-xs text-gray-500 mb-0.5 block flex items-center gap-1">
-                      <PhotoIcon className="w-3 h-3 text-orange-500" />
-                      <span className="text-orange-600 font-medium">URL Image du mot</span>
-                      <span className="text-gray-400">(recommandé pour les apprenants non-lecteurs)</span>
-                    </label>
-                    <input
-                      className="input text-sm border-orange-200 focus:border-orange-400"
-                      value={mot.imageUrl || ''}
-                      onChange={e => updateMot(i, 'imageUrl', e.target.value)}
-                      placeholder="https://... .jpg ou .png"
-                    />
-                  </div>
+              {/* Ligne texte : mot + traduction + phonétique + audio */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Mot en langue *</label>
+                  <input className="input text-sm" value={mot.mot} onChange={e => updateMot(i, 'mot', e.target.value)} placeholder="Akwaba" />
                 </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Traduction *</label>
+                  <input className="input text-sm" value={mot.traduction} onChange={e => updateMot(i, 'traduction', e.target.value)} placeholder="Bienvenue" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Transcription phonétique</label>
+                  <input className="input text-sm" value={mot.transcription || ''} onChange={e => updateMot(i, 'transcription', e.target.value)} placeholder="ak-wa-ba" />
+                </div>
+                <div>
+                  <FileUploadField
+                    type="audio"
+                    label="Audio"
+                    value={mot.audioUrl || ''}
+                    onChange={v => updateMot(i, 'audioUrl', v)}
+                    compact
+                  />
+                </div>
+              </div>
+              {/* Image du mot — upload depuis PC */}
+              <div className="border-t border-orange-100 pt-3 mt-1">
+                <FileUploadField
+                  type="image"
+                  label="🖼 Image du mot"
+                  sublabel="recommandé pour les apprenants non-lecteurs"
+                  value={mot.imageUrl || ''}
+                  onChange={v => updateMot(i, 'imageUrl', v)}
+                  compact
+                />
               </div>
               {mots.length > 1 && (
                 <button onClick={() => removeMot(i)} className="absolute top-2 right-2 text-gray-300 hover:text-red-500">
@@ -228,13 +168,13 @@ function DialogueForm({ contenu, onChange }) {
 
       {/* Vidéo du dialogue */}
       <div className="bg-purple-50 border border-purple-100 rounded-xl p-3">
-        <MediaField
-          label="Vidéo du dialogue (optionnel)"
-          value={contenu.videoUrl}
-          onChange={v => onChange({ ...contenu, videoUrl: v })}
-          placeholder="https://... .mp4 (scène du dialogue)"
-          icon={VideoCameraIcon}
+        <FileUploadField
           type="video"
+          label="Vidéo du dialogue"
+          sublabel="optionnel"
+          value={contenu.videoUrl || ''}
+          onChange={v => onChange({ ...contenu, videoUrl: v })}
+          compact
         />
         <p className="text-xs text-purple-500 mt-1.5">
           💡 Une vidéo du dialogue en situation réelle (marché, maison, école) booste la compréhension de 60%.
@@ -311,16 +251,14 @@ function GrammarForm({ contenu, onChange }) {
         <textarea className="input h-24 resize-none" value={contenu.explication || ''} onChange={e => onChange({ ...contenu, explication: e.target.value })} placeholder="Expliquez la règle grammaticale en français simple..." />
       </div>
       {/* Image illustrative pour la règle */}
-      <div>
-        <MediaField
-          label="Image illustrative (optionnel — ex : schéma de la règle)"
-          value={contenu.imageUrl}
-          onChange={v => onChange({ ...contenu, imageUrl: v })}
-          placeholder="https://... .jpg ou .png"
-          icon={PhotoIcon}
-          type="image"
-        />
-      </div>
+      <FileUploadField
+        type="image"
+        label="Image illustrative"
+        sublabel="optionnel — ex : schéma de la règle"
+        value={contenu.imageUrl || ''}
+        onChange={v => onChange({ ...contenu, imageUrl: v })}
+        compact
+      />
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-gray-700">Exemples ({exemples.length})</label>
@@ -765,13 +703,13 @@ export default function LessonEditorPage() {
 
               {/* Image pour IMAGE_WORD et tous types */}
               <div className={`rounded-xl p-3 border ${exForm.type === 'IMAGE_WORD' ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'}`}>
-                <MediaField
-                  label={exForm.type === 'IMAGE_WORD' ? 'Image du mot * (obligatoire pour IMAGE_WORD)' : 'Image illustrative (optionnel)'}
-                  value={exForm.imageUrl}
-                  onChange={v => setExForm({ ...exForm, imageUrl: v })}
-                  placeholder="https://... .jpg ou .png"
-                  icon={PhotoIcon}
+                <FileUploadField
                   type="image"
+                  label={exForm.type === 'IMAGE_WORD' ? '🖼 Image du mot *' : 'Image illustrative'}
+                  sublabel={exForm.type === 'IMAGE_WORD' ? 'obligatoire pour IMAGE_WORD' : 'optionnel'}
+                  value={exForm.imageUrl || ''}
+                  onChange={v => setExForm({ ...exForm, imageUrl: v })}
+                  compact
                 />
                 {exForm.type === 'IMAGE_WORD' && !exForm.imageUrl && (
                   <p className="text-xs text-orange-600 mt-1">⚠️ Une image est requise pour ce type d'exercice.</p>
