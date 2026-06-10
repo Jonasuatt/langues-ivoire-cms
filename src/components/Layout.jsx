@@ -43,6 +43,7 @@ const NAV_SECTIONS = [
       { to: '/conjugation', label: 'Conjugaison', icon: BookOpenIcon },
       { to: '/vocabulary', label: 'Vocabulaire', icon: BookOpenIcon },
       { to: '/lessons', label: 'Leçons', icon: AcademicCapIcon },
+      { to: '/cursus', label: '🏫 Cursus Scolaire', icon: AcademicCapIcon },
       { to: '/cultural', label: 'Culture & Traditions', icon: SparklesIcon },
       { to: '/textes-recits', label: 'Textes & Récits', icon: BookOpenIcon },
       { to: '/image-galleries', label: "Galeries d'Images", icon: PhotoIcon },

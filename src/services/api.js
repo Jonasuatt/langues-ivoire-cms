@@ -73,6 +73,20 @@ export const analyticsAPI = {
   getDashboard: () => api.get('/analytics'),
 };
 
+// Cursus Scolaire (Phase A)
+export const curriculumAPI = {
+  getGrades:    ()         => api.get('/curriculum/grades'),
+  getModules:   ()         => api.get('/curriculum/modules'),
+  updateGrade:  (id, data) => api.put(`/curriculum/admin/grades/${id}`, data),
+  updateModule: (id, data) => api.put(`/curriculum/admin/modules/${id}`, data),
+  assignLesson: (id, data) => api.put(`/curriculum/admin/lessons/${id}/grade`, data),
+  getStats:     ()         => api.get('/curriculum/admin/stats'),
+  getPlacementQuestions:   (params) => api.get('/curriculum/admin/placement-questions', { params }),
+  createPlacementQuestion: (data)   => api.post('/curriculum/admin/placement-questions', data),
+  updatePlacementQuestion: (id, data) => api.put(`/curriculum/admin/placement-questions/${id}`, data),
+  deletePlacementQuestion: (id)     => api.delete(`/curriculum/admin/placement-questions/${id}`),
+};
+
 export const adminAPI = {
   getUsers: (params) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
