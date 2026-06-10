@@ -90,6 +90,8 @@ export const curriculumAPI = {
   listExams:  (params)   => api.get('/curriculum/admin/exams', { params }),
   takeExam:   (id)       => api.patch(`/curriculum/admin/exams/${id}/take`),
   reviewExam: (id, data) => api.post(`/curriculum/admin/exams/${id}/review`, data),
+  // Phase H — Liste des inscriptions
+  listEnrollments: (params) => api.get('/curriculum/admin/enrollments', { params }),
 };
 
 // Phase C — Cahier de notes & Bulletins

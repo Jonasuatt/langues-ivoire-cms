@@ -58,6 +58,7 @@ export default function CursusPage() {
   const [bulletinsLoading, setBulletinsLoading] = useState(false);
   const [bulletinFilter, setBulletinFilter] = useState({ trimestre: '', annee: '', validated: '' });
   const [genForm, setGenForm]               = useState({ enrollmentId: '', trimestre: 'T1', annee: new Date().getFullYear() });
+  const [allEnrollments, setAllEnrollments] = useState([]);
   const [validatingId, setValidatingId]     = useState(null);
   const [validateForm, setValidateForm]     = useState({ observations: '' });
 
@@ -101,6 +102,14 @@ export default function CursusPage() {
       .catch(() => toast.error('Erreur de chargement des examens'))
       .finally(() => setExamsLoading(false));
   }, [tab, examFilter]);
+
+  // Charger la liste des inscrits quand l'onglet Bulletins est ouvert
+  useEffect(() => {
+    if (tab !== 'bulletins') return;
+    curriculumAPI.listEnrollments()
+      .then(({ data }) => setAllEnrollments(data.enrollments ?? []))
+      .catch(() => {});
+  }, [tab]);
 
   // Charger les bulletins quand l'onglet Bulletins est ouvert ou les filtres changent
   useEffect(() => {
@@ -620,14 +629,19 @@ export default function CursusPage() {
             <h3 className="font-bold text-gray-800 mb-4">📒 Générer un bulletin trimestriel</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">ID d'inscription (enrollmentId)</label>
-                <input
-                  type="text"
-                  placeholder="ex: 550e8400-e29b-41d4-..."
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Élève inscrit au cursus</label>
+                <select
                   value={genForm.enrollmentId}
                   onChange={e => setGenForm(f => ({ ...f, enrollmentId: e.target.value }))}
                   className="w-full border rounded-lg px-3 py-2 text-sm"
-                />
+                >
+                  <option value="">— Choisir un élève —</option>
+                  {allEnrollments.map(e => (
+                    <option key={e.id} value={e.id}>
+                      {e.user.prenom} {e.user.nom} — {e.language?.emoji ?? '📚'} {e.language?.nom} — {e.gradeLevel?.nom}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Trimestre</label>
