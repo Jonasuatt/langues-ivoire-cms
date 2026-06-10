@@ -103,7 +103,36 @@ export default function CursusPage() {
 
   const gradeName = (ordre) => grades.find(g => g.ordre === ordre)?.nom ?? `Ordre ${ordre}`;
 
+  const initSeed = async () => {
+    try {
+      const { data } = await curriculumAPI.seed();
+      toast.success(data.message);
+      load();
+    } catch { toast.error("Échec de l'initialisation"); }
+  };
+
   if (loading) return <div className="p-8 text-center text-gray-500">Chargement du cursus…</div>;
+
+  // Production fraîchement déployée : les niveaux n'existent pas encore
+  if (grades.length === 0) {
+    return (
+      <div className="p-8 max-w-2xl mx-auto text-center">
+        <AcademicCapIcon className="w-14 h-14 text-emerald-800 mx-auto mb-3" />
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">Cursus Scolaire</h1>
+        <p className="text-sm text-gray-500 mb-6">
+          Le cursus n'est pas encore initialisé sur ce serveur. Cliquez ci-dessous pour créer
+          les 16 niveaux (CP1 → Terminale + Parcours Chercheur) et la configuration des modules.
+        </p>
+        {isAdmin ? (
+          <button onClick={initSeed} className="bg-emerald-800 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition">
+            🏫 Initialiser le cursus
+          </button>
+        ) : (
+          <p className="text-xs text-gray-400">Demandez à un administrateur d'initialiser le cursus.</p>
+        )}
+      </div>
+    );
+  }
 
   const TABS = [
     { id: 'classes', label: '🏫 Classes' },

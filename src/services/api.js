@@ -81,6 +81,7 @@ export const curriculumAPI = {
   updateModule: (id, data) => api.put(`/curriculum/admin/modules/${id}`, data),
   assignLesson: (id, data) => api.put(`/curriculum/admin/lessons/${id}/grade`, data),
   getStats:     ()         => api.get('/curriculum/admin/stats'),
+  seed:         ()         => api.post('/curriculum/admin/seed'),
   getPlacementQuestions:   (params) => api.get('/curriculum/admin/placement-questions', { params }),
   createPlacementQuestion: (data)   => api.post('/curriculum/admin/placement-questions', data),
   updatePlacementQuestion: (id, data) => api.put(`/curriculum/admin/placement-questions/${id}`, data),
