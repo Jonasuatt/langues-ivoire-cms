@@ -46,6 +46,13 @@ export default function CursusPage() {
   const [lessonLangFilter, setLessonLangFilter] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Phase B — Comité
+  const [exams, setExams]             = useState([]);
+  const [examsLoading, setExamsLoading] = useState(false);
+  const [examFilter, setExamFilter]   = useState('PENDING');
+  const [reviewingId, setReviewingId] = useState(null);
+  const [reviewForm, setReviewForm]   = useState({ decision: 'APPROVED', commentaire: '' });
+
   const load = async () => {
     setLoading(true);
     try {
@@ -76,6 +83,39 @@ export default function CursusPage() {
       .then(({ data }) => setLessons(Array.isArray(data) ? data : (data?.data ?? data?.lessons ?? [])))
       .catch(() => toast.error('Erreur de chargement des leçons'));
   }, [tab]);
+
+  // Charger les examens quand l'onglet Comité est ouvert ou le filtre change
+  useEffect(() => {
+    if (tab !== 'comite') return;
+    setExamsLoading(true);
+    curriculumAPI.listExams({ status: examFilter })
+      .then(({ data }) => setExams(data.items ?? []))
+      .catch(() => toast.error('Erreur de chargement des examens'))
+      .finally(() => setExamsLoading(false));
+  }, [tab, examFilter]);
+
+  const handleReview = async (examId) => {
+    try {
+      await curriculumAPI.reviewExam(examId, reviewForm);
+      toast.success(reviewForm.decision === 'APPROVED' ? '✅ Passage validé !' : '❌ Demande refusée');
+      setReviewingId(null);
+      setReviewForm({ decision: 'APPROVED', commentaire: '' });
+      // Rafraîchir la liste
+      const { data } = await curriculumAPI.listExams({ status: examFilter });
+      setExams(data.items ?? []);
+    } catch (err) {
+      toast.error(err.response?.data?.error ?? 'Erreur lors de la décision');
+    }
+  };
+
+  const handleTake = async (examId) => {
+    try {
+      await curriculumAPI.takeExam(examId);
+      toast.success('Examen pris en charge');
+      const { data } = await curriculumAPI.listExams({ status: examFilter });
+      setExams(data.items ?? []);
+    } catch { toast.error('Erreur'); }
+  };
 
   const saveGrade = async (grade, patch) => {
     try {
@@ -138,7 +178,10 @@ export default function CursusPage() {
     { id: 'classes', label: '🏫 Classes' },
     { id: 'modules', label: '🔒 Modules' },
     { id: 'lessons', label: '📚 Leçons' },
-    ...(isAdmin ? [{ id: 'stats', label: '📊 Statistiques' }] : []),
+    ...(isAdmin ? [
+      { id: 'comite', label: '⚖️ Comité' },
+      { id: 'stats',  label: '📊 Statistiques' },
+    ] : []),
   ];
 
   return (
@@ -374,6 +417,143 @@ export default function CursusPage() {
               <div className="p-8 text-center text-gray-400 text-sm">Aucune leçon trouvée.</div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ───── Onglet Comité (Phase B) ───── */}
+      {tab === 'comite' && (
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex gap-2">
+              {['PENDING','IN_REVIEW','APPROVED','REJECTED'].map(s => (
+                <button key={s}
+                  onClick={() => setExamFilter(s)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    examFilter === s
+                      ? 'bg-purple-700 text-white shadow'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  {{ PENDING: '⏳ En attente', IN_REVIEW: '🔍 En cours', APPROVED: '✅ Validés', REJECTED: '❌ Refusés' }[s]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {examsLoading ? (
+            <div className="text-center py-12 text-gray-400">Chargement…</div>
+          ) : exams.length === 0 ? (
+            <div className="bg-white rounded-xl p-12 text-center text-gray-400">
+              <div className="text-4xl mb-3">📭</div>
+              <p className="font-semibold">Aucune demande dans cette catégorie</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {exams.map(exam => (
+                <div key={exam.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-gray-800">
+                          {exam.user.prenom} {exam.user.nom}
+                        </span>
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                          {exam.language.nom}
+                        </span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+                          {exam.gradeLevel.nom}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mb-3">
+                        Soumis le {new Date(exam.createdAt).toLocaleDateString('fr-FR')}
+                        {exam.reviewer && ` · Pris en charge par ${exam.reviewer.prenom} ${exam.reviewer.nom}`}
+                      </p>
+
+                      {exam.textContent && (
+                        <div className="bg-gray-50 rounded-lg p-4 mb-3">
+                          <p className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">
+                            Production de l'élève
+                          </p>
+                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {exam.textContent}
+                          </p>
+                        </div>
+                      )}
+
+                      {exam.audioUrl && (
+                        <div className="mb-3">
+                          <p className="text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wide">
+                            Enregistrement audio
+                          </p>
+                          <audio controls src={exam.audioUrl} className="w-full h-10" />
+                        </div>
+                      )}
+
+                      {exam.commentaire && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
+                          <span className="font-semibold">Commentaire comité :</span> {exam.commentaire}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Panneau de décision */}
+                    {['PENDING','IN_REVIEW'].includes(exam.status) && (
+                      <div className="flex flex-col gap-2 min-w-[160px]">
+                        {exam.status === 'PENDING' && (
+                          <button
+                            onClick={() => handleTake(exam.id)}
+                            className="w-full px-3 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors"
+                          >
+                            🔍 Prendre en charge
+                          </button>
+                        )}
+                        {reviewingId === exam.id ? (
+                          <div className="border border-purple-200 rounded-lg p-3 bg-purple-50 space-y-2">
+                            <select
+                              value={reviewForm.decision}
+                              onChange={e => setReviewForm(f => ({ ...f, decision: e.target.value }))}
+                              className="w-full text-xs border border-gray-200 rounded px-2 py-1.5"
+                            >
+                              <option value="APPROVED">✅ Approuver</option>
+                              <option value="REJECTED">❌ Refuser</option>
+                            </select>
+                            <textarea
+                              placeholder="Commentaire pour l'élève (optionnel)"
+                              value={reviewForm.commentaire}
+                              onChange={e => setReviewForm(f => ({ ...f, commentaire: e.target.value }))}
+                              rows={3}
+                              className="w-full text-xs border border-gray-200 rounded px-2 py-1.5 resize-none"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleReview(exam.id)}
+                                className="flex-1 py-1.5 bg-purple-700 text-white rounded text-xs font-bold hover:bg-purple-800"
+                              >
+                                Valider
+                              </button>
+                              <button
+                                onClick={() => setReviewingId(null)}
+                                className="flex-1 py-1.5 bg-gray-100 text-gray-600 rounded text-xs font-bold hover:bg-gray-200"
+                              >
+                                Annuler
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setReviewingId(exam.id); setReviewForm({ decision: 'APPROVED', commentaire: '' }); }}
+                            className="w-full px-3 py-2 bg-purple-700 text-white rounded-lg text-xs font-bold hover:bg-purple-800 transition-colors"
+                          >
+                            ⚖️ Statuer
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

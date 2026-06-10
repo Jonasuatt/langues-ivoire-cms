@@ -86,6 +86,10 @@ export const curriculumAPI = {
   createPlacementQuestion: (data)   => api.post('/curriculum/admin/placement-questions', data),
   updatePlacementQuestion: (id, data) => api.put(`/curriculum/admin/placement-questions/${id}`, data),
   deletePlacementQuestion: (id)     => api.delete(`/curriculum/admin/placement-questions/${id}`),
+  // Phase B — Comité
+  listExams:  (params)   => api.get('/curriculum/admin/exams', { params }),
+  takeExam:   (id)       => api.patch(`/curriculum/admin/exams/${id}/take`),
+  reviewExam: (id, data) => api.post(`/curriculum/admin/exams/${id}/review`, data),
 };
 
 export const adminAPI = {
