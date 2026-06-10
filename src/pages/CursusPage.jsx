@@ -60,6 +60,9 @@ export default function CursusPage() {
   const [genForm, setGenForm]               = useState({ enrollmentId: '', trimestre: 'T1', annee: new Date().getFullYear() });
   const [allEnrollments, setAllEnrollments] = useState([]);
   const [batchLoading, setBatchLoading]     = useState(false);
+  const [elevesLangFilter, setElevesLangFilter]   = useState('');
+  const [elevesGradeFilter, setElevesGradeFilter] = useState('');
+  const [elevesSearch, setElevesSearch]           = useState('');
   const [validatingId, setValidatingId]     = useState(null);
   const [validateForm, setValidateForm]     = useState({ observations: '' });
 
@@ -104,9 +107,9 @@ export default function CursusPage() {
       .finally(() => setExamsLoading(false));
   }, [tab, examFilter]);
 
-  // Charger la liste des inscrits quand l'onglet Bulletins est ouvert
+  // Charger la liste des inscrits quand l'onglet Bulletins ou Élèves est ouvert
   useEffect(() => {
-    if (tab !== 'bulletins') return;
+    if (tab !== 'bulletins' && tab !== 'eleves') return;
     curriculumAPI.listEnrollments()
       .then(({ data }) => setAllEnrollments(data.enrollments ?? []))
       .catch(() => {});
@@ -257,6 +260,7 @@ export default function CursusPage() {
     { id: 'modules',   label: '🔒 Modules' },
     { id: 'lessons',   label: '📚 Leçons' },
     ...(isAdmin ? [
+      { id: 'eleves',    label: '👥 Élèves' },
       { id: 'comite',    label: '⚖️ Comité' },
       { id: 'bulletins', label: '📒 Bulletins' },
       { id: 'stats',     label: '📊 Statistiques' },
@@ -495,6 +499,101 @@ export default function CursusPage() {
             {lessons.length === 0 && (
               <div className="p-8 text-center text-gray-400 text-sm">Aucune leçon trouvée.</div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ───── Onglet Élèves (Phase J) ───── */}
+      {tab === 'eleves' && (
+        <div className="space-y-4">
+          {/* Filtres */}
+          <div className="flex flex-wrap gap-3 items-center">
+            <input
+              type="text"
+              placeholder="🔍 Rechercher un élève…"
+              value={elevesSearch}
+              onChange={e => setElevesSearch(e.target.value)}
+              className="border rounded-lg px-3 py-2 text-sm w-56"
+            />
+            <select
+              value={elevesLangFilter}
+              onChange={e => setElevesLangFilter(e.target.value)}
+              className="border rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="">Toutes les langues</option>
+              {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
+            </select>
+            <select
+              value={elevesGradeFilter}
+              onChange={e => setElevesGradeFilter(e.target.value)}
+              className="border rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="">Toutes les classes</option>
+              {grades.map(g => <option key={g.id} value={g.id}>{g.nom}</option>)}
+            </select>
+            <span className="text-xs text-gray-400 ml-auto">
+              {(() => {
+                const filtered = allEnrollments
+                  .filter(e => !elevesLangFilter  || e.languageId  === elevesLangFilter)
+                  .filter(e => !elevesGradeFilter || e.gradeLevelId === elevesGradeFilter)
+                  .filter(e => !elevesSearch || `${e.user.prenom} ${e.user.nom} ${e.user.email}`.toLowerCase().includes(elevesSearch.toLowerCase()));
+                return `${filtered.length} inscription${filtered.length !== 1 ? 's' : ''}`;
+              })()}
+            </span>
+          </div>
+
+          {/* Tableau */}
+          <div className="bg-white rounded-xl shadow overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="px-4 py-3 text-left">Élève</th>
+                  <th className="px-4 py-3 text-left">Langue</th>
+                  <th className="px-4 py-3 text-left">Classe</th>
+                  <th className="px-4 py-3 text-left">Cycle</th>
+                  <th className="px-4 py-3 text-center">Principale</th>
+                  <th className="px-4 py-3 text-center">Moy.</th>
+                  <th className="px-4 py-3 text-left">Inscrit le</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {allEnrollments
+                  .filter(e => !elevesLangFilter  || e.languageId   === elevesLangFilter)
+                  .filter(e => !elevesGradeFilter || e.gradeLevelId === elevesGradeFilter)
+                  .filter(e => !elevesSearch || `${e.user.prenom} ${e.user.nom} ${e.user.email}`.toLowerCase().includes(elevesSearch.toLowerCase()))
+                  .map(e => (
+                    <tr key={e.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-gray-800">{e.user.prenom} {e.user.nom}</div>
+                        <div className="text-xs text-gray-400">{e.user.email}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1">
+                          {e.language?.emoji ?? '📚'} {e.language?.nom}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-700">{e.gradeLevel?.nom}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${CYCLE_COLORS[e.gradeLevel?.cycle] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {e.gradeLevel?.cycle}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {e.isPrincipal ? <span className="text-amber-500 font-bold">★</span> : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-center font-semibold text-emerald-700">
+                        {e.moyenne != null ? `${Math.round(e.moyenne)}%` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-500">
+                        {e.startedAt ? new Date(e.startedAt).toLocaleDateString('fr-FR') : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                {allEnrollments.length === 0 && (
+                  <tr><td colSpan={7} className="p-10 text-center text-gray-400">Aucun élève inscrit au cursus.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
