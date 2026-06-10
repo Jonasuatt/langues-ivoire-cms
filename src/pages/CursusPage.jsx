@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import PageHelp from '../components/PageHelp';
-import { curriculumAPI, lessonsAPI, languagesAPI } from '../services/api';
+import { curriculumAPI, lessonsAPI, languagesAPI, notesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   AcademicCapIcon, LockClosedIcon, LockOpenIcon,
@@ -53,6 +53,14 @@ export default function CursusPage() {
   const [reviewingId, setReviewingId] = useState(null);
   const [reviewForm, setReviewForm]   = useState({ decision: 'APPROVED', commentaire: '' });
 
+  // Phase C — Bulletins
+  const [bulletins, setBulletins]           = useState([]);
+  const [bulletinsLoading, setBulletinsLoading] = useState(false);
+  const [bulletinFilter, setBulletinFilter] = useState({ trimestre: '', annee: '', validated: '' });
+  const [genForm, setGenForm]               = useState({ enrollmentId: '', trimestre: 'T1', annee: new Date().getFullYear() });
+  const [validatingId, setValidatingId]     = useState(null);
+  const [validateForm, setValidateForm]     = useState({ observations: '' });
+
   const load = async () => {
     setLoading(true);
     try {
@@ -94,6 +102,20 @@ export default function CursusPage() {
       .finally(() => setExamsLoading(false));
   }, [tab, examFilter]);
 
+  // Charger les bulletins quand l'onglet Bulletins est ouvert ou les filtres changent
+  useEffect(() => {
+    if (tab !== 'bulletins') return;
+    setBulletinsLoading(true);
+    const params = {};
+    if (bulletinFilter.trimestre) params.trimestre = bulletinFilter.trimestre;
+    if (bulletinFilter.annee)     params.annee     = bulletinFilter.annee;
+    if (bulletinFilter.validated) params.validated = bulletinFilter.validated;
+    notesAPI.listBulletins(params)
+      .then(({ data }) => setBulletins(data.bulletins ?? []))
+      .catch(() => toast.error('Erreur de chargement des bulletins'))
+      .finally(() => setBulletinsLoading(false));
+  }, [tab, bulletinFilter]);
+
   const handleReview = async (examId) => {
     try {
       await curriculumAPI.reviewExam(examId, reviewForm);
@@ -115,6 +137,37 @@ export default function CursusPage() {
       const { data } = await curriculumAPI.listExams({ status: examFilter });
       setExams(data.items ?? []);
     } catch { toast.error('Erreur'); }
+  };
+
+  const handleGenerateBulletin = async () => {
+    if (!genForm.enrollmentId.trim()) { toast.error("L'ID d'inscription est requis."); return; }
+    try {
+      const { data } = await notesAPI.generateBulletin({
+        enrollmentId: genForm.enrollmentId.trim(),
+        trimestre: genForm.trimestre,
+        annee: parseInt(genForm.annee),
+      });
+      toast.success(`Bulletin généré — ${data.nbNotes} notes traitées`);
+      setGenForm(f => ({ ...f, enrollmentId: '' }));
+      // Rafraîchir la liste
+      const res = await notesAPI.listBulletins({});
+      setBulletins(res.data.bulletins ?? []);
+    } catch (err) {
+      toast.error(err.response?.data?.error ?? 'Erreur de génération');
+    }
+  };
+
+  const handleValidateBulletin = async (id) => {
+    try {
+      await notesAPI.validateBulletin(id, { observations: validateForm.observations });
+      toast.success('Bulletin validé ✅');
+      setValidatingId(null);
+      setValidateForm({ observations: '' });
+      const res = await notesAPI.listBulletins({});
+      setBulletins(res.data.bulletins ?? []);
+    } catch (err) {
+      toast.error(err.response?.data?.error ?? 'Erreur de validation');
+    }
   };
 
   const saveGrade = async (grade, patch) => {
@@ -175,12 +228,13 @@ export default function CursusPage() {
   }
 
   const TABS = [
-    { id: 'classes', label: '🏫 Classes' },
-    { id: 'modules', label: '🔒 Modules' },
-    { id: 'lessons', label: '📚 Leçons' },
+    { id: 'classes',   label: '🏫 Classes' },
+    { id: 'modules',   label: '🔒 Modules' },
+    { id: 'lessons',   label: '📚 Leçons' },
     ...(isAdmin ? [
-      { id: 'comite', label: '⚖️ Comité' },
-      { id: 'stats',  label: '📊 Statistiques' },
+      { id: 'comite',    label: '⚖️ Comité' },
+      { id: 'bulletins', label: '📒 Bulletins' },
+      { id: 'stats',     label: '📊 Statistiques' },
     ] : []),
   ];
 
@@ -545,6 +599,188 @@ export default function CursusPage() {
                             className="w-full px-3 py-2 bg-purple-700 text-white rounded-lg text-xs font-bold hover:bg-purple-800 transition-colors"
                           >
                             ⚖️ Statuer
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ───── Onglet Bulletins (Phase C) ───── */}
+      {tab === 'bulletins' && (
+        <div className="space-y-6">
+
+          {/* Formulaire de génération */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <h3 className="font-bold text-gray-800 mb-4">📒 Générer un bulletin trimestriel</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="md:col-span-2">
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">ID d'inscription (enrollmentId)</label>
+                <input
+                  type="text"
+                  placeholder="ex: 550e8400-e29b-41d4-..."
+                  value={genForm.enrollmentId}
+                  onChange={e => setGenForm(f => ({ ...f, enrollmentId: e.target.value }))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Trimestre</label>
+                <select
+                  value={genForm.trimestre}
+                  onChange={e => setGenForm(f => ({ ...f, trimestre: e.target.value }))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="T1">T1 — Sept. / Déc.</option>
+                  <option value="T2">T2 — Janv. / Mars</option>
+                  <option value="T3">T3 — Avril / Juin</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Année</label>
+                <input
+                  type="number" min="2024" max="2040"
+                  value={genForm.annee}
+                  onChange={e => setGenForm(f => ({ ...f, annee: e.target.value }))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleGenerateBulletin}
+              className="mt-3 px-5 py-2 bg-emerald-700 text-white rounded-lg text-sm font-semibold hover:bg-emerald-800 transition"
+            >
+              Générer le bulletin
+            </button>
+          </div>
+
+          {/* Filtres */}
+          <div className="flex flex-wrap gap-3 items-center">
+            <select
+              value={bulletinFilter.trimestre}
+              onChange={e => setBulletinFilter(f => ({ ...f, trimestre: e.target.value }))}
+              className="border rounded-lg px-3 py-1.5 text-sm"
+            >
+              <option value="">Tous les trimestres</option>
+              <option value="T1">T1</option>
+              <option value="T2">T2</option>
+              <option value="T3">T3</option>
+            </select>
+            <input
+              type="number" placeholder="Année…" min="2024" max="2040"
+              value={bulletinFilter.annee}
+              onChange={e => setBulletinFilter(f => ({ ...f, annee: e.target.value }))}
+              className="border rounded-lg px-3 py-1.5 text-sm w-24"
+            />
+            <select
+              value={bulletinFilter.validated}
+              onChange={e => setBulletinFilter(f => ({ ...f, validated: e.target.value }))}
+              className="border rounded-lg px-3 py-1.5 text-sm"
+            >
+              <option value="">Tous les statuts</option>
+              <option value="false">Non validés</option>
+              <option value="true">Validés</option>
+            </select>
+          </div>
+
+          {/* Liste des bulletins */}
+          {bulletinsLoading ? (
+            <div className="text-center py-12 text-gray-400">Chargement…</div>
+          ) : bulletins.length === 0 ? (
+            <div className="bg-white rounded-xl p-12 text-center text-gray-400">
+              <div className="text-4xl mb-3">📭</div>
+              <p className="font-semibold">Aucun bulletin trouvé</p>
+              <p className="text-sm mt-1">Générez un bulletin à partir des notes d'un élève.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {bulletins.map(b => (
+                <div key={b.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center flex-wrap gap-2 mb-1">
+                        <span className="font-bold text-gray-800">
+                          {b.enrollment.user.prenom} {b.enrollment.user.nom}
+                        </span>
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
+                          {b.enrollment.language.nom}
+                        </span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+                          {b.gradeLevel.nom}
+                        </span>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-semibold">
+                          {b.trimestre} — {b.annee}
+                        </span>
+                        {b.validatedAt ? (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                            ✅ Validé
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">
+                            ⏳ En attente
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Moyennes */}
+                      <div className="flex flex-wrap gap-4 my-3 text-sm">
+                        {b.moyenneLangue   != null && <div><span className="text-gray-500">📖 Langue : </span><span className="font-bold">{b.moyenneLangue}/20</span></div>}
+                        {b.moyenneCulture  != null && <div><span className="text-gray-500">🎭 Culture : </span><span className="font-bold">{b.moyenneCulture}/20</span></div>}
+                        {b.moyennePratique != null && <div><span className="text-gray-500">🛠️ Pratique : </span><span className="font-bold">{b.moyennePratique}/20</span></div>}
+                        {b.moyenneGenerale != null && (
+                          <div className="font-bold text-emerald-700">
+                            Moy. générale : {b.moyenneGenerale}/20
+                            {b.mention && <span className="ml-2 text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">{b.mention}</span>}
+                          </div>
+                        )}
+                      </div>
+
+                      {b.codeVerification && (
+                        <p className="text-xs text-gray-400 font-mono">Code : {b.codeVerification}</p>
+                      )}
+                      {b.observations && (
+                        <p className="text-sm text-gray-600 mt-1 italic">"{b.observations}"</p>
+                      )}
+                    </div>
+
+                    {/* Bouton de validation */}
+                    {!b.validatedAt && (
+                      <div className="min-w-[160px]">
+                        {validatingId === b.id ? (
+                          <div className="border border-emerald-200 rounded-lg p-3 bg-emerald-50 space-y-2">
+                            <textarea
+                              placeholder="Observations (optionnel)"
+                              value={validateForm.observations}
+                              onChange={e => setValidateForm({ observations: e.target.value })}
+                              rows={3}
+                              className="w-full text-xs border border-gray-200 rounded px-2 py-1.5 resize-none"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleValidateBulletin(b.id)}
+                                className="flex-1 py-1.5 bg-emerald-700 text-white rounded text-xs font-bold hover:bg-emerald-800"
+                              >
+                                Valider
+                              </button>
+                              <button
+                                onClick={() => setValidatingId(null)}
+                                className="flex-1 py-1.5 bg-gray-100 text-gray-600 rounded text-xs font-bold"
+                              >
+                                Annuler
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setValidatingId(b.id); setValidateForm({ observations: '' }); }}
+                            className="w-full px-3 py-2 bg-emerald-700 text-white rounded-lg text-xs font-bold hover:bg-emerald-800 transition"
+                          >
+                            ✅ Valider le bulletin
                           </button>
                         )}
                       </div>

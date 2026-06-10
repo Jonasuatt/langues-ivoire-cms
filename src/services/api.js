@@ -92,6 +92,13 @@ export const curriculumAPI = {
   reviewExam: (id, data) => api.post(`/curriculum/admin/exams/${id}/review`, data),
 };
 
+// Phase C — Cahier de notes & Bulletins
+export const notesAPI = {
+  listBulletins:    (params)       => api.get('/notes/admin/bulletins', { params }),
+  generateBulletin: (data)         => api.post('/notes/admin/bulletin', data),
+  validateBulletin: (id, data)     => api.patch(`/notes/admin/bulletin/${id}/validate`, data),
+};
+
 export const adminAPI = {
   getUsers: (params) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
