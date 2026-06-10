@@ -92,6 +92,9 @@ export const curriculumAPI = {
   reviewExam: (id, data) => api.post(`/curriculum/admin/exams/${id}/review`, data),
   // Phase H — Liste des inscriptions
   listEnrollments: (params) => api.get('/curriculum/admin/enrollments', { params }),
+  // Phase K — Contenu démo
+  seedContent:  () => api.post('/curriculum/admin/seed-content'),
+  resetContent: () => api.post('/curriculum/admin/reset-content'),
 };
 
 // Phase C — Cahier de notes & Bulletins

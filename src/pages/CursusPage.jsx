@@ -59,7 +59,8 @@ export default function CursusPage() {
   const [bulletinFilter, setBulletinFilter] = useState({ trimestre: '', annee: '', validated: '' });
   const [genForm, setGenForm]               = useState({ enrollmentId: '', trimestre: 'T1', annee: new Date().getFullYear() });
   const [allEnrollments, setAllEnrollments] = useState([]);
-  const [batchLoading, setBatchLoading]     = useState(false);
+  const [batchLoading, setBatchLoading]       = useState(false);
+  const [demoLoading, setDemoLoading]         = useState(false);
   const [elevesLangFilter, setElevesLangFilter]   = useState('');
   const [elevesGradeFilter, setElevesGradeFilter] = useState('');
   const [elevesSearch, setElevesSearch]           = useState('');
@@ -183,6 +184,33 @@ export default function CursusPage() {
     } finally {
       setBatchLoading(false);
     }
+  };
+
+  const handleSeedContent = async () => {
+    if (!window.confirm('Assigner des leçons démo à CP1, CP2 et CE1 pour toutes les langues actives ?')) return;
+    setDemoLoading('seed');
+    try {
+      const { data } = await curriculumAPI.seedContent();
+      toast.success(`✅ ${data.totalAssigned} leçon(s) assignée(s) au cursus`);
+      // Recharger les leçons
+      const res = await lessonsAPI.getAllAdmin({ limit: 500 });
+      setLessons(Array.isArray(res.data) ? res.data : (res.data?.data ?? res.data?.lessons ?? []));
+    } catch (err) {
+      toast.error(err.response?.data?.error ?? 'Erreur lors du seed');
+    } finally { setDemoLoading(false); }
+  };
+
+  const handleResetContent = async () => {
+    if (!window.confirm('Retirer TOUTES les assignations de classe sur les leçons ? Cette action est réversible (relancez le seed).')) return;
+    setDemoLoading('reset');
+    try {
+      const { data } = await curriculumAPI.resetContent();
+      toast.success(`🗑️ ${data.resetCount} leçon(s) réinitialisée(s)`);
+      const res = await lessonsAPI.getAllAdmin({ limit: 500 });
+      setLessons(Array.isArray(res.data) ? res.data : (res.data?.data ?? res.data?.lessons ?? []));
+    } catch (err) {
+      toast.error(err.response?.data?.error ?? 'Erreur lors du reset');
+    } finally { setDemoLoading(false); }
   };
 
   const handleValidateBulletin = async (id) => {
@@ -429,7 +457,7 @@ export default function CursusPage() {
       {/* ───── Onglet Leçons ───── */}
       {tab === 'lessons' && (
         <div>
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
             <BookOpenIcon className="w-5 h-5 text-gray-500" />
             <select
               value={lessonLangFilter}
@@ -439,9 +467,27 @@ export default function CursusPage() {
               <option value="">Toutes les langues</option>
               {languages.map(l => <option key={l.id} value={l.id}>{l.nom}</option>)}
             </select>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 flex-1">
               Seules les leçons rattachées à une classe comptent pour le passage de classe.
             </span>
+            {isAdmin && (
+              <div className="flex gap-2 ml-auto">
+                <button
+                  onClick={handleSeedContent}
+                  disabled={!!demoLoading}
+                  className="px-3 py-1.5 bg-emerald-700 text-white rounded-lg text-xs font-bold hover:bg-emerald-800 transition disabled:opacity-50"
+                >
+                  {demoLoading === 'seed' ? '⏳…' : '⚡ Charger contenu démo'}
+                </button>
+                <button
+                  onClick={handleResetContent}
+                  disabled={!!demoLoading}
+                  className="px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-200 transition disabled:opacity-50"
+                >
+                  {demoLoading === 'reset' ? '⏳…' : '🗑️ Supprimer contenu démo'}
+                </button>
+              </div>
+            )}
           </div>
           <div className="bg-white rounded-xl shadow overflow-x-auto">
             <table className="w-full text-sm">
