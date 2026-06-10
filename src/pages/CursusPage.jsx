@@ -59,6 +59,7 @@ export default function CursusPage() {
   const [bulletinFilter, setBulletinFilter] = useState({ trimestre: '', annee: '', validated: '' });
   const [genForm, setGenForm]               = useState({ enrollmentId: '', trimestre: 'T1', annee: new Date().getFullYear() });
   const [allEnrollments, setAllEnrollments] = useState([]);
+  const [batchLoading, setBatchLoading]     = useState(false);
   const [validatingId, setValidatingId]     = useState(null);
   const [validateForm, setValidateForm]     = useState({ observations: '' });
 
@@ -163,6 +164,21 @@ export default function CursusPage() {
       setBulletins(res.data.bulletins ?? []);
     } catch (err) {
       toast.error(err.response?.data?.error ?? 'Erreur de génération');
+    }
+  };
+
+  const handleBatch = async () => {
+    if (!genForm.trimestre || !genForm.annee) { toast.error('Choisissez un trimestre et une année.'); return; }
+    setBatchLoading(true);
+    try {
+      const { data } = await notesAPI.generateBatch({ trimestre: genForm.trimestre, annee: parseInt(genForm.annee) });
+      toast.success(`✅ ${data.generated} bulletins générés, ${data.skipped} ignorés (déjà validés), ${data.errors} erreurs`);
+      const res = await notesAPI.listBulletins({});
+      setBulletins(res.data.bulletins ?? []);
+    } catch (err) {
+      toast.error(err.response?.data?.error ?? 'Erreur de génération en masse');
+    } finally {
+      setBatchLoading(false);
     }
   };
 
@@ -665,12 +681,24 @@ export default function CursusPage() {
                 />
               </div>
             </div>
-            <button
-              onClick={handleGenerateBulletin}
-              className="mt-3 px-5 py-2 bg-emerald-700 text-white rounded-lg text-sm font-semibold hover:bg-emerald-800 transition"
-            >
-              Générer le bulletin
-            </button>
+            <div className="mt-3 flex flex-wrap gap-3 items-center">
+              <button
+                onClick={handleGenerateBulletin}
+                className="px-5 py-2 bg-emerald-700 text-white rounded-lg text-sm font-semibold hover:bg-emerald-800 transition"
+              >
+                Générer ce bulletin
+              </button>
+              <button
+                onClick={handleBatch}
+                disabled={batchLoading}
+                className="px-5 py-2 bg-blue-700 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition disabled:opacity-50"
+              >
+                {batchLoading ? '⏳ Génération…' : '⚡ Générer pour tous les élèves'}
+              </button>
+              <span className="text-xs text-gray-400">
+                Génère les bulletins de tous les inscrits pour ce trimestre / cette année (ignore les bulletins déjà validés).
+              </span>
+            </div>
           </div>
 
           {/* Filtres */}

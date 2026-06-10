@@ -98,6 +98,7 @@ export const curriculumAPI = {
 export const notesAPI = {
   listBulletins:    (params)       => api.get('/notes/admin/bulletins', { params }),
   generateBulletin: (data)         => api.post('/notes/admin/bulletin', data),
+  generateBatch:    (data)         => api.post('/notes/admin/bulletins/batch', data),
   validateBulletin: (id, data)     => api.patch(`/notes/admin/bulletin/${id}/validate`, data),
 };
 
