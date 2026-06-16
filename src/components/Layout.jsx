@@ -8,7 +8,7 @@ import {
   UserGroupIcon, BeakerIcon, MusicalNoteIcon,
   GlobeAltIcon, TrophyIcon, BellIcon,
   HeartIcon, BuildingLibraryIcon, UsersIcon,
-  ArrowRightOnRectangleIcon, ExclamationTriangleIcon,
+  ArrowRightOnRectangleIcon, ExclamationTriangleIcon, UserCircleIcon,
   LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
   BanknotesIcon, MapPinIcon, PresentationChartLineIcon,
   CalculatorIcon, ShieldCheckIcon,
@@ -246,6 +246,14 @@ export default function Layout() {
               <p className="text-xs text-white/60">{user?.role}</p>
             </div>
           </div>
+          <NavLink
+            to="/profile"
+            onClick={handleNavClick}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors mb-1"
+          >
+            <UserCircleIcon className="w-4 h-4" />
+            Mon Profil
+          </NavLink>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
