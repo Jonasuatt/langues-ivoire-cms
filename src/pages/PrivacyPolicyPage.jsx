@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-semibold text-gray-900">1. Introduction</h2>
             <p>
               Langues Ivoire est une application mobile dédiée à l'apprentissage des langues ethniques
-              ivoiriennes (Baoulé, Dioula, Bété, Sénoufo, Agni, Gouro, Guéré, Nouchi).
+              ivoiriennes (Baoulé, Dioula, Bété, Sénoufo, Agni, Gouro, Guéré, Yacouba, Nouchi).
               Nous nous engageons à protéger la confidentialité de vos données personnelles.
             </p>
           </section>
