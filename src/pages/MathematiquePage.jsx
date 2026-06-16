@@ -687,7 +687,7 @@ export default function MathematiquePage() {
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
             <CalculatorIcon className="w-7 h-7 text-primary-600" />
-            Module Mathématique
+            Mathématiques
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             {contenus.length} contenu{contenus.length > 1 ? 's' : ''} ·{' '}
