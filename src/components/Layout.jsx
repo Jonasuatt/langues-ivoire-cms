@@ -116,6 +116,7 @@ const NAV_SECTIONS = [
     group: 'AIDE',
     items: [
       { to: '/guide', label: 'Guide d\'utilisation', icon: QuestionMarkCircleIcon },
+      { to: '/privacy', label: 'Politique de Confidentialité', icon: ShieldCheckIcon },
     ],
   },
 ];
