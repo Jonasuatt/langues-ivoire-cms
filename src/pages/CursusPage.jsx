@@ -496,6 +496,8 @@ export default function CursusPage() {
                   <th className="px-4 py-3 text-left">Leçon</th>
                   <th className="px-4 py-3 text-left">Langue</th>
                   <th className="px-4 py-3 text-left">Classe</th>
+                  <th className="px-4 py-3 text-left">Trimestre</th>
+                  <th className="px-4 py-3 text-left">Sem.</th>
                   <th className="px-4 py-3 text-left">Matière (pilier)</th>
                   <th className="px-4 py-3 text-center">Obligatoire</th>
                 </tr>
@@ -511,7 +513,7 @@ export default function CursusPage() {
                       <select
                         value={l.gradeLevelId ?? ''}
                         disabled={!isAdmin}
-                        onChange={e => assignLesson(l, { gradeLevelId: e.target.value || null, pilier: l.pilier, isObligatoire: l.isObligatoire ?? true })}
+                        onChange={e => assignLesson(l, { gradeLevelId: e.target.value || null, pilier: l.pilier, isObligatoire: l.isObligatoire ?? true, trimestre: l.trimestre, semaine: l.semaine })}
                         className="border rounded-lg px-2 py-1 text-xs"
                       >
                         <option value="">Hors cursus</option>
@@ -519,10 +521,47 @@ export default function CursusPage() {
                       </select>
                     </td>
                     <td className="px-4 py-3">
+                      {l.gradeLevelId ? (
+                        isAdmin ? (
+                          <select
+                            value={l.trimestre ?? ''}
+                            onChange={e => assignLesson(l, { gradeLevelId: l.gradeLevelId, pilier: l.pilier, isObligatoire: l.isObligatoire ?? true, trimestre: e.target.value || null, semaine: l.semaine })}
+                            className="border rounded-lg px-2 py-1 text-xs"
+                          >
+                            <option value="">—</option>
+                            <option value="T1">T1 — Sept/Déc</option>
+                            <option value="T2">T2 — Janv/Mars</option>
+                            <option value="T3">T3 — Avr/Juin</option>
+                          </select>
+                        ) : (
+                          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                            l.trimestre === 'T1' ? 'bg-blue-100 text-blue-700' :
+                            l.trimestre === 'T2' ? 'bg-amber-100 text-amber-700' :
+                            l.trimestre === 'T3' ? 'bg-green-100 text-green-700' :
+                            'text-gray-400'
+                          }`}>{l.trimestre ?? '—'}</span>
+                        )
+                      ) : <span className="text-xs text-gray-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {l.gradeLevelId && l.trimestre ? (
+                        isAdmin ? (
+                          <input
+                            type="number"
+                            min="1" max="12"
+                            value={l.semaine ?? ''}
+                            onChange={e => assignLesson(l, { gradeLevelId: l.gradeLevelId, pilier: l.pilier, isObligatoire: l.isObligatoire ?? true, trimestre: l.trimestre, semaine: e.target.value || null })}
+                            className="border rounded-lg px-2 py-1 text-xs w-16"
+                            placeholder="1-12"
+                          />
+                        ) : (l.semaine ?? '—')
+                      ) : <span className="text-xs text-gray-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3">
                       <select
                         value={l.pilier ?? ''}
                         disabled={!isAdmin || !l.gradeLevelId}
-                        onChange={e => assignLesson(l, { gradeLevelId: l.gradeLevelId, pilier: e.target.value || null, isObligatoire: l.isObligatoire ?? true })}
+                        onChange={e => assignLesson(l, { gradeLevelId: l.gradeLevelId, pilier: e.target.value || null, isObligatoire: l.isObligatoire ?? true, trimestre: l.trimestre, semaine: l.semaine })}
                         className="border rounded-lg px-2 py-1 text-xs"
                       >
                         <option value="">—</option>
@@ -534,7 +573,7 @@ export default function CursusPage() {
                         type="checkbox"
                         checked={l.isObligatoire ?? true}
                         disabled={!isAdmin || !l.gradeLevelId}
-                        onChange={e => assignLesson(l, { gradeLevelId: l.gradeLevelId, pilier: l.pilier, isObligatoire: e.target.checked })}
+                        onChange={e => assignLesson(l, { gradeLevelId: l.gradeLevelId, pilier: l.pilier, isObligatoire: e.target.checked, trimestre: l.trimestre, semaine: l.semaine })}
                         className="w-4 h-4 accent-emerald-700"
                       />
                     </td>
