@@ -103,6 +103,7 @@ export const notesAPI = {
   generateBulletin: (data)         => api.post('/notes/admin/bulletin', data),
   generateBatch:    (data)         => api.post('/notes/admin/bulletins/batch', data),
   validateBulletin: (id, data)     => api.patch(`/notes/admin/bulletin/${id}/validate`, data),
+  bulletinHtmlUrl:  (id)           => `${api.defaults.baseURL}/notes/admin/bulletin/${id}/html`,
 };
 
 export const adminAPI = {

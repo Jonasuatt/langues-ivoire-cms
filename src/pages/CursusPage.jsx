@@ -953,7 +953,7 @@ export default function CursusPage() {
                         )}
                       </div>
 
-                      {/* Moyennes */}
+                      {/* Moyennes + rang */}
                       <div className="flex flex-wrap gap-4 my-3 text-sm">
                         {b.moyenneLangue   != null && <div><span className="text-gray-500">📖 Langue : </span><span className="font-bold">{b.moyenneLangue}/20</span></div>}
                         {b.moyenneCulture  != null && <div><span className="text-gray-500">🎭 Culture : </span><span className="font-bold">{b.moyenneCulture}/20</span></div>}
@@ -962,6 +962,11 @@ export default function CursusPage() {
                           <div className="font-bold text-emerald-700">
                             Moy. générale : {b.moyenneGenerale}/20
                             {b.mention && <span className="ml-2 text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">{b.mention}</span>}
+                          </div>
+                        )}
+                        {b.rang != null && (
+                          <div className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-full font-bold">
+                            🏅 {b.rang}{b.rang === 1 ? 'er' : 'e'} / {b.nombreEleves ?? '?'} élèves
                           </div>
                         )}
                       </div>
@@ -974,10 +979,21 @@ export default function CursusPage() {
                       )}
                     </div>
 
-                    {/* Bouton de validation */}
-                    {!b.validatedAt && (
-                      <div className="min-w-[160px]">
-                        {validatingId === b.id ? (
+                    {/* Actions : validation + aperçu */}
+                    <div className="flex flex-col gap-2 min-w-[160px]">
+                      {/* Bouton Aperçu / Imprimer — toujours visible */}
+                      <a
+                        href={notesAPI.bulletinHtmlUrl(b.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full px-3 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-200 transition text-center"
+                      >
+                        🖨️ Aperçu / Imprimer
+                      </a>
+
+                      {/* Bouton de validation */}
+                      {!b.validatedAt && (
+                        validatingId === b.id ? (
                           <div className="border border-emerald-200 rounded-lg p-3 bg-emerald-50 space-y-2">
                             <textarea
                               placeholder="Observations (optionnel)"
@@ -1008,9 +1024,9 @@ export default function CursusPage() {
                           >
                             ✅ Valider le bulletin
                           </button>
-                        )}
-                      </div>
-                    )}
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
