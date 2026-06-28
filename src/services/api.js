@@ -111,6 +111,14 @@ export const cursusCertAPI = {
   htmlUrl:        (id)     => `${api.defaults.baseURL}/curriculum/certificat-cursus/${id}/html`,
 };
 
+// Phase D1 — Filières Métiers
+export const filieresAPI = {
+  list:   ()         => api.get('/curriculum/filieres'),
+  admin:  ()         => api.get('/curriculum/admin/filieres'),
+  create: (data)     => api.post('/curriculum/admin/filieres', data),
+  update: (id, data) => api.put(`/curriculum/admin/filieres/${id}`, data),
+};
+
 export const fichesAPI = {
   list:          (params)       => api.get('/fiches', { params }),
   get:           (id)           => api.get(`/fiches/${id}`),

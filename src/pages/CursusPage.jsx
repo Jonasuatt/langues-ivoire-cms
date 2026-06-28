@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import PageHelp from '../components/PageHelp';
-import { curriculumAPI, lessonsAPI, languagesAPI, notesAPI, cursusCertAPI } from '../services/api';
+import { curriculumAPI, lessonsAPI, languagesAPI, notesAPI, cursusCertAPI, filieresAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   AcademicCapIcon, LockClosedIcon, LockOpenIcon,
@@ -72,6 +72,11 @@ export default function CursusPage() {
   const [certsLoading, setCertsLoading] = useState(false);
   const [certFilterLang, setCertFilterLang] = useState('');
   const [certFilterType, setCertFilterType] = useState('');
+  // Filières (Phase D1)
+  const [filieres, setFilieres]               = useState([]);
+  const [filieresLoading, setFilieresLoading] = useState(false);
+  const [filiereModal, setFiliereModal]       = useState(null); // null | 'create' | filiereObj
+  const [filiereForm, setFiliereForm]         = useState({ code: '', nom: '', description: '', emoji: '' });
 
   const load = async () => {
     setLoading(true);
@@ -126,6 +131,16 @@ export default function CursusPage() {
       .catch(() => {})
       .finally(() => setCertsLoading(false));
   }, [tab, certFilterLang, certFilterType]);
+
+  // Charger les filières (Phase D1)
+  useEffect(() => {
+    if (tab !== 'filieres') return;
+    setFilieresLoading(true);
+    filieresAPI.admin()
+      .then(({ data }) => setFilieres(data))
+      .catch(() => {})
+      .finally(() => setFilieresLoading(false));
+  }, [tab]);
 
   // Charger la liste des inscrits quand l'onglet Bulletins ou Élèves est ouvert
   useEffect(() => {
@@ -311,6 +326,7 @@ export default function CursusPage() {
       { id: 'comite',       label: '⚖️ Comité' },
       { id: 'bulletins',    label: '📒 Bulletins' },
       { id: 'certificats',  label: '🎓 Certificats' },
+      { id: 'filieres',     label: '🏢 Filières' },
       { id: 'stats',        label: '📊 Statistiques' },
     ] : []),
   ];
@@ -659,6 +675,7 @@ export default function CursusPage() {
                   <th className="px-4 py-3 text-center">Principale</th>
                   <th className="px-4 py-3 text-center">Moy.</th>
                   <th className="px-4 py-3 text-left">Inscrit le</th>
+                  <th className="px-4 py-3 text-left">Filière</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -691,6 +708,15 @@ export default function CursusPage() {
                       </td>
                       <td className="px-4 py-3 text-xs text-gray-500">
                         {e.startedAt ? new Date(e.startedAt).toLocaleDateString('fr-FR') : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-xs">
+                        {e.filiere ? (
+                          <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
+                            {e.filiere.emoji ?? '🏢'} {e.filiere.nom}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -1120,6 +1146,117 @@ export default function CursusPage() {
                   </a>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ───── Onglet Filières (Phase D1) ───── */}
+      {tab === 'filieres' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-500">
+              Spécialisations choisies par les élèves à partir de la <strong>Seconde</strong> (cycle LYCEE).
+            </p>
+            <button
+              onClick={() => { setFiliereForm({ code: '', nom: '', description: '', emoji: '' }); setFiliereModal('create'); }}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition"
+            >
+              + Nouvelle filière
+            </button>
+          </div>
+
+          {filieresLoading ? (
+            <div className="text-center py-12 text-gray-400">Chargement…</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filieres.map(f => (
+                <div key={f.id} className={`bg-white rounded-xl shadow-sm border p-4 flex flex-col gap-2 ${f.isActive ? 'border-gray-100' : 'border-red-100 opacity-60'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{f.emoji ?? '🏢'}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-gray-800 truncate">{f.nom}</div>
+                      <div className="text-xs font-mono text-gray-400">{f.code}</div>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${f.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                      {f.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  {f.description && <p className="text-xs text-gray-500 line-clamp-2">{f.description}</p>}
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs text-gray-400">👥 {f._count?.enrollments ?? 0} élève(s)</span>
+                    <button
+                      onClick={() => { setFiliereForm({ code: f.code, nom: f.nom, description: f.description ?? '', emoji: f.emoji ?? '' }); setFiliereModal(f); }}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      Modifier
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Modal créer / modifier filière */}
+          {filiereModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-4">
+                <h3 className="text-lg font-bold">{filiereModal === 'create' ? '+ Nouvelle filière' : `Modifier — ${filiereModal.nom}`}</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500">Code</label>
+                    <input value={filiereForm.code} onChange={e => setFiliereForm(p => ({ ...p, code: e.target.value }))}
+                      disabled={filiereModal !== 'create'}
+                      className="w-full border rounded-lg px-3 py-2 text-sm font-mono uppercase disabled:bg-gray-50" placeholder="MON_CODE" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500">Emoji</label>
+                    <input value={filiereForm.emoji} onChange={e => setFiliereForm(p => ({ ...p, emoji: e.target.value }))}
+                      className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="🌾" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Nom</label>
+                  <input value={filiereForm.nom} onChange={e => setFiliereForm(p => ({ ...p, nom: e.target.value }))}
+                    className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Nom de la filière" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Description</label>
+                  <textarea value={filiereForm.description} onChange={e => setFiliereForm(p => ({ ...p, description: e.target.value }))}
+                    rows={3} className="w-full border rounded-lg px-3 py-2 text-sm resize-none" placeholder="Description courte…" />
+                </div>
+                {filiereModal !== 'create' && (
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={filiereModal.isActive}
+                      onChange={async () => {
+                        await filieresAPI.update(filiereModal.id, { isActive: !filiereModal.isActive });
+                        const { data } = await filieresAPI.admin();
+                        setFilieres(data);
+                        setFiliereModal(null);
+                      }} />
+                    Filière active
+                  </label>
+                )}
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setFiliereModal(null)} className="flex-1 px-4 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+                  <button
+                    onClick={async () => {
+                      if (!filiereForm.nom) return;
+                      if (filiereModal === 'create') {
+                        await filieresAPI.create({ code: filiereForm.code, nom: filiereForm.nom, description: filiereForm.description, emoji: filiereForm.emoji });
+                      } else {
+                        await filieresAPI.update(filiereModal.id, { nom: filiereForm.nom, description: filiereForm.description, emoji: filiereForm.emoji });
+                      }
+                      const { data } = await filieresAPI.admin();
+                      setFilieres(data);
+                      setFiliereModal(null);
+                    }}
+                    className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700"
+                  >
+                    Enregistrer
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
