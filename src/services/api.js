@@ -106,6 +106,11 @@ export const notesAPI = {
   bulletinHtmlUrl:  (id)           => `${api.defaults.baseURL}/notes/admin/bulletin/${id}/html`,
 };
 
+export const cursusCertAPI = {
+  list:           (params) => api.get('/curriculum/admin/certificats-cursus', { params }),
+  htmlUrl:        (id)     => `${api.defaults.baseURL}/curriculum/certificat-cursus/${id}/html`,
+};
+
 export const fichesAPI = {
   list:          (params)       => api.get('/fiches', { params }),
   get:           (id)           => api.get(`/fiches/${id}`),

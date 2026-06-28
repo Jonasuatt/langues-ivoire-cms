@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import PageHelp from '../components/PageHelp';
-import { curriculumAPI, lessonsAPI, languagesAPI, notesAPI } from '../services/api';
+import { curriculumAPI, lessonsAPI, languagesAPI, notesAPI, cursusCertAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   AcademicCapIcon, LockClosedIcon, LockOpenIcon,
@@ -67,6 +67,12 @@ export default function CursusPage() {
   const [validatingId, setValidatingId]     = useState(null);
   const [validateForm, setValidateForm]     = useState({ observations: '' });
 
+  // Certificats de fin de cycle (Phase D3)
+  const [certs, setCerts]               = useState([]);
+  const [certsLoading, setCertsLoading] = useState(false);
+  const [certFilterLang, setCertFilterLang] = useState('');
+  const [certFilterType, setCertFilterType] = useState('');
+
   const load = async () => {
     setLoading(true);
     try {
@@ -107,6 +113,19 @@ export default function CursusPage() {
       .catch(() => toast.error('Erreur de chargement des examens'))
       .finally(() => setExamsLoading(false));
   }, [tab, examFilter]);
+
+  // Charger les certificats de fin de cycle (Phase D3)
+  useEffect(() => {
+    if (tab !== 'certificats') return;
+    setCertsLoading(true);
+    const params = {};
+    if (certFilterLang) params.languageId = certFilterLang;
+    if (certFilterType) params.type       = certFilterType;
+    cursusCertAPI.list(params)
+      .then(({ data }) => setCerts(data.certificats ?? []))
+      .catch(() => {})
+      .finally(() => setCertsLoading(false));
+  }, [tab, certFilterLang, certFilterType]);
 
   // Charger la liste des inscrits quand l'onglet Bulletins ou Élèves est ouvert
   useEffect(() => {
@@ -288,10 +307,11 @@ export default function CursusPage() {
     { id: 'modules',   label: '🔒 Modules' },
     { id: 'lessons',   label: '📚 Leçons' },
     ...(isAdmin ? [
-      { id: 'eleves',    label: '👥 Élèves' },
-      { id: 'comite',    label: '⚖️ Comité' },
-      { id: 'bulletins', label: '📒 Bulletins' },
-      { id: 'stats',     label: '📊 Statistiques' },
+      { id: 'eleves',       label: '👥 Élèves' },
+      { id: 'comite',       label: '⚖️ Comité' },
+      { id: 'bulletins',    label: '📒 Bulletins' },
+      { id: 'certificats',  label: '🎓 Certificats' },
+      { id: 'stats',        label: '📊 Statistiques' },
     ] : []),
   ];
 
@@ -1028,6 +1048,76 @@ export default function CursusPage() {
                       )}
                     </div>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ───── Onglet Certificats (Phase D3) ───── */}
+      {tab === 'certificats' && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-3 items-center">
+            <select value={certFilterLang} onChange={e => setCertFilterLang(e.target.value)} className="border rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Toutes les langues</option>
+              {languages.map(l => <option key={l.id} value={l.id}>{l.emoji ?? '📚'} {l.nom}</option>)}
+            </select>
+            <select value={certFilterType} onChange={e => setCertFilterType(e.target.value)} className="border rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Tous les types</option>
+              {[
+                { v: 'ETAPE_CP2',             l: '🌱 Certificat de Première Étape' },
+                { v: 'PRIMAIRE',              l: '📚 Fin du Cycle Primaire' },
+                { v: 'PREMIER_CYCLE',         l: '🏫 Fin du Premier Cycle Secondaire' },
+                { v: 'MAITRISE_LINGUISTIQUE', l: '🎓 Certificat National de Maîtrise Linguistique' },
+                { v: 'CHERCHEUR',             l: '🔬 Diplôme Chercheur Linguiste ILA' },
+              ].map(({ v, l }) => <option key={v} value={v}>{l}</option>)}
+            </select>
+            <span className="text-sm text-gray-500">{certs.length} certificat{certs.length !== 1 ? 's' : ''}</span>
+          </div>
+
+          {certsLoading ? (
+            <div className="text-center py-12 text-gray-400">Chargement…</div>
+          ) : certs.length === 0 ? (
+            <div className="bg-white rounded-xl p-12 text-center text-gray-400">
+              <div className="text-4xl mb-3">🎓</div>
+              <p className="font-semibold">Aucun certificat émis</p>
+              <p className="text-sm mt-1">Les certificats sont générés automatiquement lors des passages de fin de cycle.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {certs.map(c => (
+                <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-xl flex-shrink-0">
+                      {{ ETAPE_CP2: '🌱', PRIMAIRE: '📚', PREMIER_CYCLE: '🏫', MAITRISE_LINGUISTIQUE: '🎓', CHERCHEUR: '🔬' }[c.type] ?? '🏅'}
+                    </div>
+                    <div>
+                      <div className="font-bold text-gray-800 text-sm">
+                        {c.user.prenom} {c.user.nom}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
+                          {c.language.emoji ?? '📚'} {c.language.nom}
+                        </span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+                          {c.gradeLevel.nom}
+                        </span>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                          {new Date(c.issuedAt).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-400 font-mono mt-1">{c.codeVerification}</div>
+                    </div>
+                  </div>
+                  <a
+                    href={cursusCertAPI.htmlUrl(c.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100 transition whitespace-nowrap"
+                  >
+                    🖨️ Imprimer
+                  </a>
                 </div>
               ))}
             </div>
