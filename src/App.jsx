@@ -47,6 +47,7 @@ import RapportEditeursPage from './pages/RapportEditeursPage';
 import RepetitorPage from './pages/RepetitorPage';
 import MissionPage from './pages/MissionPage';
 import CursusPage from './pages/CursusPage';
+import FichesPage from './pages/FichesPage';
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="certificates" element={<CertificatesPage />} />
           <Route path="lessons" element={<LessonsPage />} />
           <Route path="cursus" element={<CursusPage />} />
+          <Route path="fiches" element={<FichesPage />} />
           <Route path="lessons/:lessonId" element={<LessonEditorPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="tutors" element={<TutorsPage />} />

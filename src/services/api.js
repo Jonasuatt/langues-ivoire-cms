@@ -106,6 +106,15 @@ export const notesAPI = {
   bulletinHtmlUrl:  (id)           => `${api.defaults.baseURL}/notes/admin/bulletin/${id}/html`,
 };
 
+export const fichesAPI = {
+  list:          (params)       => api.get('/fiches', { params }),
+  get:           (id)           => api.get(`/fiches/${id}`),
+  create:        (data)         => api.post('/fiches', data),
+  update:        (id, data)     => api.put(`/fiches/${id}`, data),
+  togglePublish: (id)           => api.patch(`/fiches/${id}/publish`),
+  delete:        (id)           => api.delete(`/fiches/${id}`),
+};
+
 export const adminAPI = {
   getUsers: (params) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
