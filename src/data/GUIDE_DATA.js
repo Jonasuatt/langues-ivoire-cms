@@ -2029,12 +2029,12 @@ export const GUIDE_MODULES = [
       },
       {
         title: 'Choisir le bon rôle',
-        desc: 'Utilisateur : app mobile uniquement. Contributeur : soumet du contenu depuis l\'app mobile. Éditeur : crée et édite les contenus CMS. Expert ILA : vote dans le Comité de Validation ILA-UFHB. Partenaire : accès illimité mobile + vue Partenaires CMS. Admin : accès complet sauf Super-Admin.',
+        desc: 'Utilisateur : app mobile uniquement. Contributeur : soumet du contenu depuis l\'app. Éditeur : crée et édite les contenus CMS. Expert ILA : Tableau de bord + Partenaires + Comité ILA + Rapport d\'activité. Partenaire : Tableau Partenaires uniquement. Admin : tout sauf Finance + Super-Admin (inclut Utilisateurs). Super-Admin : accès complet.',
         warning: null,
       },
       {
         title: 'Attribuer le rôle Expert ILA (UFHB)',
-        desc: 'Pour un membre du comité scientifique ILA-UFHB, attribuer le rôle "Expert". Cela lui donne accès au module Comité ILA pour voter sur les certifications audio. Le quorum est 3 votes sur 5 experts.',
+        desc: 'Pour un membre du comité scientifique ILA-UFHB, attribuer le rôle "Expert ILA". Sur le mobile, cela lui donne accès à 4 modules : Tableau de bord, Tableau Partenaires, Comité ILA et Rapport d\'activité. Sur le CMS web, l\'Expert accède au Comité ILA et au Rapport. Le quorum est 3 votes sur 5 experts.',
         warning: 'Le rôle Expert ILA ne peut être attribué que par un Super-Admin. Ce rôle donne accès à des opérations irréversibles (certification audio). Vérifiez l\'identité du destinataire.',
       },
       {
@@ -2145,7 +2145,8 @@ export const GUIDE_MODULES = [
       'Conseils "pro" et avertissements pour éviter les erreurs fréquentes',
       'Notation des conventions audio (nommage des fichiers)',
       'Modules récents : Finance → Dépenses, Comité ILA → Rapport, Monnaie FCFA, Mathématique',
-      '🦜 RÉPÉTO (nouveau) : module IA vocale Phase 1 — mots du jeu, enregistrements enfants, pipeline corpus ILA',
+      '🦜 RÉPÉTO : module IA vocale Phase 1 — mots du jeu, enregistrements enfants, pipeline corpus ILA',
+      '📱 Mises à jour interface mobile v2.7 : boutons retour, Nouchi (barre recherche + onglet Phrases), Alphabet (son au tap), rôle EXPERT, page Administration stable',
     ],
     steps: [
       { title: 'Choisir votre parcours par rôle', desc: 'En haut du guide, sélectionner votre rôle (Éditeur, Expert ILA, Admin…) pour afficher un parcours de formation personnalisé avec les modules prioritaires pour votre poste.', warning: null },
