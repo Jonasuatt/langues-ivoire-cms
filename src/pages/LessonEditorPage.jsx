@@ -32,13 +32,13 @@ const STEP_COLORS = {
 function defaultContenu(type) {
   if (type === 'VOCABULARY') return {
     titre: '', videoUrl: '',
-    mots: [{ mot: '', traduction: '', transcription: '', audioUrl: '', imageUrl: '' }],
+    mots: [{ mot: '', traduction: '', transcription: '', exemplePhrase: '', exempleTraduction: '', audioUrl: '', imageUrl: '' }],
   };
   if (type === 'DIALOGUE') return {
     titre: '', videoUrl: '',
     dialogue: [{ locuteur: '', texte: '', traduction: '' }],
   };
-  if (type === 'GRAMMAR') return { titre: '', explication: '', exemples: [{ phrase: '', traduction: '' }] };
+  if (type === 'GRAMMAR') return { titre: '', regle: '', explication: '', pattern: '', exemples: [{ ya: '', fr: '' }] };
   return { titre: '', description: '' };
 }
 
@@ -110,6 +110,17 @@ function VocabularyForm({ contenu, onChange }) {
                     onChange={v => updateMot(i, 'audioUrl', v)}
                     compact
                   />
+                </div>
+              </div>
+              {/* Exemple de phrase DPFC */}
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Exemple en langue <span className="text-emerald-600">(APC)</span></label>
+                  <input className="input text-sm" value={mot.exemplePhrase || ''} onChange={e => updateMot(i, 'exemplePhrase', e.target.value)} placeholder="Kö, bé ö?" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-0.5 block">Traduction de l'exemple</label>
+                  <input className="input text-sm" value={mot.exempleTraduction || ''} onChange={e => updateMot(i, 'exempleTraduction', e.target.value)} placeholder="Bonjour, comment vas-tu ?" />
                 </div>
               </div>
               {/* Image du mot — upload depuis PC */}
@@ -244,11 +255,17 @@ function GrammarForm({ contenu, onChange }) {
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Titre de la règle</label>
-        <input className="input" value={contenu.titre || ''} onChange={e => onChange({ ...contenu, titre: e.target.value })} placeholder="Ex : La construction du salut formel" />
+        <input className="input" value={contenu.titre || contenu.regle || ''} onChange={e => onChange({ ...contenu, titre: e.target.value, regle: e.target.value })} placeholder="Ex : La structure de la salutation en yacouba" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Explication</label>
-        <textarea className="input h-24 resize-none" value={contenu.explication || ''} onChange={e => onChange({ ...contenu, explication: e.target.value })} placeholder="Expliquez la règle grammaticale en français simple..." />
+        <textarea className="input h-24 resize-none" value={contenu.explication || ''} onChange={e => onChange({ ...contenu, explication: e.target.value })} placeholder="Expliquez la règle en français simple, avec le contexte culturel..." />
+      </div>
+      {/* Pattern DPFC */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+        <label className="block text-xs font-semibold text-emerald-700 mb-1">Schéma / Pattern <span className="text-emerald-600 font-normal">(DPFC APC)</span></label>
+        <input className="input text-sm" value={contenu.pattern || ''} onChange={e => onChange({ ...contenu, pattern: e.target.value })} placeholder="Ex : [Sujet] + ba/min + [aliment] = Je mange/bois..." />
+        <p className="text-xs text-emerald-600 mt-1">La structure abstraite que l'élève doit retenir.</p>
       </div>
       {/* Image illustrative pour la règle */}
       <FileUploadField
@@ -271,11 +288,17 @@ function GrammarForm({ contenu, onChange }) {
             <div key={i} className="grid grid-cols-2 gap-2 border border-gray-200 rounded-xl p-3 bg-gray-50 relative">
               <div>
                 <label className="text-xs text-gray-500 mb-0.5 block">Phrase en langue *</label>
-                <input className="input text-sm" value={ex.phrase} onChange={e => updateEx(i, 'phrase', e.target.value)} placeholder="N zra min ?" />
+                <input className="input text-sm"
+                  value={ex.ya || ex.phrase || ''}
+                  onChange={e => updateEx(i, ex.ya !== undefined ? 'ya' : 'phrase', e.target.value)}
+                  placeholder="N ba gbi — N zra min ?" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-0.5 block">Traduction *</label>
-                <input className="input text-sm" value={ex.traduction} onChange={e => updateEx(i, 'traduction', e.target.value)} placeholder="Comment t'appelles-tu ?" />
+                <input className="input text-sm"
+                  value={ex.fr || ex.traduction || ''}
+                  onChange={e => updateEx(i, ex.fr !== undefined ? 'fr' : 'traduction', e.target.value)}
+                  placeholder="Je mange du riz — Comment t'appelles-tu ?" />
               </div>
               {exemples.length > 1 && (
                 <button onClick={() => removeEx(i)} className="absolute top-2 right-2 text-gray-300 hover:text-red-500">
@@ -476,17 +499,42 @@ export default function LessonEditorPage() {
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-4 text-sm">
         <ArrowLeftIcon className="w-4 h-4" /> Retour aux leçons
       </button>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{lesson.titre}</h1>
           <p className="text-gray-500 text-sm mt-1">
             {lesson.language?.nom} · Niveau {lesson.niveau} · {lesson.pointsXp} XP · {steps.length} étape(s)
+            {lesson.trimestre && <> · {lesson.trimestre}{lesson.semaine ? ` S${lesson.semaine}` : ''}</>}
+            {lesson.pilier && <> · <span className="text-indigo-600">{lesson.pilier.replace(/_/g, ' ')}</span></>}
           </p>
         </div>
         <button onClick={openAddStep} className="btn-primary flex items-center gap-2">
           <PlusIcon className="w-4 h-4" /> Ajouter une étape
         </button>
       </div>
+
+      {/* Carte DPFC — Approche Par Compétences */}
+      {(lesson.competence || lesson.situation) && (
+        <div className="mb-5 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-2">
+          <div className="flex items-center gap-2 mb-1">
+            <AcademicCapIcon className="w-5 h-5 text-emerald-700" />
+            <span className="text-sm font-bold text-emerald-800">Fiche DPFC — Approche Par Compétences (APC)</span>
+          </div>
+          {lesson.competence && (
+            <div>
+              <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Compétence visée</span>
+              <p className="text-sm text-emerald-900 mt-0.5 italic">« {lesson.competence} »</p>
+            </div>
+          )}
+          {lesson.situation && (
+            <div>
+              <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Situation de communication</span>
+              <p className="text-sm text-emerald-900 mt-0.5">{lesson.situation}</p>
+            </div>
+          )}
+          <p className="text-xs text-emerald-600 mt-1">Structure APC : Situation → Vocabulaire → Dialogue → Structure linguistique → Exercices</p>
+        </div>
+      )}
 
       {/* Bandeau conseil visuel */}
       <div className="mb-6 bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">

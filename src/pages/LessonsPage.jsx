@@ -23,7 +23,10 @@ const FAMILLE_COLORS = {
   Véhiculaire: 'bg-blue-50 border-blue-200',
 };
 
-const EMPTY_FORM = { titre: '', description: '', niveau: 'A1', ordre: 1, pointsXp: 50 };
+const EMPTY_FORM = {
+  titre: '', description: '', niveau: 'A1', ordre: 1, pointsXp: 50,
+  competence: '', situation: '',
+};
 
 export default function LessonsPage() {
   const [languages, setLanguages]     = useState([]);
@@ -100,6 +103,8 @@ export default function LessonsPage() {
       niveau:      lesson.niveau      || 'A1',
       ordre:       lesson.ordre       || 1,
       pointsXp:    lesson.pointsXp    || 50,
+      competence:  lesson.competence  || '',
+      situation:   lesson.situation   || '',
     });
     setShowModal(true);
   };
@@ -357,6 +362,26 @@ export default function LessonsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Points XP</label>
                   <input type="number" className="input" value={form.pointsXp}
                     onChange={e => setForm({...form, pointsXp: parseInt(e.target.value)})} min="0" />
+                </div>
+              </div>
+
+              {/* Section DPFC — APC */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-3">
+                <div className="flex items-center gap-1.5">
+                  <AcademicCapIcon className="w-4 h-4 text-emerald-700" />
+                  <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">DPFC — Approche Par Compétences (optionnel)</span>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Compétence visée</label>
+                  <input className="input text-sm" value={form.competence}
+                    onChange={e => setForm({...form, competence: e.target.value})}
+                    placeholder="L'élève sera capable de se saluer en yacouba…" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Situation de communication</label>
+                  <textarea className="input h-16 resize-none text-sm" value={form.situation}
+                    onChange={e => setForm({...form, situation: e.target.value})}
+                    placeholder="Au premier jour d'école, tu rencontres tes camarades yacouba…" />
                 </div>
               </div>
             </div>
