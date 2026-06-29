@@ -111,6 +111,14 @@ export const cursusCertAPI = {
   htmlUrl:        (id)     => `${api.defaults.baseURL}/curriculum/certificat-cursus/${id}/html`,
 };
 
+// Phase D2 — Parcours Chercheur
+export const chercheurAPI = {
+  listObjectifs:   ()         => api.get('/curriculum/admin/objectifs-chercheur'),
+  createObjectif:  (data)     => api.post('/curriculum/admin/objectifs-chercheur', data),
+  updateObjectif:  (id, data) => api.put(`/curriculum/admin/objectifs-chercheur/${id}`, data),
+  deleteObjectif:  (id)       => api.delete(`/curriculum/admin/objectifs-chercheur/${id}`),
+};
+
 // Phase D1 — Filières Métiers
 export const filieresAPI = {
   list:   ()         => api.get('/curriculum/filieres'),

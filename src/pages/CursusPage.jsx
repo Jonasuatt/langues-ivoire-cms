@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import PageHelp from '../components/PageHelp';
-import { curriculumAPI, lessonsAPI, languagesAPI, notesAPI, cursusCertAPI, filieresAPI } from '../services/api';
+import { curriculumAPI, lessonsAPI, languagesAPI, notesAPI, cursusCertAPI, filieresAPI, chercheurAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   AcademicCapIcon, LockClosedIcon, LockOpenIcon,
@@ -72,6 +72,11 @@ export default function CursusPage() {
   const [certsLoading, setCertsLoading] = useState(false);
   const [certFilterLang, setCertFilterLang] = useState('');
   const [certFilterType, setCertFilterType] = useState('');
+  // Parcours Chercheur (Phase D2)
+  const [objectifsChercheur, setObjectifsChercheur]   = useState([]);
+  const [chercheurLoading, setChercheurLoading]       = useState(false);
+  const [objModal, setObjModal]                       = useState(null); // null | 'create' | objId
+  const [objForm, setObjForm]                         = useState({ gradeLevelId: '', type: 'AUDIO_ENREGISTREMENT', quantite: '', description: '' });
   // Filières (Phase D1)
   const [filieres, setFilieres]               = useState([]);
   const [filieresLoading, setFilieresLoading] = useState(false);
@@ -131,6 +136,16 @@ export default function CursusPage() {
       .catch(() => {})
       .finally(() => setCertsLoading(false));
   }, [tab, certFilterLang, certFilterType]);
+
+  // Charger les objectifs Chercheur (Phase D2)
+  useEffect(() => {
+    if (tab !== 'chercheur') return;
+    setChercheurLoading(true);
+    chercheurAPI.listObjectifs()
+      .then(({ data }) => setObjectifsChercheur(data))
+      .catch(() => {})
+      .finally(() => setChercheurLoading(false));
+  }, [tab]);
 
   // Charger les filières (Phase D1)
   useEffect(() => {
@@ -327,6 +342,7 @@ export default function CursusPage() {
       { id: 'bulletins',    label: '📒 Bulletins' },
       { id: 'certificats',  label: '🎓 Certificats' },
       { id: 'filieres',     label: '🏢 Filières' },
+      { id: 'chercheur',    label: '🔬 Chercheur' },
       { id: 'stats',        label: '📊 Statistiques' },
     ] : []),
   ];
@@ -1146,6 +1162,146 @@ export default function CursusPage() {
                   </a>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ───── Onglet Chercheur (Phase D2) ───── */}
+      {tab === 'chercheur' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-500">
+              Objectifs de recherche requis pour progresser au sein du cycle <strong>Chercheur I → II → III</strong>. Le passage est bloqué tant que tous les objectifs ne sont pas atteints.
+            </p>
+            <button
+              onClick={() => { setObjForm({ gradeLevelId: '', type: 'AUDIO_ENREGISTREMENT', quantite: '', description: '' }); setObjModal('create'); }}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition whitespace-nowrap"
+            >
+              + Nouvel objectif
+            </button>
+          </div>
+
+          {chercheurLoading ? (
+            <div className="text-center py-12 text-gray-400">Chargement…</div>
+          ) : (() => {
+            // Grouper par gradeLevel
+            const byGrade = {};
+            objectifsChercheur.forEach(o => {
+              const k = o.gradeLevel?.nom ?? '?';
+              if (!byGrade[k]) byGrade[k] = { grade: o.gradeLevel, items: [] };
+              byGrade[k].items.push(o);
+            });
+            return Object.entries(byGrade).map(([nom, { grade, items }]) => (
+              <div key={nom} className="bg-white rounded-xl border border-indigo-100 overflow-hidden">
+                <div className="bg-indigo-50 px-4 py-2 border-b border-indigo-100">
+                  <span className="font-bold text-indigo-800">🔬 {nom}</span>
+                  <span className="text-xs text-indigo-500 ml-2">{items.length} objectif(s)</span>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {items.map(obj => {
+                    const icons = { AUDIO_ENREGISTREMENT: '🎙️', CONTRIBUTION_LANGUE: '📖', LECON_MAITRISEE: '✅' };
+                    return (
+                      <div key={obj.id} className={`px-4 py-3 flex items-center gap-3 ${obj.isActive ? '' : 'opacity-50'}`}>
+                        <span className="text-2xl">{icons[obj.type] ?? '🎯'}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-800 text-sm">{obj.description ?? obj.type}</div>
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            Objectif : <strong>{obj.quantite}</strong> &nbsp;·&nbsp; {obj.isActive ? 'Actif' : 'Inactif'}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => { setObjForm({ gradeLevelId: obj.gradeLevelId, type: obj.type, quantite: String(obj.quantite), description: obj.description ?? '' }); setObjModal(obj.id); }}
+                            className="text-xs text-blue-600 hover:underline"
+                          >Modifier</button>
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm('Supprimer cet objectif ?')) return;
+                              await chercheurAPI.deleteObjectif(obj.id);
+                              const { data } = await chercheurAPI.listObjectifs();
+                              setObjectifsChercheur(data);
+                            }}
+                            className="text-xs text-red-500 hover:underline"
+                          >Suppr.</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ));
+          })()}
+
+          {/* Modal créer / modifier objectif */}
+          {objModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-4">
+                <h3 className="text-lg font-bold">{objModal === 'create' ? '+ Nouvel objectif' : 'Modifier objectif'}</h3>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Niveau Chercheur</label>
+                  <select value={objForm.gradeLevelId} onChange={e => setObjForm(p => ({ ...p, gradeLevelId: e.target.value }))}
+                    disabled={objModal !== 'create'}
+                    className="w-full border rounded-lg px-3 py-2 text-sm mt-1 disabled:bg-gray-50">
+                    <option value="">— Choisir un niveau —</option>
+                    {grades.filter(g => g.cycle === 'CHERCHEUR').map(g => (
+                      <option key={g.id} value={g.id}>{g.nom}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Type d'objectif</label>
+                  <select value={objForm.type} onChange={e => setObjForm(p => ({ ...p, type: e.target.value }))}
+                    disabled={objModal !== 'create'}
+                    className="w-full border rounded-lg px-3 py-2 text-sm mt-1 disabled:bg-gray-50">
+                    <option value="AUDIO_ENREGISTREMENT">🎙️ Enregistrements audio validés</option>
+                    <option value="CONTRIBUTION_LANGUE">📖 Contributions dictionnaire publiées</option>
+                    <option value="LECON_MAITRISEE">✅ Leçons maîtrisées (score ≥ 75 %)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Quantité requise</label>
+                  <input type="number" min="1" value={objForm.quantite}
+                    onChange={e => setObjForm(p => ({ ...p, quantite: e.target.value }))}
+                    className="w-full border rounded-lg px-3 py-2 text-sm mt-1" placeholder="ex : 20" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Description</label>
+                  <input value={objForm.description} onChange={e => setObjForm(p => ({ ...p, description: e.target.value }))}
+                    className="w-full border rounded-lg px-3 py-2 text-sm mt-1" placeholder="Description courte de l'objectif" />
+                </div>
+                {objModal !== 'create' && (
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox"
+                      checked={objectifsChercheur.find(o => o.id === objModal)?.isActive ?? true}
+                      onChange={async () => {
+                        const cur = objectifsChercheur.find(o => o.id === objModal);
+                        await chercheurAPI.updateObjectif(objModal, { isActive: !cur.isActive });
+                        const { data } = await chercheurAPI.listObjectifs();
+                        setObjectifsChercheur(data);
+                        setObjModal(null);
+                      }} />
+                    Objectif actif
+                  </label>
+                )}
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setObjModal(null)} className="flex-1 px-4 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+                  <button
+                    onClick={async () => {
+                      if (!objForm.gradeLevelId || !objForm.quantite) return;
+                      if (objModal === 'create') {
+                        await chercheurAPI.createObjectif({ gradeLevelId: objForm.gradeLevelId, type: objForm.type, quantite: Number(objForm.quantite), description: objForm.description });
+                      } else {
+                        await chercheurAPI.updateObjectif(objModal, { quantite: Number(objForm.quantite), description: objForm.description });
+                      }
+                      const { data } = await chercheurAPI.listObjectifs();
+                      setObjectifsChercheur(data);
+                      setObjModal(null);
+                    }}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700"
+                  >Enregistrer</button>
+                </div>
+              </div>
             </div>
           )}
         </div>
