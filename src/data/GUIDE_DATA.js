@@ -2147,6 +2147,10 @@ export const GUIDE_MODULES = [
       'Modules récents : Finance → Dépenses, Comité ILA → Rapport, Monnaie FCFA, Mathématique',
       '🦜 RÉPÉTO : module IA vocale Phase 1 — mots du jeu, enregistrements enfants, pipeline corpus ILA',
       '📱 Mises à jour interface mobile v2.7 : boutons retour, Nouchi (barre recherche + onglet Phrases), Alphabet (son au tap), rôle EXPERT, page Administration stable',
+      '🔐 Sécurité v2.8 : connexion biométrique (empreinte / Face ID), verrouillage automatique par inactivité (1–30 min), session hors-ligne depuis cache',
+      '🏫 Cursus v2.8 : barre progression trimestre (C1), rang de classe sur bulletins (C2), Fiches Pédagogiques (C3), choix filière lycée (D1), tableau Chercheur (D2), certificats fin de cycle (D3)',
+      '📋 Table des matières par classe (ProgrammeClasse) : piliers × trimestres avec badge optionnel',
+      '🔍 Inspection des Leçons : parcourir leçons/exercices en mode prévisualisation sans enregistrer de scores (SUPER_ADMIN, ADMIN, EXPERT, EDITOR, PARTNER)',
     ],
     steps: [
       { title: 'Choisir votre parcours par rôle', desc: 'En haut du guide, sélectionner votre rôle (Éditeur, Expert ILA, Admin…) pour afficher un parcours de formation personnalisé avec les modules prioritaires pour votre poste.', warning: null },
