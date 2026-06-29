@@ -47,10 +47,10 @@ export default function FichesPage() {
   useEffect(() => {
     Promise.all([
       languagesAPI.getAll(),
-      curriculumAPI.getGradeLevels(),
+      curriculumAPI.getGrades(),
     ]).then(([lRes, gRes]) => {
       setLanguages(lRes.data.languages ?? lRes.data ?? []);
-      setGradeLevels(gRes.data.gradeLevels ?? gRes.data ?? []);
+      setGradeLevels(gRes.data.grades ?? gRes.data.gradeLevels ?? gRes.data ?? []);
     }).catch(console.error);
   }, []);
 
