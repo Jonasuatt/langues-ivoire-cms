@@ -115,8 +115,10 @@ export default function RapportEditeursPage() {
         audioContribAPI.getAll({ limit: 1000, page: 1 }),
         committeeAPI.getAll({ limit: 2000, page: 1 }),
       ]);
-      setContribs(c.data.data ?? c.data ?? []);
-      setVotes(v.data.data ?? v.data ?? []);
+      const cList = c.data?.data ?? c.data;
+      const vList = v.data?.data ?? v.data;
+      setContribs(Array.isArray(cList) ? cList : []);
+      setVotes(Array.isArray(vList) ? vList : []);
     } catch {
       // silencieux
     } finally {

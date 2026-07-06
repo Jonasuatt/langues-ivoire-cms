@@ -64,7 +64,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
-        <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'CONTRIBUTOR', 'PARTNER']}><Layout /></ProtectedRoute>}>
+        <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'EXPERT', 'CONTRIBUTOR', 'PARTNER']}><Layout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="dictionary" element={<DictionaryPage />} />
           <Route path="conjugation" element={<ConjugationPage />} />
@@ -106,11 +106,11 @@ export default function App() {
           <Route path="monnaie" element={<MonnaiePage />} />
           <Route path="institutions" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR']}><InstitutionsPage /></ProtectedRoute>} />
           <Route path="finance" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><FinancePage /></ProtectedRoute>} />
-          <Route path="partenaire" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'PARTNER']}><PartenairePage /></ProtectedRoute>} />
+          <Route path="partenaire" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'PARTNER', 'EXPERT']}><PartenairePage /></ProtectedRoute>} />
           <Route path="guide" element={<UserGuidePage />} />
           {/* Admin only */}
           <Route path="users" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><UsersPage /></ProtectedRoute>} />
-          <Route path="rapport-editeurs" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><RapportEditeursPage /></ProtectedRoute>} />
+          <Route path="rapport-editeurs" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EXPERT']}><RapportEditeursPage /></ProtectedRoute>} />
           <Route path="repetitor" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><RepetitorPage /></ProtectedRoute>} />
           <Route path="mission" element={<MissionPage />} />
         </Route>

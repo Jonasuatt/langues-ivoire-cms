@@ -2,6 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { supportAPI } from '../services/api';
+import ErrorBoundary from './ErrorBoundary';
 import {
   HomeIcon, BookOpenIcon, AcademicCapIcon, SparklesIcon, VideoCameraIcon,
   ChatBubbleLeftRightIcon, CpuChipIcon, MicrophoneIcon,
@@ -284,7 +285,9 @@ export default function Layout() {
           <span className="font-bold text-sm text-primary-500 truncate">LANGUES IVOIRE CMS</span>
         </div>
 
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   );

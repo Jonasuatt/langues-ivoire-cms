@@ -62,7 +62,7 @@ export default function FichesPage() {
     if (filterType)  params.type         = filterType;
     if (filterTrim)  params.trimestre    = filterTrim;
     fichesAPI.list(params)
-      .then(r => setFiches(r.data.fiches ?? []))
+      .then(r => setFiches(Array.isArray(r.data?.fiches) ? r.data.fiches : []))
       .catch(() => toast.error('Erreur chargement'))
       .finally(() => setLoading(false));
   };

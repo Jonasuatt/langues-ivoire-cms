@@ -177,9 +177,12 @@ export default function DashboardPage() {
       repetitorAPI.getStats().catch(() => ({ data: null })),
     ]).then(([s, c, msg, cert, tut, rep]) => {
       setStats(s.data);
-      setPending(c.data.data ?? c.data ?? []);
-      setMessages(msg.data.data ?? msg.data ?? []);
-      setCerts(cert.data.data ?? cert.data ?? []);
+      const pList = c.data?.data ?? c.data;
+      const mList = msg.data?.data ?? msg.data;
+      const ctList = cert.data?.data ?? cert.data;
+      setPending(Array.isArray(pList) ? pList : []);
+      setMessages(Array.isArray(mList) ? mList : []);
+      setCerts(Array.isArray(ctList) ? ctList : []);
       if (rep.data) setRepetitorStats(rep.data);
       setTutors(Array.isArray(tut.data) ? tut.data : []);
     }).catch(() => {}).finally(() => setLoading(false));

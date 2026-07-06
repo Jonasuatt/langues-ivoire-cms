@@ -142,7 +142,7 @@ export default function CursusPage() {
     if (tab !== 'chercheur') return;
     setChercheurLoading(true);
     chercheurAPI.listObjectifs()
-      .then(({ data }) => setObjectifsChercheur(data))
+      .then(({ data }) => setObjectifsChercheur(Array.isArray(data) ? data : (data?.objectifs ?? [])))
       .catch(() => {})
       .finally(() => setChercheurLoading(false));
   }, [tab]);
@@ -152,7 +152,7 @@ export default function CursusPage() {
     if (tab !== 'filieres') return;
     setFilieresLoading(true);
     filieresAPI.admin()
-      .then(({ data }) => setFilieres(data))
+      .then(({ data }) => setFilieres(Array.isArray(data) ? data : (data?.filieres ?? [])))
       .catch(() => {})
       .finally(() => setFilieresLoading(false));
   }, [tab]);

@@ -41,10 +41,13 @@ export default function ProgrammePage() {
     setLoading(true);
     api.get('/curriculum/programme', { params: { languageId: langId } })
       .then(({ data }) => {
-        setProgramme(data.programme);
+        const prog = (data?.programme && typeof data.programme === 'object') ? data.programme : null;
+        setProgramme(prog);
         // Ouvrir toutes les classes par défaut
         const gradeOpen = {};
-        Object.values(data.programme).flat().forEach(g => { gradeOpen[g.id] = true; });
+        if (prog) {
+          Object.values(prog).flat().forEach(g => { if (g?.id) gradeOpen[g.id] = true; });
+        }
         setOpenGrades(gradeOpen);
         setOpenPiliers({});
       })
@@ -61,8 +64,16 @@ export default function ProgrammePage() {
 
   // Compte le nb de leçons dans un pilier
   const pilierTotal = (lecons, pilier) => {
-    if (!lecons[pilier]) return 0;
-    return Object.values(lecons[pilier]).reduce((acc, arr) => acc + arr.length, 0);
+    if (!lecons || typeof lecons !== 'object' || !lecons[pilier]) return 0;
+    return Object.values(lecons[pilier]).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
+  };
+
+  // grade.total est un objet par pilier ({ …, TOTAL }) — normaliser en nombre
+  const gradeTotal = (g) => {
+    const t = g?.total;
+    if (typeof t === 'number') return t;
+    if (t && typeof t === 'object' && typeof t.TOTAL === 'number') return t.TOTAL;
+    return 0;
   };
 
   return (
@@ -104,10 +115,10 @@ export default function ProgrammePage() {
             <p className="text-center text-gray-500 text-sm mt-1">LANGUES IVOIRE · Institut de Langues Africaines</p>
           </div>
 
-          {CYCLES_ORDER.filter(c => programme[c]?.length > 0).map(cycle => {
+          {CYCLES_ORDER.filter(c => Array.isArray(programme[c]) && programme[c].length > 0).map(cycle => {
             const cc = CYCLE_COLORS[cycle] ?? CYCLE_COLORS.PRIMAIRE;
             const grades = programme[cycle] ?? [];
-            const cycleTotal = grades.reduce((a, g) => a + g.total.TOTAL, 0);
+            const cycleTotal = grades.reduce((a, g) => a + gradeTotal(g), 0);
 
             return (
               <div key={cycle}>
@@ -143,7 +154,7 @@ export default function ProgrammePage() {
                               );
                             })}
                             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold border border-gray-200">
-                              Total: {grade.total.TOTAL}
+                              Total: {gradeTotal(grade)}
                             </span>
                           </div>
                         </button>
@@ -175,7 +186,8 @@ export default function ProgrammePage() {
                                   {isPilierOpen && (
                                     <div className="px-5 pb-3 space-y-3">
                                       {['T1','T2','T3','SANS_TRIMESTRE'].map(trim => {
-                                        const lecons = grade.lecons[pilier]?.[trim] ?? [];
+                                        const raw = grade.lecons?.[pilier]?.[trim];
+                                        const lecons = Array.isArray(raw) ? raw : [];
                                         if (!lecons.length) return null;
                                         return (
                                           <div key={trim}>
