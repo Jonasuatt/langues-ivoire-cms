@@ -2012,7 +2012,7 @@ export const GUIDE_MODULES = [
       'Validation du numéro de téléphone → active la connexion directe sans SMS pour l\'utilisateur',
       'Notification automatique in-app envoyée à l\'utilisateur lors de la validation du téléphone',
       'Création de nouveaux comptes CMS (nom, email, rôle)',
-      'Rôles disponibles : Utilisateur, Contributeur, Éditeur, Expert ILA, Partenaire, Admin, Super-Admin',
+      'Rôles disponibles : Utilisateur, Contributeur, Enseignant, Éditeur, Expert ILA, Partenaire, Admin, Super-Admin',
       'Modification du rôle — accès aux modules correspondants automatiquement filtrés',
       'Désactivation d\'un compte sans suppression',
     ],
@@ -2029,8 +2029,13 @@ export const GUIDE_MODULES = [
       },
       {
         title: 'Choisir le bon rôle',
-        desc: 'Utilisateur : app mobile uniquement. Contributeur : soumet du contenu depuis l\'app. Éditeur : crée et édite les contenus CMS. Expert ILA : Tableau de bord + Partenaires + Comité ILA + Rapport d\'activité. Partenaire : Tableau Partenaires uniquement. Admin : tout sauf Finance + Super-Admin (inclut Utilisateurs). Super-Admin : accès complet.',
+        desc: 'Utilisateur : app mobile uniquement. Contributeur : soumet du contenu depuis l\'app. Enseignant : crée des classes sur mobile (code élèves, tableau de suivi PEI/DPFC), pas d\'accès CMS. Éditeur : crée et édite les contenus CMS. Expert ILA : Tableau de bord + Partenaires + Comité ILA + Rapport d\'activité. Partenaire : Tableau Partenaires uniquement. Admin : tout sauf Finance + Super-Admin (inclut Utilisateurs). Super-Admin : accès complet.',
         warning: null,
+      },
+      {
+        title: 'Attribuer le rôle Enseignant',
+        desc: 'Pour un instituteur, professeur ou encadreur PEI : attribuer le rôle "Enseignant" (attribuable par Admin et Super-Admin). Sur mobile, il obtient l\'Espace Enseignant (Profil → École) : création de classes liées à une langue, code d\'accès à 6 caractères à partager aux élèves, et tableau de suivi (assiduité, XP, leçons complétées, classe du cursus + moyenne). Compte test disponible : enseignant.test@languesivoire.ci.',
+        warning: 'Le tableau de suivi expose la progression des élèves à l\'enseignant. Vérifiez que le compte appartient bien à un enseignant ou encadreur identifié.',
       },
       {
         title: 'Attribuer le rôle Expert ILA (UFHB)',
@@ -2151,6 +2156,10 @@ export const GUIDE_MODULES = [
       '🏫 Cursus v2.8 : barre progression trimestre (C1), rang de classe sur bulletins (C2), Fiches Pédagogiques (C3), choix filière lycée (D1), tableau Chercheur (D2), certificats fin de cycle (D3)',
       '📋 Table des matières par classe (ProgrammeClasse) : piliers × trimestres avec badge optionnel',
       '🔍 Inspection des Leçons : parcourir leçons/exercices en mode prévisualisation sans enregistrer de scores (SUPER_ADMIN, ADMIN, EXPERT, EDITOR, PARTNER)',
+      '🔁 v2.9 : Révisions du jour (répétition espacée SM-2) — 10 nouveaux mots/jour, auto-évaluation 4 niveaux, widget accueil avec badge',
+      '👩🏾‍🏫 v2.9 : rôle Enseignant + Espace Enseignant mobile — classes, code d\'accès 6 caractères, tableau de suivi élèves (assiduité, XP, cursus)',
+      '🛡️ v2.9 : autorisation parentale Répéto (enregistrements vocaux d\'enfants) + badges de certification sur toutes les réponses IA (⭐ Certifié ILA / 🤖 non certifié)',
+      '🌍 v2.9 : codes ISO 639-3 sur 40 langues (interopérabilité, archivage OLAC/ELAR, dossiers UNESCO)',
     ],
     steps: [
       { title: 'Choisir votre parcours par rôle', desc: 'En haut du guide, sélectionner votre rôle (Éditeur, Expert ILA, Admin…) pour afficher un parcours de formation personnalisé avec les modules prioritaires pour votre poste.', warning: null },
