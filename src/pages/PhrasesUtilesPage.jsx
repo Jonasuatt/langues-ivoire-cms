@@ -10,8 +10,8 @@ import LanguageSelect from '../components/LanguageSelect';
 function GenrePicker({ value, onChange }) {
   const opts = [
     { key: '',  label: 'Non renseigné', icon: '—',  cls: 'border-gray-200 text-gray-400 bg-white' },
-    { key: 'M', label: 'Homme',         icon: '👨', cls: 'border-blue-300 text-blue-700 bg-blue-50' },
-    { key: 'F', label: 'Femme',         icon: '👩', cls: 'border-pink-300 text-pink-700 bg-pink-50' },
+    { key: 'M', label: 'Homme',         icon: '👨🏾', cls: 'border-blue-300 text-blue-700 bg-blue-50' },
+    { key: 'F', label: 'Femme',         icon: '👩🏾', cls: 'border-pink-300 text-pink-700 bg-pink-50' },
   ];
   return (
     <div>
@@ -32,9 +32,9 @@ function GenrePicker({ value, onChange }) {
 
 const CATEGORIES = ['expressions', 'salutations', 'nourriture', 'vie_quotidienne', 'vie_sociale', 'corps', 'lieux', 'autre'];
 const CAT_LABELS = {
-  expressions: '💬 Expressions', salutations: '👋 Salutations', nourriture: '🍽️ Nourriture',
+  expressions: '💬 Expressions', salutations: '👋🏾 Salutations', nourriture: '🍽️ Nourriture',
   vie_quotidienne: '🌅 Vie quotidienne', vie_sociale: '🤝 Vie sociale',
-  corps: '💪 Corps', lieux: '📍 Lieux', autre: '📌 Autre',
+  corps: '💪🏾 Corps', lieux: '📍 Lieux', autre: '📌 Autre',
 };
 const CAT_COLORS = {
   expressions: 'bg-purple-100 text-purple-700', salutations: 'bg-green-100 text-green-700',

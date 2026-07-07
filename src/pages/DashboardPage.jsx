@@ -84,7 +84,7 @@ const MODULE_SECTIONS = [
     color: 'text-cyan-700',
     dot: 'bg-cyan-500',
     items: [
-      { emoji: '🧑‍🏫', label: 'Tuteurs IA',       color: 'bg-primary-500', key: 'tutors',        unit: 'tuteurs',  to: '/tutors' },
+      { emoji: '🧑🏾‍🏫', label: 'Tuteurs IA',       color: 'bg-primary-500', key: 'tutors',        unit: 'tuteurs',  to: '/tutors' },
       { emoji: '🧪', label: 'Test Agents IA',     color: 'bg-emerald-600', key: 'testAgents',    unit: 'agents',   to: '/test-agents' },
       { emoji: '🎵', label: 'Bienvenue & Sons',   color: 'bg-pink-500',    key: 'bienvenue',     unit: 'messages', to: '/bienvenue-sons' },
       { emoji: '🦜', label: 'RÉPÉTO',             color: 'bg-teal-600',    key: 'repetitor',     unit: 'mots actifs', to: '/repetitor', adminOnly: true },

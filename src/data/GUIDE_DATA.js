@@ -87,7 +87,7 @@ export const GUIDE_MODULES = [
     features: [
       'Filtres par langue, catégorie grammaticale et niveau',
       'Formulaire d\'ajout complet : langue, mot local, traduction, phonétique, catégorie, exemple',
-      '4 champs audio distincts : 👨 locuteur local, 👩 locutrice locale, 👨 locuteur français, 👩 locutrice française',
+      '4 champs audio distincts : 👨🏾 locuteur local, 👩🏾 locutrice locale, 👨🏾 locuteur français, 👩🏾 locutrice française',
       'Génération audio assistée par IA pour compléter les enregistrements manquants',
       'Recherche en temps réel dans tout le corpus',
       'Export du lexique possible pour archivage',
@@ -95,7 +95,7 @@ export const GUIDE_MODULES = [
     steps: [
       { title: 'Ajouter un nouveau mot', desc: 'Cliquer sur "+ Ajouter un mot", sélectionner la langue, saisir le mot en langue locale, sa traduction française, sa catégorie grammaticale et un exemple d\'usage en contexte.', warning: null },
       { title: 'Renseigner la phonétique', desc: 'Saisir la transcription phonétique entre crochets [ ] en utilisant les caractères API disponibles (ɛ, ɔ, ŋ, ɲ, etc.). Indispensable pour les langues à tons.', warning: 'Toujours noter la phonétique entre crochets [ ] pour les langues à tons telles que le Baoulé ou le Dioula. Une phonétique incomplète nuit à l\'apprentissage de la prononciation.' },
-      { title: 'Uploader les 4 audios', desc: 'Pour chaque mot, importer les 4 enregistrements : 👨 locuteur natif masculin, 👩 locutrice native féminine, 👨 traducteur français masculin, 👩 traductrice française féminine. Utiliser le module Import Audio pour les uploads en masse.', warning: null },
+      { title: 'Uploader les 4 audios', desc: 'Pour chaque mot, importer les 4 enregistrements : 👨🏾 locuteur natif masculin, 👩🏾 locutrice native féminine, 👨🏾 traducteur français masculin, 👩🏾 traductrice française féminine. Utiliser le module Import Audio pour les uploads en masse.', warning: null },
       { title: 'Vérifier la prononciation', desc: 'Écouter chaque audio importé pour confirmer la qualité sonore, l\'absence de bruit de fond et la justesse de la prononciation du mot.', warning: null },
       { title: 'Publier l\'entrée', desc: 'Une fois tous les champs validés, passer le statut en "Publié". L\'entrée sera immédiatement disponible dans l\'application mobile.', warning: null },
     ],
@@ -1207,7 +1207,7 @@ export const GUIDE_MODULES = [
     color: 'cyan',
     roles: ['ADMIN', 'SUPER_ADMIN'],
     description:
-      'Environnement de test des deux agents conversationnels IA déployés sur l\'application mobile : Zélé (👩 tuteure, voix féminine) et Kouadio (👨 tuteur, voix masculine). Ce module permet de simuler des échanges pédagogiques en temps réel, valider la qualité des réponses et détecter les comportements incorrects avant qu\'ils n\'atteignent les utilisateurs finaux. Les agents répondent dans toutes les langues ivoiriennes disponibles.',
+      'Environnement de test des deux agents conversationnels IA déployés sur l\'application mobile : Zélé (👩🏾 tuteure, voix féminine) et Kouadio (👨🏾 tuteur, voix masculine). Ce module permet de simuler des échanges pédagogiques en temps réel, valider la qualité des réponses et détecter les comportements incorrects avant qu\'ils n\'atteignent les utilisateurs finaux. Les agents répondent dans toutes les langues ivoiriennes disponibles.',
     objectifs: [
       'Valider le comportement conversationnel des tuteurs avant chaque mise en production',
       'Tester les réponses pédagogiques dans des situations variées (débutant, intermédiaire, correction)',
@@ -1215,8 +1215,8 @@ export const GUIDE_MODULES = [
       'Comparer le comportement des deux agents sur les mêmes questions',
     ],
     features: [
-      'Interface de chat temps réel avec Zélé (👩) — tonalité chaleureuse et encourageante',
-      'Interface de chat temps réel avec Kouadio (👨) — tonalité posée et méthodique',
+      'Interface de chat temps réel avec Zélé (👩🏾) — tonalité chaleureuse et encourageante',
+      'Interface de chat temps réel avec Kouadio (👨🏾) — tonalité posée et méthodique',
       'Sélecteur de langue : tester chaque agent sur toutes les langues disponibles',
       'Réponses incluant traduction, phonétique et exemples de phrases',
       'Indicateur de chargement pendant le traitement de la requête IA',

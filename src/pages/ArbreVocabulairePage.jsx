@@ -13,14 +13,14 @@ import LanguageSelect from '../components/LanguageSelect';
 
 // Les 8 membres de l'arbre — correspond aux IDs dans ArbresScreen.js
 const MEMBRES = [
-  { id: 'grand_pere', fr: 'Grand-père', emoji: '👴', tier: 0 },
-  { id: 'grand_mere', fr: 'Grand-mère', emoji: '👵', tier: 0 },
-  { id: 'pere',       fr: 'Père',       emoji: '👨', tier: 1 },
-  { id: 'mere',       fr: 'Mère',       emoji: '👩', tier: 1 },
+  { id: 'grand_pere', fr: 'Grand-père', emoji: '👴🏾', tier: 0 },
+  { id: 'grand_mere', fr: 'Grand-mère', emoji: '👵🏾', tier: 0 },
+  { id: 'pere',       fr: 'Père',       emoji: '👨🏾', tier: 1 },
+  { id: 'mere',       fr: 'Mère',       emoji: '👩🏾', tier: 1 },
   { id: 'oncle',      fr: 'Oncle',      emoji: '🧔', tier: 1 },
-  { id: 'tante',      fr: 'Tante',      emoji: '👩‍🦱', tier: 1 },
-  { id: 'frere',      fr: 'Frère',      emoji: '👦', tier: 2 },
-  { id: 'soeur',      fr: 'Sœur',       emoji: '👧', tier: 2 },
+  { id: 'tante',      fr: 'Tante',      emoji: '👩🏾‍🦱', tier: 1 },
+  { id: 'frere',      fr: 'Frère',      emoji: '👦🏾', tier: 2 },
+  { id: 'soeur',      fr: 'Sœur',       emoji: '👧🏾', tier: 2 },
 ];
 
 const EMPTY_FORM = {

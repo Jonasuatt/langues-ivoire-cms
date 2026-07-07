@@ -499,8 +499,8 @@ function MotModal({ open, onClose, onSave, languages, editData }) {
             <div className="flex gap-2">
               {[
                 { value: '',  label: '— Non précisé', icon: '🎙️' },
-                { value: 'M', label: 'Voix masculine', icon: '👨' },
-                { value: 'F', label: 'Voix féminine',  icon: '👩' },
+                { value: 'M', label: 'Voix masculine', icon: '👨🏾' },
+                { value: 'F', label: 'Voix féminine',  icon: '👩🏾' },
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -722,12 +722,12 @@ function MotsTab({ languages }) {
                 </span>
                 {m.genreVoix === 'M' && (
                   <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                    👨 Homme
+                    👨🏾 Homme
                   </span>
                 )}
                 {m.genreVoix === 'F' && (
                   <span className="text-xs bg-pink-50 text-pink-700 px-2 py-0.5 rounded-full font-medium">
-                    👩 Femme
+                    👩🏾 Femme
                   </span>
                 )}
               </div>

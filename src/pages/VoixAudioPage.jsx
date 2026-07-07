@@ -808,8 +808,8 @@ export default function VoixAudioPage() {
               <div>
                 <p className="font-semibold text-blue-800 mb-1">👥 Genre locuteur</p>
                 <div className="bg-white rounded-xl p-3 border border-blue-100 text-xs text-gray-700 space-y-1">
-                  <p>👨 <strong>M</strong> = Locuteur masculin (Tuteur langue)</p>
-                  <p>👩 <strong>F</strong> = Locutrice féminine (Tuteure langue)</p>
+                  <p>👨🏾 <strong>M</strong> = Locuteur masculin (Tuteur langue)</p>
+                  <p>👩🏾 <strong>F</strong> = Locutrice féminine (Tuteure langue)</p>
                   <p className="text-gray-400 mt-1">Le genre est automatiquement détecté depuis le nom de fichier</p>
                 </div>
               </div>

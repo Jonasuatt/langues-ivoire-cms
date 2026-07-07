@@ -18,14 +18,14 @@ export default function QuadAudioField({ audioUrl = '', audioUrlF = '', audioUrl
       <div className="grid grid-cols-2 gap-3">
         <FileUploadField
           type="audio"
-          label={`👨 ${langLabel} — Homme`}
+          label={`👨🏾 ${langLabel} — Homme`}
           value={audioUrl}
           onChange={url => onChange('audioUrl', url)}
           disabled={disabled}
         />
         <FileUploadField
           type="audio"
-          label={`👩 ${langLabel} — Femme`}
+          label={`👩🏾 ${langLabel} — Femme`}
           value={audioUrlF}
           onChange={url => onChange('audioUrlF', url)}
           disabled={disabled}
@@ -34,14 +34,14 @@ export default function QuadAudioField({ audioUrl = '', audioUrlF = '', audioUrl
       <div className="grid grid-cols-2 gap-3">
         <FileUploadField
           type="audio"
-          label="👨 Français — Homme"
+          label="👨🏾 Français — Homme"
           value={audioUrlFr}
           onChange={url => onChange('audioUrlFr', url)}
           disabled={disabled}
         />
         <FileUploadField
           type="audio"
-          label="👩 Français — Femme"
+          label="👩🏾 Français — Femme"
           value={audioUrlFrF}
           onChange={url => onChange('audioUrlFrF', url)}
           disabled={disabled}

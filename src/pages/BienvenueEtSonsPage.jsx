@@ -341,8 +341,8 @@ function LangCard({ lang, onSaved, onReset }) {
               <div className="flex gap-2">
                 {[
                   { v: '',  label: 'Non défini',  icon: '—' },
-                  { v: 'M', label: '♂ Masculin',  icon: '👨' },
-                  { v: 'F', label: '♀ Féminin',   icon: '👩' },
+                  { v: 'M', label: '♂ Masculin',  icon: '👨🏾' },
+                  { v: 'F', label: '♀ Féminin',   icon: '👩🏾' },
                 ].map(g => (
                   <button key={g.v} type="button"
                     onClick={() => setForm(f => ({ ...f, genreVoix: g.v }))}
@@ -681,8 +681,8 @@ export default function BienvenueEtSonsPage() {
                 <div className="flex gap-2">
                   {[
                     { v: '',  label: 'Non défini', icon: '—' },
-                    { v: 'M', label: '♂ Masculin', icon: '👨' },
-                    { v: 'F', label: '♀ Féminin',  icon: '👩' },
+                    { v: 'M', label: '♂ Masculin', icon: '👨🏾' },
+                    { v: 'F', label: '♀ Féminin',  icon: '👩🏾' },
                   ].map(g => (
                     <button key={g.v} type="button"
                       onClick={() => setCreateForm(f => ({ ...f, genreVoix: g.v }))}

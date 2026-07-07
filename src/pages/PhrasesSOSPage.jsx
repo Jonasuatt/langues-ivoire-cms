@@ -33,10 +33,10 @@ const SOS_LANGUAGES = [
 // ─── Catégories d'emojis pour le sélecteur ───────────────────────────────────
 const EMOJI_CATEGORIES = [
   { label: '🆘 Urgences',       emojis: ['🆘','🚨','⚠️','🔥','💥','🚑','🚒','🚓','🆘','📢','❗','🛑'] },
-  { label: '🏥 Santé',          emojis: ['🤕','🩺','💊','🏥','👨‍⚕️','🩹','🩻','🧬','💉','🌡️','😷','🫀'] },
+  { label: '🏥 Santé',          emojis: ['🤕','🩺','💊','🏥','👨🏾‍⚕️','🩹','🩻','🧬','💉','🌡️','😷','🫀'] },
   { label: '💧 Besoins vitaux', emojis: ['💧','🌊','🍞','🍽️','🛏️','🌡️','❄️','☀️','⚡','🌪️','🌧️','🏠'] },
   { label: '🗺️ Localisation',   emojis: ['🗺️','📍','📌','🧭','✈️','🚗','🚌','🚢','🏔️','🏝️','🌆','🏕️'] },
-  { label: '👥 Personnes',      emojis: ['👨‍👩‍👧','👫','👨','👩','👶','🧑‍🤝‍🧑','👴','👵','👮','🧑‍⚕️','🧑‍🚒','🧑‍✈️'] },
+  { label: '👥 Personnes',      emojis: ['👨‍👩‍👧','👫','👨🏾','👩🏾','👶🏾','🧑🏾‍🤝‍🧑','👴🏾','👵🏾','👮','🧑🏾‍⚕️','🧑🏾‍🚒','🧑🏾‍✈️'] },
   { label: '📞 Communication',  emojis: ['📞','📱','📣','🔔','💬','✉️','🆘','🏳️','🏴','🚩','📡','🔍'] },
 ];
 
@@ -46,7 +46,7 @@ const BODY_PARTS = [
   { id: 'gorge',    label: 'Gorge',    emoji: '🫁', fr: "J'ai mal à la gorge." },
   { id: 'poitrine', label: 'Poitrine', emoji: '❤️', fr: "J'ai mal à la poitrine." },
   { id: 'ventre',   label: 'Ventre',   emoji: '🫃', fr: "J'ai mal au ventre." },
-  { id: 'bras',     label: 'Bras',     emoji: '💪', fr: "J'ai mal au bras." },
+  { id: 'bras',     label: 'Bras',     emoji: '💪🏾', fr: "J'ai mal au bras." },
   { id: 'dos',      label: 'Dos',      emoji: '🫀', fr: "J'ai mal au dos." },
   { id: 'jambe',    label: 'Jambe',    emoji: '🦵', fr: "J'ai mal à la jambe." },
   { id: 'pied',     label: 'Pied',     emoji: '🦶', fr: "J'ai mal au pied." },
@@ -59,8 +59,8 @@ const EMPTY_CORPS   = { languageId: '', bodyPartId: 'tete', phrase: '', transcri
 function GenrePicker({ value, onChange }) {
   const opts = [
     { key: '',  label: 'Non renseigné', icon: '—',  color: 'border-gray-200 text-gray-400 bg-white',  ring: 'ring-gray-300' },
-    { key: 'M', label: 'Homme',         icon: '👨', color: 'border-blue-300 text-blue-700 bg-blue-50', ring: 'ring-blue-400' },
-    { key: 'F', label: 'Femme',         icon: '👩', color: 'border-pink-300 text-pink-700 bg-pink-50', ring: 'ring-pink-400' },
+    { key: 'M', label: 'Homme',         icon: '👨🏾', color: 'border-blue-300 text-blue-700 bg-blue-50', ring: 'ring-blue-400' },
+    { key: 'F', label: 'Femme',         icon: '👩🏾', color: 'border-pink-300 text-pink-700 bg-pink-50', ring: 'ring-pink-400' },
   ];
   return (
     <div>
@@ -498,7 +498,7 @@ export default function PhrasesSOSPage() {
                                 {p.audioUrl && <SpeakerWaveIcon className="w-3 h-3 text-green-400 flex-shrink-0"/>}
                                 {p.genreLocuteur && (
                                   <span className="text-[10px] flex-shrink-0">
-                                    {p.genreLocuteur === 'M' ? '👨' : '👩'}
+                                    {p.genreLocuteur === 'M' ? '👨🏾' : '👩🏾'}
                                   </span>
                                 )}
                                 <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 flex-shrink-0">
@@ -589,7 +589,7 @@ export default function PhrasesSOSPage() {
                                     <div className="flex items-center gap-1">
                                       {existing.audioUrl && <SpeakerWaveIcon className="w-3 h-3 text-green-500"/>}
                                       {existing.genreLocuteur && (
-                                        <span className="text-[10px]">{existing.genreLocuteur === 'M' ? '👨' : '👩'}</span>
+                                        <span className="text-[10px]">{existing.genreLocuteur === 'M' ? '👨🏾' : '👩🏾'}</span>
                                       )}
                                     </div>
                                     <div className="flex gap-0.5">
