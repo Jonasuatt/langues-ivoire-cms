@@ -48,6 +48,7 @@ import RepetitorPage from './pages/RepetitorPage';
 import MissionPage from './pages/MissionPage';
 import CursusPage    from './pages/CursusPage';
 import CerveauPage   from './pages/CerveauPage';
+import DataDeletionPage from './pages/DataDeletionPage';
 import ProgrammePage from './pages/ProgrammePage';
 import FichesPage    from './pages/FichesPage';
 
@@ -65,6 +66,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/suppression-donnees" element={<DataDeletionPage />} />
         <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'EXPERT', 'CONTRIBUTOR', 'PARTNER']}><Layout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="cerveau" element={<CerveauPage />} />
