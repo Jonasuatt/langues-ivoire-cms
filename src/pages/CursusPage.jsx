@@ -236,7 +236,11 @@ export default function CursusPage() {
   };
 
   const handleSeedContent = async () => {
-    if (!window.confirm('Assigner des leçons démo à CP1, CP2 et CE1 pour toutes les langues actives ?')) return;
+    if (!window.confirm(
+      'Assigner automatiquement les leçons existantes aux classes CP1, CP2 et CE1 pour toutes les langues actives ?\n\n'
+      + 'C\'est un programme de démarrage : vous pourrez ensuite ajuster chaque leçon '
+      + '(classe, trimestre, semaine) individuellement dans le tableau ci-dessous.'
+    )) return;
     setDemoLoading('seed');
     try {
       const { data } = await curriculumAPI.seedContent();
@@ -250,7 +254,11 @@ export default function CursusPage() {
   };
 
   const handleResetContent = async () => {
-    if (!window.confirm('Retirer TOUTES les assignations de classe sur les leçons ? Cette action est réversible (relancez le seed).')) return;
+    if (!window.confirm(
+      'Retirer TOUTES les assignations de classe sur les leçons ?\n\n'
+      + 'Les leçons elles-mêmes ne sont pas supprimées — elles redeviennent simplement '
+      + '« hors cursus ». Vous pourrez relancer le programme de démarrage à tout moment.'
+    )) return;
     setDemoLoading('reset');
     try {
       const { data } = await curriculumAPI.resetContent();
@@ -529,14 +537,14 @@ export default function CursusPage() {
                   disabled={!!demoLoading}
                   className="px-3 py-1.5 bg-emerald-700 text-white rounded-lg text-xs font-bold hover:bg-emerald-800 transition disabled:opacity-50"
                 >
-                  {demoLoading === 'seed' ? '⏳…' : '⚡ Charger contenu démo'}
+                  {demoLoading === 'seed' ? '⏳…' : '⚡ Assigner le programme de démarrage'}
                 </button>
                 <button
                   onClick={handleResetContent}
                   disabled={!!demoLoading}
                   className="px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-200 transition disabled:opacity-50"
                 >
-                  {demoLoading === 'reset' ? '⏳…' : '🗑️ Supprimer contenu démo'}
+                  {demoLoading === 'reset' ? '⏳…' : '♻️ Retirer les assignations de classes'}
                 </button>
               </div>
             )}

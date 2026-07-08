@@ -224,13 +224,14 @@ export default function UsersPage() {
     catch { toast.error('Erreur'); }
   };
 
+  // Génère un mot de passe temporaire côté serveur, affiché UNE SEULE FOIS.
+  // (Les mots de passe sont hachés en base : ils ne peuvent jamais être affichés,
+  // seulement réinitialisés — norme de sécurité et exigence ARTCI.)
   const handleResetPassword = async () => {
-    if (newPassword.length < 8) { toast.error('Minimum 8 caractères'); return; }
     setResetting(true);
     try {
-      await adminAPI.updateUser(resetTarget.id, { newMotDePasse: newPassword });
-      toast.success('Mot de passe réinitialisé');
-      setResetTarget(null); setNewPassword('');
+      const { data } = await adminAPI.resetPassword(resetTarget.id);
+      setNewPassword(data.tempPassword); // réutilisé pour l'affichage unique
     } catch (err) { toast.error(err.response?.data?.error || 'Erreur'); }
     finally { setResetting(false); }
   };
@@ -453,9 +454,11 @@ export default function UsersPage() {
                     <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
                       {u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleDateString('fr-FR') : 'Jamais'}
                     </td>
-                    {/* Actions */}
+                    {/* Actions — SUPER_ADMIN : tous les comptes ;
+                        ADMIN : tous sauf Admin et Super-Admin (règle appliquée aussi côté serveur) */}
                     <td className="px-4 py-3">
-                      {myRole === 'SUPER_ADMIN' && (
+                      {(myRole === 'SUPER_ADMIN' ||
+                        (myRole === 'ADMIN' && !['SUPER_ADMIN', 'ADMIN'].includes(u.role))) && (
                         <button onClick={() => { setResetTarget(u); setNewPassword(''); }}
                           className="p-1.5 rounded-lg text-gray-400 hover:text-orange-500 hover:bg-orange-50 transition-colors"
                           title="Réinitialiser le mot de passe">
@@ -483,18 +486,44 @@ export default function UsersPage() {
       {/* ── Modal : Réinitialiser mot de passe ── */}
       {resetTarget && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-bold mb-1">Réinitialiser le mot de passe</h2>
-            <p className="text-sm text-gray-500 mb-4">{resetTarget.email}</p>
-            <input type="password" className="input mb-4"
-              placeholder="Nouveau mot de passe (min. 8 caractères)"
-              value={newPassword} onChange={e => setNewPassword(e.target.value)} autoFocus />
-            <div className="flex gap-3">
-              <button onClick={() => setResetTarget(null)} className="btn-secondary flex-1">Annuler</button>
-              <button onClick={handleResetPassword} disabled={resetting} className="btn-primary flex-1 justify-center">
-                {resetting ? 'En cours…' : 'Réinitialiser'}
-              </button>
-            </div>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h2 className="text-lg font-bold mb-1">🔑 Réinitialiser le mot de passe</h2>
+            <p className="text-sm text-gray-500 mb-4">{resetTarget.prenom} {resetTarget.nom} · {resetTarget.email}</p>
+
+            {!newPassword ? (
+              <>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-xs text-blue-800 leading-relaxed">
+                  ℹ️ Les mots de passe sont chiffrés : personne ne peut afficher le mot de passe actuel d'un utilisateur.
+                  Un <b>mot de passe temporaire</b> sera généré et affiché <b>une seule fois</b> —
+                  transmettez-le à l'utilisateur, qui pourra ensuite le changer dans son profil.
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setResetTarget(null)} className="btn-secondary flex-1">Annuler</button>
+                  <button onClick={handleResetPassword} disabled={resetting} className="btn-primary flex-1 justify-center">
+                    {resetting ? 'Génération…' : 'Générer un mot de passe temporaire'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-4 mb-3 text-center">
+                  <p className="text-xs text-emerald-700 font-semibold mb-2">Mot de passe temporaire — affiché une seule fois</p>
+                  <p className="text-2xl font-black tracking-wider text-emerald-900 select-all">{newPassword}</p>
+                </div>
+                <button
+                  onClick={() => { navigator.clipboard?.writeText(newPassword); toast.success('Copié !'); }}
+                  className="btn-secondary w-full justify-center mb-2"
+                >
+                  📋 Copier
+                </button>
+                <button
+                  onClick={() => { setResetTarget(null); setNewPassword(''); }}
+                  className="btn-primary w-full justify-center"
+                >
+                  J'ai transmis le mot de passe — Fermer
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -2124,6 +2124,154 @@ export const GUIDE_MODULES = [
   },
 
   {
+    id: 'cursus',
+    route: '/cursus',
+    section: 'education',
+    icon: '🏫',
+    title: 'Cursus Scolaire',
+    subtitle: 'Classes, examens du comité, bulletins, filières et parcours Chercheur',
+    color: 'emerald',
+    roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Le module Cursus Scolaire administre l\'école numérique de l\'application : les 16 classes (CP1 → Terminale puis parcours Chercheur), le rattachement des leçons aux classes, les examens de passage soumis au comité, les bulletins des élèves, les filières du lycée et les objectifs du parcours Chercheur. C\'est ici que se règle tout ce que l\'élève vit dans « Mon École » sur le mobile.',
+    objectifs: [
+      'Structurer le programme : rattacher chaque leçon à une classe, un trimestre et une semaine',
+      'Corriger les examens de passage soumis par les élèves (classes en mode COMITÉ)',
+      'Suivre les inscrits, leurs moyennes et valider les bulletins semestriels',
+      'Configurer les filières du lycée et les objectifs du parcours Chercheur',
+    ],
+    features: [
+      'Onglet Classes : les 16 niveaux avec mode de passage (AUTO ou COMITÉ) et seuil de moyenne',
+      'Onglet Contenu : tableau des leçons avec classe, trimestre (T1/T2/T3), semaine et caractère obligatoire',
+      '⚡ Programme de démarrage : assigne automatiquement les leçons existantes aux classes CP1–CE1 pour toutes les langues actives — un point de départ à ajuster ensuite leçon par leçon',
+      '♻️ Retrait des assignations : remet les leçons « hors cursus » sans rien supprimer',
+      'Onglet Comité : correction des examens de passage (validation ou refus motivé)',
+      'Onglet Bulletins : moyennes par pilier, mention et rang de classe des inscrits',
+      'Onglet Filières : spécialisations du lycée (Phase D1)',
+      'Onglet Chercheur : objectifs de contribution du cycle avancé (Phase D2)',
+    ],
+    steps: [
+      { title: 'Assigner le programme de démarrage', desc: 'Dans l\'onglet Contenu, cliquer sur « ⚡ Assigner le programme de démarrage » pour rattacher automatiquement les leçons existantes aux premières classes. C\'est un point de départ, pas un programme définitif.', warning: null },
+      { title: 'Affiner leçon par leçon', desc: 'Dans le tableau, ajuster pour chaque leçon : la classe, le pilier, le trimestre et la semaine. Seules les leçons rattachées à une classe comptent pour le passage de classe des élèves.', warning: null },
+      { title: 'Corriger les examens du comité', desc: 'L\'onglet Comité liste les examens soumis par les élèves des classes en mode COMITÉ. Écouter/lire la copie, attribuer une note et valider ou demander une reprise.', warning: 'Une validation déclenche le passage de classe de l\'élève — vérifiez la copie avant de valider.' },
+      { title: 'Suivre les bulletins', desc: 'L\'onglet Bulletins affiche les moyennes semestrielles calculées automatiquement. Le rang de classe est visible par l\'élève sur son bulletin mobile.', warning: null },
+    ],
+    workflows: [
+      {
+        title: 'Lancer le cursus d\'une nouvelle langue',
+        steps: [
+          'Vérifier que la langue est active et que des leçons publiées existent',
+          'Onglet Contenu → « ⚡ Assigner le programme de démarrage »',
+          'Ajuster les classes/trimestres des leçons dans le tableau',
+          'Créer les fiches pédagogiques d\'accompagnement dans le module Fiches',
+          'Tester côté mobile avec un compte élève : test de positionnement → Mon École',
+        ],
+      },
+    ],
+    tip: 'La devise du projet s\'applique ici : « L\'école est un cursus, la culture est un droit ». Les modules culturels restent libres — le cursus structure uniquement la progression pédagogique.',
+    warnings: [
+      'Le retrait des assignations ne supprime aucune leçon, mais les élèves ne verront plus de programme tant qu\'un nouveau rattachement n\'est pas fait.',
+    ],
+    audioNaming: null,
+  },
+
+  {
+    id: 'programme',
+    route: '/programme',
+    section: 'education',
+    icon: '📋',
+    title: 'Table des Matières',
+    subtitle: 'Vue imprimable du programme par classe et par pilier',
+    color: 'emerald',
+    roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'La Table des Matières présente le programme scolaire complet d\'une langue, organisé par cycle (Primaire, Collège, Lycée, Chercheur), par classe, par pilier (Langue & Communication, Culture & Citoyenneté, Pratique & Métiers) et par trimestre. Elle est consultable à l\'écran et imprimable au format A4 pour les réunions pédagogiques et les dossiers institutionnels.',
+    objectifs: [
+      'Visualiser d\'un coup d\'œil la couverture du programme d\'une langue',
+      'Repérer les classes ou trimestres sans leçons (trous de programme)',
+      'Produire un document imprimable pour les partenaires institutionnels (DPFC, ILA)',
+    ],
+    features: [
+      'Sélecteur de langue en haut de page',
+      'Accordéons par classe et par pilier avec compteurs de leçons',
+      'Répartition par trimestre (T1 · Sept–Déc, T2 · Janv–Mars, T3 · Avr–Juin)',
+      'Numérotation par semaine (S1, S2…) et mention « optionnel » sur les leçons non obligatoires',
+      '🖨️ Impression A4 propre (en-tête officiel, accordéons dépliés)',
+    ],
+    steps: [
+      { title: 'Choisir la langue', desc: 'Sélectionner la langue dans le menu déroulant — le programme se recharge automatiquement.', warning: null },
+      { title: 'Analyser la couverture', desc: 'Les badges par pilier sur chaque classe montrent la répartition des leçons. Une classe sans badge = un trou de programme à combler dans le module Cursus.', warning: null },
+      { title: 'Imprimer', desc: 'Cliquer sur « 🖨️ Imprimer » pour générer la version A4 avec l\'en-tête LANGUES IVOIRE · ILA. Idéal pour les revues de programme avec le comité scientifique.', warning: null },
+    ],
+    workflows: [],
+    tip: 'Cette page est en lecture seule : pour modifier le programme (classe, trimestre, semaine d\'une leçon), passez par le module Cursus Scolaire → onglet Contenu.',
+    warnings: [],
+    audioNaming: null,
+  },
+
+  {
+    id: 'fiches',
+    route: '/fiches',
+    section: 'education',
+    icon: '📄',
+    title: 'Fiches Pédagogiques',
+    subtitle: 'Ressources de cours pour les élèves du cursus',
+    color: 'emerald',
+    roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Les Fiches Pédagogiques sont des ressources d\'accompagnement rédigées par l\'équipe éditoriale : cours théoriques, exercices, fiches d\'évaluation et documents complémentaires. Elles sont rattachées à une langue et à une classe du cursus, et les élèves les consultent depuis Mon École → Fiches pédagogiques sur le mobile.',
+    objectifs: [
+      'Fournir aux élèves un support écrit structuré en complément des leçons interactives',
+      'Organiser les ressources par classe, type et trimestre',
+      'Contrôler la publication (brouillon → publié) avant exposition aux élèves',
+    ],
+    features: [
+      '4 types de fiches : 📘 Cours · 📝 Exercice · 📊 Évaluation · 📁 Ressource',
+      'Rattachement obligatoire : langue + classe du cursus',
+      'Champs pédagogiques : pilier, trimestre, semaine',
+      'Statut de publication : seules les fiches publiées sont visibles des élèves',
+      'Pièce jointe optionnelle (PDF, image) via URL',
+    ],
+    steps: [
+      { title: 'Créer une fiche', desc: 'Cliquer sur « + Nouvelle fiche », choisir le type, la langue et la classe, rédiger le contenu dans l\'éditeur. Le contenu accepte du texte structuré (titres, paragraphes).', warning: null },
+      { title: 'Situer la fiche dans le programme', desc: 'Renseigner le pilier, le trimestre et la semaine pour que la fiche apparaisse au bon moment du parcours de l\'élève.', warning: null },
+      { title: 'Publier', desc: 'Activer l\'interrupteur de publication. Les élèves de la classe concernée verront la fiche immédiatement dans Mon École.', warning: 'Relisez la fiche avant publication — elle est visible de tous les élèves de la classe.' },
+    ],
+    workflows: [],
+    tip: 'Pensez « cahier de l\'élève » : une bonne fiche de cours tient sur un écran de téléphone, avec des exemples en langue locale accompagnés de leur traduction française.',
+    warnings: [],
+    audioNaming: null,
+  },
+
+  {
+    id: 'mission',
+    route: '/mission',
+    section: 'general',
+    icon: '🎯',
+    title: 'Mission',
+    subtitle: 'La raison d\'être du projet LANGUES IVOIRE',
+    color: 'green',
+    roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN', 'CONTRIBUTOR'],
+    description:
+      'La page Mission présente la vision du projet : préserver et transmettre les langues de Côte d\'Ivoire comme patrimoine commun, en s\'appuyant sur la certification scientifique ILA-UFHB, le cursus scolaire numérique et la contribution communautaire. Elle sert de référence pour aligner toute l\'équipe éditoriale sur le sens du travail quotidien.',
+    objectifs: [
+      'Partager la vision et les valeurs du projet avec chaque membre de l\'équipe',
+      'Rappeler la devise : « L\'école est un cursus, la culture est un droit »',
+    ],
+    features: [
+      'Présentation de la mission, de la vision et des valeurs',
+      'Rappel des piliers du projet : préservation, éducation, certification scientifique',
+    ],
+    steps: [
+      { title: 'Lire et partager', desc: 'Faire lire cette page à chaque nouveau membre lors de son onboarding — le contenu éditorial prend son sens quand la mission est comprise.', warning: null },
+    ],
+    workflows: [],
+    tip: 'Chaque mot ajouté au dictionnaire, chaque audio certifié, chaque leçon publiée écrit une page de la préservation des langues ivoiriennes. La mission n\'est pas un texte : c\'est le travail quotidien de l\'équipe.',
+    warnings: [],
+    audioNaming: null,
+  },
+
+  {
     id: 'guide',
     route: '/guide',
     section: 'admin',

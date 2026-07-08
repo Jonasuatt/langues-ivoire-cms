@@ -140,6 +140,7 @@ export const adminAPI = {
   getUsers: (params) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
   createMember: (data) => api.post('/admin/users/create', data),
+  resetPassword: (id) => api.post(`/admin/users/${id}/reset-password`),
 };
 
 export const voixAudioAPI = {
