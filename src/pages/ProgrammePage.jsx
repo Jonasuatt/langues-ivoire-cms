@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
+import PageHelp from '../components/PageHelp';
 
 const CYCLES_ORDER = ['PRIMAIRE', 'COLLEGE', 'LYCEE', 'CHERCHEUR'];
 const CYCLE_LABELS = { PRIMAIRE: 'Primaire', COLLEGE: 'Collège', LYCEE: 'Lycée', CHERCHEUR: 'Parcours Chercheur' };
@@ -229,6 +230,7 @@ export default function ProgrammePage() {
         </div>
       )}
 
+      <PageHelp pageId="programme" />
       {/* Styles d'impression */}
       <style>{`
         @media print {

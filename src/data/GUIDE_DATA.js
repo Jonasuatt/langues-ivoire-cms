@@ -2124,6 +2124,55 @@ export const GUIDE_MODULES = [
   },
 
   {
+    id: 'cerveau',
+    route: '/cerveau',
+    section: 'general',
+    icon: '🧠',
+    title: 'Cerveau Numérique',
+    subtitle: 'La mémoire centrale de LANGUES IVOIRE',
+    color: 'emerald',
+    roles: ['EDITOR', 'ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Le Cerveau Numérique est la vue unifiée de toutes les connaissances de la plateforme. Chaque module (dictionnaire, leçons, culture, audios, école…) écrit dans une seule et même mémoire ; le Cerveau la mesure et la rend visible : combien de connaissances existent par langue et par domaine, quel est le taux de certification ILA, et où sont les zones encore vides. C\'est à la fois l\'outil de pilotage éditorial et la preuve mesurable du patrimoine numérisé.',
+    objectifs: [
+      'Visualiser d\'un coup d\'œil le volume de connaissances par langue (la « matrice »)',
+      'Repérer les domaines vides (·) pour planifier les prochains chantiers de contenu',
+      'Suivre le taux de certification ILA des audios',
+      'Interroger la mémoire : recherche transversale dans tous les contenus',
+    ],
+    features: [
+      'Compteur global de connaissances enregistrées (tous modules confondus)',
+      'Signes vitaux : mots, phrases, leçons, audios (avec % certifiés ILA), utilisateurs, cartes de révision',
+      'Matrice langues × domaines : 14 domaines de connaissance par langue, code ISO 639-3, total par langue',
+      'Recherche transversale (« rappel de la mémoire ») dans le dictionnaire, les leçons et la culture',
+      'Un point (·) = domaine vide pour cette langue = prochain chantier de contenu',
+    ],
+    steps: [
+      { title: 'Lire les signes vitaux', desc: 'Les tuiles du haut donnent l\'état global de la mémoire : volume de mots, phrases, leçons, audios et leur taux de certification ILA.', warning: null },
+      { title: 'Analyser la matrice', desc: 'Chaque ligne est une langue, chaque colonne un domaine de connaissance. Les langues sont triées par volume total — les points (·) montrent où concentrer les prochains efforts éditoriaux.', warning: null },
+      { title: 'Interroger la mémoire', desc: 'La barre de recherche fouille l\'ensemble des contenus (mots, leçons, culture) — utile pour vérifier si une connaissance existe déjà avant de la créer.', warning: null },
+      { title: 'Planifier avec les équipes', desc: 'Utilisez la matrice en réunion éditoriale : « la langue X n\'a rien en Monnaie ni en Civisme » devient un objectif d\'équipe concret et mesurable.', warning: null },
+    ],
+    workflows: [
+      {
+        title: 'Revue mensuelle de couverture',
+        steps: [
+          'Ouvrir le Cerveau Numérique en début de mois',
+          'Noter le total de connaissances (comparer au mois précédent)',
+          'Identifier les 3 langues les moins nourries et leurs domaines vides',
+          'Assigner les chantiers aux éditeurs par langue et par module',
+          'Vérifier le taux de certification ILA — relancer le comité si < 80 %',
+        ],
+      },
+    ],
+    tip: 'Le Cerveau ne se remplit pas ici : il se nourrit dans chaque module. Cette page est le miroir — chaque mot ajouté au Dictionnaire, chaque audio certifié au Comité ILA apparaît immédiatement dans la matrice.',
+    warnings: [
+      'Les contenus universels (sans langue associée, ex. tables de multiplication) comptent dans les totaux globaux mais n\'apparaissent pas dans la matrice par langue.',
+    ],
+    audioNaming: null,
+  },
+
+  {
     id: 'cursus',
     route: '/cursus',
     section: 'education',

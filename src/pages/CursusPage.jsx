@@ -364,14 +364,7 @@ export default function CursusPage() {
       <p className="text-sm text-gray-500 mb-4">
         Du CP1 à la Terminale puis le Parcours Chercheur — « L'école est un cursus, la culture est un droit. »
       </p>
-      <PageHelp title="Cursus Scolaire">
-        <p>Les élèves progressent de classe en classe comme dans le système éducatif ivoirien.</p>
-        <ul className="list-disc ml-5 mt-2 space-y-1">
-          <li><b>Classes</b> : ajustez le seuil de passage (% de moyenne) et le mode (automatique ou comité d'experts).</li>
-          <li><b>Modules</b> : choisissez quels modules de l'application font partie du cursus (verrouillés par classe) et lesquels restent libres.</li>
-          <li><b>Leçons</b> : rattachez chaque leçon à une classe et à une matière. Seules les leçons rattachées comptent pour le passage de classe.</li>
-        </ul>
-      </PageHelp>
+      <PageHelp pageId="cursus" />
 
       {/* Onglets */}
       <div className="flex gap-2 mt-4 mb-6 border-b border-gray-200">

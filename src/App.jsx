@@ -47,6 +47,7 @@ import RapportEditeursPage from './pages/RapportEditeursPage';
 import RepetitorPage from './pages/RepetitorPage';
 import MissionPage from './pages/MissionPage';
 import CursusPage    from './pages/CursusPage';
+import CerveauPage   from './pages/CerveauPage';
 import ProgrammePage from './pages/ProgrammePage';
 import FichesPage    from './pages/FichesPage';
 
@@ -66,6 +67,7 @@ export default function App() {
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'EXPERT', 'CONTRIBUTOR', 'PARTNER']}><Layout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
+          <Route path="cerveau" element={<CerveauPage />} />
           <Route path="dictionary" element={<DictionaryPage />} />
           <Route path="conjugation" element={<ConjugationPage />} />
           <Route path="image-galleries" element={<ImageGalleryPage />} />

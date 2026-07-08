@@ -12,7 +12,7 @@ import {
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon, UserCircleIcon,
   LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
   BanknotesIcon, MapPinIcon, PresentationChartLineIcon,
-  CalculatorIcon, ShieldCheckIcon,
+  CalculatorIcon, ShieldCheckIcon, CircleStackIcon,
 } from '@heroicons/react/24/outline';
 
 export const ROLE_LABELS = {
@@ -41,6 +41,7 @@ const NAV_SECTIONS = [
   {
     items: [
       { to: '/', label: 'Tableau de bord', icon: HomeIcon, exact: true },
+      { to: '/cerveau', label: '🧠 Cerveau Numérique', icon: CircleStackIcon },
       { to: '/dictionary', label: 'Dictionnaire', icon: LanguageIcon },
       { to: '/alphabet-langues', label: 'Alphabet des Langues', icon: LanguageIcon },
       { to: '/conjugation', label: 'Conjugaison', icon: BookOpenIcon },

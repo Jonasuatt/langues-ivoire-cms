@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PageHelp from '../components/PageHelp';
 import { fichesAPI, languagesAPI, curriculumAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -491,6 +492,7 @@ export default function FichesPage() {
         </div>
       )}
 
+      <PageHelp pageId="fiches" />
     </div>
   );
 }

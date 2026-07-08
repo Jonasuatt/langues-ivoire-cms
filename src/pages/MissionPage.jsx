@@ -4,6 +4,7 @@
  */
 
 import { useNavigate } from 'react-router-dom';
+import PageHelp from '../components/PageHelp';
 import {
   GlobeAltIcon, MapPinIcon, CheckCircleIcon, ClockIcon,
   ArrowLeftIcon, SparklesIcon, MicrophoneIcon, BookOpenIcon,
@@ -222,6 +223,7 @@ export default function MissionPage() {
           </p>
         </div>
       </div>
+      <PageHelp pageId="mission" />
     </div>
   );
 }
