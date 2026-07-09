@@ -30,6 +30,78 @@ const CATS_PUB = [
 const EMPTY_NOTIF = { titre: '', corps: '', type: 'SYSTEM', targetUserId: '' };
 const EMPTY_PUB   = { titre: '', corps: '', categorie: 'EVENEMENT', targetUserId: '', imageUrl: '', audioUrl: '', videoUrl: '' };
 
+// ─── Recherche d'utilisateur avec autocomplétion ─────────────────────────────
+// Tapez 2 lettres (nom, prénom ou email) → les correspondances s'affichent →
+// la sélection fixe l'identifiant exact. Évite toute faute de frappe.
+function UserPicker({ value, onChange }) {
+  const [query, setQuery]     = useState('');
+  const [results, setResults] = useState([]);
+  const [selected, setSelected] = useState(null); // { id, prenom, nom, email }
+  const [open, setOpen]       = useState(false);
+  const timer = useRef(null);
+
+  useEffect(() => {
+    if (!value) setSelected(null); // reset externe (bouton Effacer)
+  }, [value]);
+
+  const search = (q) => {
+    setQuery(q);
+    setSelected(null);
+    onChange('');
+    clearTimeout(timer.current);
+    if (q.trim().length < 2) { setResults([]); setOpen(false); return; }
+    timer.current = setTimeout(() => {
+      adminAPI.getUsers({ search: q.trim(), limit: 8 })
+        .then(({ data }) => { setResults(data.data ?? []); setOpen(true); })
+        .catch(() => { setResults([]); setOpen(false); });
+    }, 300);
+  };
+
+  const pick = (u) => {
+    setSelected(u);
+    setQuery('');
+    setResults([]);
+    setOpen(false);
+    onChange(u.id);
+  };
+
+  if (selected) {
+    return (
+      <div className="mt-2 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
+        <span className="text-sm font-semibold text-blue-900">👤 {selected.prenom} {selected.nom}</span>
+        <span className="text-xs text-blue-600 flex-1 truncate">{selected.email ?? selected.telephone ?? ''}</span>
+        <button onClick={() => { setSelected(null); onChange(''); }}
+          className="text-blue-400 hover:text-blue-700 text-sm font-bold px-1" title="Changer de destinataire">✕</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative mt-2">
+      <input
+        className="input"
+        value={query}
+        onChange={e => search(e.target.value)}
+        onFocus={() => results.length > 0 && setOpen(true)}
+        placeholder="🔍 Rechercher par nom, prénom ou email…"
+      />
+      {open && (
+        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto">
+          {results.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-gray-400">Aucun utilisateur trouvé</p>
+          ) : results.map(u => (
+            <button key={u.id} onClick={() => pick(u)}
+              className="w-full text-left px-4 py-2.5 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0">
+              <span className="text-sm font-semibold text-gray-800">{u.prenom} {u.nom}</span>
+              <span className="text-xs text-gray-400 ml-2">{u.email ?? u.telephone ?? ''}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -357,7 +429,7 @@ export default function NotificationsPage() {
   // ── Envoi Notification ──
   const handleSend = async () => {
     if (!form.titre.trim() || !form.corps.trim()) { toast.error('Titre et contenu requis'); return; }
-    if (targetMode === 'user' && !form.targetUserId.trim()) { toast.error("Indiquez l'email, le nom ou l'ID de l'utilisateur"); return; }
+    if (targetMode === 'user' && !form.targetUserId.trim()) { toast.error('Recherchez et sélectionnez un utilisateur'); return; }
     setSending(true);
     try {
       const payload = {
@@ -376,7 +448,7 @@ export default function NotificationsPage() {
   // ── Envoi Publicité ──
   const handleSendPub = async () => {
     if (!pub.titre.trim() || !pub.corps.trim()) { toast.error('Titre et description requis'); return; }
-    if (pubTarget === 'user' && !pub.targetUserId.trim()) { toast.error("Indiquez l'email, le nom ou l'ID de l'utilisateur"); return; }
+    if (pubTarget === 'user' && !pub.targetUserId.trim()) { toast.error('Recherchez et sélectionnez un utilisateur'); return; }
     setSendingPub(true);
     try {
       const payload = {
@@ -521,9 +593,8 @@ export default function NotificationsPage() {
                   ))}
                 </div>
                 {targetMode === 'user' && (
-                  <input className="input mt-2" value={form.targetUserId}
-                    onChange={e => setForm({ ...form, targetUserId: e.target.value })}
-                    placeholder="Email, « Prénom Nom » ou ID de l'utilisateur" />
+                  <UserPicker value={form.targetUserId}
+                    onChange={id => setForm(f => ({ ...f, targetUserId: id }))} />
                 )}
               </div>
 
@@ -605,9 +676,8 @@ export default function NotificationsPage() {
                   ))}
                 </div>
                 {pubTarget === 'user' && (
-                  <input className="input mt-2" value={pub.targetUserId}
-                    onChange={e => setPub({ ...pub, targetUserId: e.target.value })}
-                    placeholder="Email, « Prénom Nom » ou ID de l'utilisateur" />
+                  <UserPicker value={pub.targetUserId}
+                    onChange={id => setPub(p => ({ ...p, targetUserId: id }))} />
                 )}
               </div>
 
