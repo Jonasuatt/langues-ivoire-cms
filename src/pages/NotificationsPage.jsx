@@ -357,7 +357,7 @@ export default function NotificationsPage() {
   // ── Envoi Notification ──
   const handleSend = async () => {
     if (!form.titre.trim() || !form.corps.trim()) { toast.error('Titre et contenu requis'); return; }
-    if (targetMode === 'user' && !form.targetUserId.trim()) { toast.error('ID utilisateur requis'); return; }
+    if (targetMode === 'user' && !form.targetUserId.trim()) { toast.error("Indiquez l'email, le nom ou l'ID de l'utilisateur"); return; }
     setSending(true);
     try {
       const payload = {
@@ -376,7 +376,7 @@ export default function NotificationsPage() {
   // ── Envoi Publicité ──
   const handleSendPub = async () => {
     if (!pub.titre.trim() || !pub.corps.trim()) { toast.error('Titre et description requis'); return; }
-    if (pubTarget === 'user' && !pub.targetUserId.trim()) { toast.error('ID utilisateur requis'); return; }
+    if (pubTarget === 'user' && !pub.targetUserId.trim()) { toast.error("Indiquez l'email, le nom ou l'ID de l'utilisateur"); return; }
     setSendingPub(true);
     try {
       const payload = {
@@ -523,7 +523,7 @@ export default function NotificationsPage() {
                 {targetMode === 'user' && (
                   <input className="input mt-2" value={form.targetUserId}
                     onChange={e => setForm({ ...form, targetUserId: e.target.value })}
-                    placeholder="ID ou email de l'utilisateur" />
+                    placeholder="Email, « Prénom Nom » ou ID de l'utilisateur" />
                 )}
               </div>
 
@@ -607,7 +607,7 @@ export default function NotificationsPage() {
                 {pubTarget === 'user' && (
                   <input className="input mt-2" value={pub.targetUserId}
                     onChange={e => setPub({ ...pub, targetUserId: e.target.value })}
-                    placeholder="ID ou email de l'utilisateur" />
+                    placeholder="Email, « Prénom Nom » ou ID de l'utilisateur" />
                 )}
               </div>
 
