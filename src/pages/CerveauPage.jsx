@@ -41,6 +41,8 @@ export default function CerveauPage() {
   const [search, setSearch]   = useState('');
   const [results, setResults] = useState(null);
   const [searching, setSearching] = useState(false);
+  const [memoire, setMemoire] = useState(null);
+  const [answers, setAnswers] = useState([]);
 
   const load = () => {
     setLoading(true);
@@ -48,8 +50,20 @@ export default function CerveauPage() {
       .then(({ data }) => setData(data))
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    // Mémoire : ce que la plateforme sait déjà répondre sans repasser par l'IA
+    api.get('/brain/answers', { params: { take: 8 } })
+      .then(({ data }) => { setMemoire(data.memoire); setAnswers(data.reponses || []); })
+      .catch(() => {});
   };
   useEffect(() => { load(); }, []);
+
+  const basculerReponse = async (a) => {
+    try {
+      await api.patch(`/brain/answers/${a.id}`, { isActive: !a.isActive });
+      setAnswers(list => list.map(x => (x.id === a.id ? { ...x, isActive: !x.isActive } : x)));
+    } catch { /* silencieux : l'affichage reste cohérent au prochain chargement */ }
+  };
 
   const doSearch = async (e) => {
     e?.preventDefault();
@@ -142,6 +156,76 @@ export default function CerveauPage() {
             <StatTile emoji="👥" label="Utilisateurs"      value={g.utilisateurs} />
             <StatTile emoji="🔁" label="Cartes de révision" value={g.cartesRevision} />
           </div>
+
+          {/* Mémoire du Cerveau — les économies réalisées */}
+          {memoire && (
+            <div className="mb-8">
+              <div className="flex items-baseline gap-3 mb-3">
+                <h2 className="text-lg font-black text-gray-800">🧠 Mémoire du Cerveau</h2>
+                <span className="text-sm text-gray-500">
+                  ce que la plateforme répond désormais sans appeler l'IA
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                <StatTile emoji="💾" label="Réponses mémorisées" value={memoire.entrees} />
+                <StatTile
+                  emoji="💰"
+                  label="Appels IA évités"
+                  value={memoire.reutilisations}
+                  accent="bg-emerald-50 border-emerald-200"
+                />
+                <StatTile
+                  emoji="📈"
+                  label="Réutilisations par réponse"
+                  value={memoire.entrees ? Math.round((memoire.reutilisations / memoire.entrees) * 10) / 10 : 0}
+                />
+              </div>
+
+              {answers.length > 0 ? (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    Les plus réutilisées
+                  </div>
+                  <ul className="divide-y divide-gray-50">
+                    {answers.map(a => (
+                      <li key={a.id} className="px-4 py-3 flex items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-sm font-semibold truncate ${a.isActive ? 'text-gray-800' : 'text-gray-400 line-through'}`}>
+                            {a.question}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate mt-0.5">{a.reponse}</div>
+                          <div className="text-[11px] text-gray-400 mt-1">
+                            {a.scope === 'tutor' ? 'Tuteur IA' : 'Agent IA'}
+                            {a.modele ? ` · ${a.modele}` : ''}
+                          </div>
+                        </div>
+                        <div className="text-sm font-black text-emerald-700 whitespace-nowrap pt-0.5">
+                          ×{a.hits}
+                        </div>
+                        <button
+                          onClick={() => basculerReponse(a)}
+                          title={a.isActive ? 'Écarter cette réponse' : 'Réactiver cette réponse'}
+                          className={`text-xs font-semibold px-2 py-1 rounded-lg border whitespace-nowrap ${
+                            a.isActive
+                              ? 'text-red-600 border-red-100 hover:bg-red-50'
+                              : 'text-emerald-700 border-emerald-100 hover:bg-emerald-50'
+                          }`}
+                        >
+                          {a.isActive ? 'Écarter' : 'Rétablir'}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 bg-white rounded-2xl border border-gray-100 p-4">
+                  La mémoire est encore vide. Chaque réponse produite par l'IA viendra s'y inscrire
+                  et ne sera plus jamais rachetée.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* La matrice — connaissances par langue et par domaine */}
           <div className="flex items-center justify-between mb-3">

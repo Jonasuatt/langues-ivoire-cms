@@ -1,4 +1,4 @@
-// ─── Avatars locaux — portraits des 16 tuteurs ────────────────────────────────
+// ─── Avatars locaux — portraits des 18 tuteurs ────────────────────────────────
 // Utilisé dans TutorsPage pour afficher l'illustration ethnique du tuteur.
 // Les portraits sont servis comme fichiers statiques depuis public/portraits/
 
@@ -6,6 +6,7 @@ const PORTRAIT_KEYS = [
   'amara', 'aya', 'bleka', 'djeneba', 'dolourou',
   'kadio', 'koffi', 'nache', 'oulahi', 'ozoua',
   'pololo', 'tehia', 'tialagnon', 'tra_lou', 'yoro', 'zan_bi',
+  'droh', 'zia',
 ];
 
 // Agents IA — images dans public/agents/ (Kouadio et Zélé)
