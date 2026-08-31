@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
 import PageHelp from '../components/PageHelp';
 
@@ -156,6 +157,68 @@ export default function CerveauPage() {
             <StatTile emoji="👥" label="Utilisateurs"      value={g.utilisateurs} />
             <StatTile emoji="🔁" label="Cartes de révision" value={g.cartesRevision} />
           </div>
+
+          {/* Ce qui attend une décision humaine */}
+          {data.aCertifier && (
+            <div className="mb-8">
+              <div className="flex items-baseline gap-3 mb-3">
+                <h2 className="text-lg font-black text-gray-800">⏳ En attente de validation</h2>
+                <span className="text-sm text-gray-500">
+                  ces contenus ne rejoindront le patrimoine qu'une fois examinés
+                </span>
+              </div>
+
+              {data.aCertifier.total === 0 ? (
+                <p className="text-sm text-gray-600 bg-white rounded-2xl border border-gray-100 p-4">
+                  ✅ Rien en attente — tout ce qui a été soumis a été traité.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Link
+                    to="/validation-committee"
+                    className="rounded-2xl p-4 border bg-amber-50 border-amber-200 shadow-sm hover:shadow-md transition block"
+                  >
+                    <div className="text-2xl">🎙️</div>
+                    <div className="text-2xl font-black text-gray-900 mt-1">
+                      {data.aCertifier.audios.toLocaleString('fr-FR')}
+                    </div>
+                    <div className="text-xs font-semibold text-gray-600">
+                      Audios à examiner par le comité ILA
+                    </div>
+                    <div className="text-xs font-bold text-amber-700 mt-2">Ouvrir le Comité ILA →</div>
+                  </Link>
+
+                  <Link
+                    to="/validation-committee"
+                    className="rounded-2xl p-4 border bg-orange-50 border-orange-200 shadow-sm hover:shadow-md transition block"
+                  >
+                    <div className="text-2xl">🔁</div>
+                    <div className="text-2xl font-black text-gray-900 mt-1">
+                      {data.aCertifier.audiosARevoir.toLocaleString('fr-FR')}
+                    </div>
+                    <div className="text-xs font-semibold text-gray-600">
+                      Révisions demandées par les experts
+                    </div>
+                    <div className="text-xs font-bold text-orange-700 mt-2">Voir les révisions →</div>
+                  </Link>
+
+                  <Link
+                    to="/contributions"
+                    className="rounded-2xl p-4 border bg-sky-50 border-sky-200 shadow-sm hover:shadow-md transition block"
+                  >
+                    <div className="text-2xl">✍️</div>
+                    <div className="text-2xl font-black text-gray-900 mt-1">
+                      {data.aCertifier.contributions.toLocaleString('fr-FR')}
+                    </div>
+                    <div className="text-xs font-semibold text-gray-600">
+                      Contributions de la communauté à modérer
+                    </div>
+                    <div className="text-xs font-bold text-sky-700 mt-2">Ouvrir les contributions →</div>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Mémoire du Cerveau — les économies réalisées */}
           {memoire && (
