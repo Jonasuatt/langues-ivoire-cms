@@ -334,3 +334,8 @@ export const repetitorAPI = {
 };
 
 export default api;
+
+// Activation d'un numéro à partir du code reçu par WhatsApp
+export const whatsappAPI = {
+  validerCode: (code, telephone) => api.post('/whatsapp/valider-code', { code, telephone }),
+};

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import PageHelp from '../components/PageHelp';
-import { adminAPI, languagesAPI } from '../services/api';
+import { adminAPI, languagesAPI, whatsappAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -186,6 +186,28 @@ export default function UsersPage() {
   const [form, setForm]               = useState({ nom: '', prenom: '', email: '', motDePasse: '', role: defaultRole, titre: '', modules: [], langues: [] });
   const [creating, setCreating]       = useState(false);
 
+  // Activation d'un numéro à partir du code reçu par WhatsApp
+  const [waCode, setWaCode]         = useState('');
+  const [waTelephone, setWaTel]     = useState('');
+  const [waEnCours, setWaEnCours]   = useState(false);
+
+  const validerParWhatsApp = async (e) => {
+    e.preventDefault();
+    if (!waCode.trim() || !waTelephone.trim()) return;
+    setWaEnCours(true);
+    try {
+      const { data } = await whatsappAPI.validerCode(waCode.trim(), waTelephone.trim());
+      const u = data.user;
+      toast.success(`Numéro ${u.telephone} activé pour ${u.prenom} ${u.nom}`);
+      setWaCode(''); setWaTel('');
+      load();
+    } catch (err) {
+      toast.error(err?.response?.data?.error || "Validation impossible.");
+    } finally {
+      setWaEnCours(false);
+    }
+  };
+
   // Édition des modules d'un utilisateur existant
   const [modTarget, setModTarget]   = useState(null); // { user, modules, langues }
   const [savingMods, setSavingMods] = useState(false);
@@ -290,6 +312,35 @@ export default function UsersPage() {
             <PlusIcon className="w-4 h-4" /> Créer un compte
           </button>
         )}
+      </div>
+
+      {/* Activation d'un numéro depuis un message WhatsApp reçu */}
+      <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <div className="flex items-baseline gap-2 mb-1">
+          <h2 className="font-bold text-gray-800">💬 Activer un numéro reçu par WhatsApp</h2>
+        </div>
+        <p className="text-xs text-gray-600 mb-3">
+          L'utilisateur vous a envoyé un message contenant un code (ex. <b>LI-4821</b>).
+          Recopiez ce code et le numéro de l'expéditeur : le compte concerné est reconnu
+          automatiquement, sans avoir à le chercher.
+        </p>
+        <form onSubmit={validerParWhatsApp} className="flex flex-wrap items-center gap-2">
+          <input
+            value={waCode}
+            onChange={(e) => setWaCode(e.target.value)}
+            placeholder="LI-4821"
+            className="input w-36 font-mono uppercase"
+          />
+          <input
+            value={waTelephone}
+            onChange={(e) => setWaTel(e.target.value)}
+            placeholder="07 08 09 10 11"
+            className="input w-52"
+          />
+          <button type="submit" disabled={waEnCours} className="btn-primary">
+            {waEnCours ? 'Activation…' : 'Activer le numéro'}
+          </button>
+        </form>
       </div>
 
       {/* Légende rôles */}
