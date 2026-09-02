@@ -193,7 +193,10 @@ export default function UsersPage() {
 
   const validerParWhatsApp = async (e) => {
     e.preventDefault();
-    if (!waCode.trim() || !waTelephone.trim()) return;
+    if (!waCode.trim() || !waTelephone.trim()) {
+      toast.error("Renseignez le code et le numéro de l'expéditeur.");
+      return;
+    }
     setWaEnCours(true);
     try {
       const { data } = await whatsappAPI.validerCode(waCode.trim(), waTelephone.trim());
@@ -328,16 +331,23 @@ export default function UsersPage() {
           <input
             value={waCode}
             onChange={(e) => setWaCode(e.target.value)}
-            placeholder="LI-4821"
+            placeholder="ex. LI-4821"
             className="input w-36 font-mono uppercase"
           />
           <input
             value={waTelephone}
             onChange={(e) => setWaTel(e.target.value)}
-            placeholder="07 08 09 10 11"
+            placeholder="ex. 07 08 09 10 11"
             className="input w-52"
           />
-          <button type="submit" disabled={waEnCours} className="btn-primary">
+          <button
+            type="submit"
+            disabled={waEnCours || !waCode.trim() || !waTelephone.trim()}
+            title={!waCode.trim() || !waTelephone.trim()
+              ? "Renseignez le code et le numéro de l'expéditeur"
+              : undefined}
+            className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             {waEnCours ? 'Activation…' : 'Activer le numéro'}
           </button>
         </form>
