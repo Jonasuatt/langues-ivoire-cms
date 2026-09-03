@@ -8,7 +8,7 @@
  */
 import { useEffect, useState, useRef } from 'react';
 import PageHelp from '../components/PageHelp';
-import { financeAPI, depensesAPI } from '../services/api';
+import { financeAPI, depensesAPI, adminAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon,
@@ -1065,9 +1065,7 @@ function PremiumTab() {
     } catch {
       // Fallback : tenter via adminAPI
       try {
-        const { data } = await import('../services/api').then(m =>
-          m.adminAPI.getUsers({ isPremium: true, limit: 200 })
-        );
+        const { data } = await adminAPI.getUsers({ isPremium: true, limit: 200 });
         setAbonnes((data.data || []).map(u => ({
           id: u.id,
           user: u,

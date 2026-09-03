@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { supportAPI } from '../services/api';
 import ErrorBoundary from './ErrorBoundary';
 import {
@@ -289,7 +289,17 @@ export default function Layout() {
         </div>
 
         <ErrorBoundary>
-          <Outlet />
+          {/* La page arrive dans son propre module : le menu reste en place
+              pendant le téléchargement, seul le contenu affiche l'attente. */}
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-24">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </ErrorBoundary>
       </main>
     </div>
