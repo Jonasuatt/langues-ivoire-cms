@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://api-production-7107f.up.railway.app/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.languesivoire.ci/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
