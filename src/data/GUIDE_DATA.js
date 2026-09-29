@@ -2100,7 +2100,7 @@ export const GUIDE_MODULES = [
         ],
       },
     ],
-    tip: 'Pour la validation des téléphones, traitez les demandes WhatsApp dans les 24 heures — c\'est l\'engagement communiqué aux utilisateurs dans l\'application. Appliquez le principe du moindre privilège pour les rôles CMS.',
+    tip: 'Pour la validation des téléphones, traitez les demandes WhatsApp rapidement : l\'utilisateur attend la notification « Numéro de téléphone activé ». Aucun délai n\'est promis dans l\'application. Appliquez le principe du moindre privilège pour les rôles CMS.',
     warnings: [
       'La validation d\'un numéro de téléphone permet une connexion directe sans mot de passe. Vérifiez toujours l\'identité de l\'utilisateur avant de valider.',
       'Avec l\'encart WhatsApp, le numéro enregistré est celui de l\'expéditeur du message : ne saisissez jamais un autre numéro que celui qui a envoyé le code.',
