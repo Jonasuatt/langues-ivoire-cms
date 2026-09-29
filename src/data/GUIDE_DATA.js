@@ -1108,6 +1108,7 @@ export const GUIDE_MODULES = [
       'Sélection et personnalisation de la personnalité (chaleureux, pédagogue, humoristique...)',
       'Paramètres vocaux : vitesse de parole et hauteur de voix (pitch)',
       'Upload du portrait illustratif du tuteur',
+      'Animation dans l\'application mobile : clignement des yeux, respiration et bouche synchronisée avec la voix (Droh et Zia pour le moment ; les autres tuteurs restent en portrait fixe)',
       'Tri automatique des tuteurs par langue dans l\'interface',
       'Activation / désactivation de chaque tuteur',
     ],
@@ -2002,7 +2003,7 @@ export const GUIDE_MODULES = [
     objectifs: [
       'Gérer les comptes utilisateurs de l\'application mobile (rôle, statut, téléphone)',
       'Créer et gérer les comptes d\'accès CMS de l\'équipe éditoriale',
-      'Valider les numéros de téléphone pour activer la connexion sans mot de passe',
+      'Activer les numéros de téléphone (code reçu par WhatsApp) pour permettre la connexion par numéro',
       'Attribuer les rôles appropriés selon les responsabilités',
       'Contrôler l\'accès aux modules sensibles',
     ],
@@ -2011,6 +2012,8 @@ export const GUIDE_MODULES = [
       'Indicateur de numéro de téléphone : ✅ Validé (vert) ou bouton orange « Valider »',
       'Validation du numéro de téléphone → active la connexion directe sans SMS pour l\'utilisateur',
       'Notification automatique in-app envoyée à l\'utilisateur lors de la validation du téléphone',
+      'Encart vert « 💬 Activer un numéro reçu par WhatsApp » : coller le code de l\'utilisateur (ex. LI-4821) et le numéro de l\'expéditeur — le compte concerné est reconnu automatiquement, sans avoir à le chercher',
+      'Règle : un compte = un seul numéro. L\'utilisateur peut le changer ou le désactiver depuis Profil → Connexion par téléphone',
       'Création de nouveaux comptes CMS (nom, email, rôle)',
       'Rôles disponibles : Utilisateur, Contributeur, Enseignant, Éditeur, Expert ILA, Partenaire, Admin, Super-Admin',
       'Modification du rôle — accès aux modules correspondants automatiquement filtrés',
@@ -2018,7 +2021,12 @@ export const GUIDE_MODULES = [
     ],
     steps: [
       {
-        title: 'Valider un numéro de téléphone (connexion mobile)',
+        title: 'Activer un numéro reçu par WhatsApp (procédure actuelle)',
+        desc: 'L\'utilisateur génère un code (ex. LI-4821) depuis son Profil et l\'envoie par WhatsApp au numéro Business de la plateforme, depuis SON téléphone. Dans l\'encart vert « Activer un numéro reçu par WhatsApp », en haut de la page, recopiez le code puis le numéro de l\'expéditeur tel qu\'il apparaît dans WhatsApp, et cliquez sur « Activer le numéro ». Le compte est reconnu grâce au code : inutile de le chercher dans la liste.',
+        warning: 'Le numéro à saisir est celui de l\'EXPÉDITEUR du message, jamais un autre. Un code n\'est valable que 30 minutes et ne sert qu\'une fois ; un numéro déjà rattaché à un autre compte est refusé.',
+      },
+      {
+        title: 'Valider un numéro déjà enregistré (bouton orange « Valider »)',
         desc: 'Un utilisateur vous contacte via WhatsApp (+225 07 98 54 18 64) pour demander l\'activation de son numéro. Recherchez-le dans la liste par nom ou email, repérez la colonne « Téléphone » et cliquez sur le bouton orange « Valider ». Une confirmation s\'affiche, puis une notification in-app est envoyée automatiquement à l\'utilisateur.',
         warning: 'Vérifiez que le numéro de téléphone affiché correspond bien à celui mentionné dans le message WhatsApp avant de valider. La validation est immédiate et permet une connexion directe à l\'application.',
       },
@@ -2050,15 +2058,24 @@ export const GUIDE_MODULES = [
     ],
     workflows: [
       {
-        title: 'Activation de la connexion par téléphone (procédure complète)',
+        title: 'Activation d\'un numéro par code WhatsApp (procédure actuelle)',
         steps: [
-          'L\'utilisateur crée son compte dans l\'application mobile avec son e-mail',
-          'Depuis Profil → « Activer la connexion par téléphone », l\'utilisateur envoie un message WhatsApp au +225 07 98 54 18 64',
-          'L\'administrateur reçoit le message et identifie l\'utilisateur dans la liste (recherche par nom ou email)',
-          'Dans la colonne « Téléphone », vérifier que le numéro correspond bien à celui du message',
-          'Cliquer sur le bouton orange « Valider » → confirmer la boîte de dialogue',
-          'L\'utilisateur reçoit une notification in-app : « 📱 Numéro de téléphone activé »',
-          'L\'utilisateur peut maintenant se connecter avec son téléphone + indicatif pays, sans SMS ni code',
+          'L\'utilisateur ouvre l\'application → Profil → « Activer la connexion par téléphone »',
+          'L\'application génère un code (ex. LI-4821) et ouvre WhatsApp avec un message prêt à envoyer',
+          'L\'utilisateur envoie ce message tel quel, depuis son téléphone, au numéro Business (+225 07 98 54 18 64)',
+          'Dans le CMS → Utilisateurs, l\'encart vert « Activer un numéro reçu par WhatsApp » attend le code et le numéro de l\'expéditeur',
+          'Recopier le code, puis le numéro de l\'expéditeur, et cliquer sur « Activer le numéro »',
+          'L\'utilisateur reçoit la notification « 📱 Numéro de téléphone activé » et son Profil affiche « Activée »',
+          'Il peut désormais se connecter — et déverrouiller l\'application — avec son numéro',
+        ],
+      },
+      {
+        title: 'Numéro déjà enregistré mais non validé (bouton « Valider »)',
+        steps: [
+          'Repérer dans la liste un compte dont le numéro s\'affiche avec le bouton orange « Valider » (inscription par numéro)',
+          'Vérifier l\'identité de la personne avant toute validation',
+          'Cliquer sur « Valider » puis confirmer la boîte de dialogue',
+          'L\'utilisateur reçoit la notification « 📱 Numéro de téléphone activé »',
         ],
       },
       {
@@ -2086,6 +2103,7 @@ export const GUIDE_MODULES = [
     tip: 'Pour la validation des téléphones, traitez les demandes WhatsApp dans les 24 heures — c\'est l\'engagement communiqué aux utilisateurs dans l\'application. Appliquez le principe du moindre privilège pour les rôles CMS.',
     warnings: [
       'La validation d\'un numéro de téléphone permet une connexion directe sans mot de passe. Vérifiez toujours l\'identité de l\'utilisateur avant de valider.',
+      'Avec l\'encart WhatsApp, le numéro enregistré est celui de l\'expéditeur du message : ne saisissez jamais un autre numéro que celui qui a envoyé le code.',
       'Le rôle Expert ILA donne accès aux décisions de certification audio — irréversibles une fois le quorum atteint. Ne l\'attribuer qu\'à des membres officiels du comité ILA-UFHB.',
     ],
     audioNaming: null,
@@ -2139,6 +2157,8 @@ export const GUIDE_MODULES = [
       'Repérer les domaines vides (·) pour planifier les prochains chantiers de contenu',
       'Suivre le taux de certification ILA des audios',
       'Interroger la mémoire : recherche transversale dans tous les contenus',
+      'Repérer d\'un coup d\'œil ce qui attend une validation humaine (audios, révisions, contributions)',
+      'Mesurer les économies réalisées : réponses mémorisées et appels IA évités',
     ],
     features: [
       'Compteur global de connaissances enregistrées (tous modules confondus)',
@@ -2146,12 +2166,17 @@ export const GUIDE_MODULES = [
       'Matrice langues × domaines : 14 domaines de connaissance par langue, code ISO 639-3, total par langue',
       'Recherche transversale (« rappel de la mémoire ») dans le dictionnaire, les leçons et la culture',
       'Un point (·) = domaine vide pour cette langue = prochain chantier de contenu',
+      'Section « ⏳ En attente de validation » : trois tuiles cliquables — audios à examiner par le comité ILA, révisions demandées par les experts, contributions de la communauté à modérer',
+      'Section « 🧠 Mémoire du Cerveau » : réponses de l\'IA mémorisées, appels IA évités, réutilisations par réponse et entrées les plus resservies',
+      'Chaque réponse mémorisée peut être écartée puis rétablie d\'un clic',
     ],
     steps: [
       { title: 'Lire les signes vitaux', desc: 'Les tuiles du haut donnent l\'état global de la mémoire : volume de mots, phrases, leçons, audios et leur taux de certification ILA.', warning: null },
       { title: 'Analyser la matrice', desc: 'Chaque ligne est une langue, chaque colonne un domaine de connaissance. Les langues sont triées par volume total — les points (·) montrent où concentrer les prochains efforts éditoriaux.', warning: null },
       { title: 'Interroger la mémoire', desc: 'La barre de recherche fouille l\'ensemble des contenus (mots, leçons, culture) — utile pour vérifier si une connaissance existe déjà avant de la créer.', warning: null },
       { title: 'Planifier avec les équipes', desc: 'Utilisez la matrice en réunion éditoriale : « la langue X n\'a rien en Monnaie ni en Civisme » devient un objectif d\'équipe concret et mesurable.', warning: null },
+      { title: 'Traiter ce qui attend une validation', desc: 'La section « ⏳ En attente de validation » compte les audios à examiner, les révisions demandées par les experts et les contributions à modérer. Chaque tuile ouvre directement la page où trancher (Comité ILA ou Contributions). Tant qu\'ils ne sont pas examinés, ces contenus ne rejoignent pas le patrimoine.', warning: null },
+      { title: 'Surveiller la mémoire des réponses', desc: 'La section « 🧠 Mémoire du Cerveau » montre ce que la plateforme répond sans appeler l\'IA : réponses mémorisées, appels évités, réutilisations. Parcourez les entrées les plus resservies et cliquez sur « Écarter » pour retirer une réponse erronée ; « Rétablir » la remet en service.', warning: 'Une erreur mémorisée est resservie à chaque demande identique : écartez-la dès qu\'elle est repérée.' },
     ],
     workflows: [
       {
@@ -2168,6 +2193,7 @@ export const GUIDE_MODULES = [
     tip: 'Le Cerveau ne se remplit pas ici : il se nourrit dans chaque module. Cette page est le miroir — chaque mot ajouté au Dictionnaire, chaque audio certifié au Comité ILA apparaît immédiatement dans la matrice.',
     warnings: [
       'Les contenus universels (sans langue associée, ex. tables de multiplication) comptent dans les totaux globaux mais n\'apparaissent pas dans la matrice par langue.',
+      'Une réponse d\'IA mémorisée est resservie telle quelle tant qu\'elle n\'est pas écartée : vérifiez régulièrement les entrées les plus réutilisées.',
     ],
     audioNaming: null,
   },
@@ -2357,6 +2383,9 @@ export const GUIDE_MODULES = [
       '👩🏾‍🏫 v2.9 : rôle Enseignant + Espace Enseignant mobile — classes, code d\'accès 6 caractères, tableau de suivi élèves (assiduité, XP, cursus)',
       '🛡️ v2.9 : autorisation parentale Répéto (enregistrements vocaux d\'enfants) + badges de certification sur toutes les réponses IA (⭐ Certifié ILA / 🤖 non certifié)',
       '🌍 v2.9 : codes ISO 639-3 sur 40 langues (interopérabilité, archivage OLAC/ELAR, dossiers UNESCO)',
+      '🌐 Sept. 2026 : le CMS est désormais sur https://languesivoire.ci (l\'ancienne adresse reste active). Reconnectez-vous une fois sur la nouvelle adresse : les sessions sont propres à chaque adresse',
+      '📲 Sept. 2026 : connexion par téléphone — code LI-XXXX envoyé par WhatsApp, activation depuis Utilisateurs (encart vert) ; l\'utilisateur peut changer ou désactiver son numéro, et déverrouiller l\'application par biométrie, mot de passe ou numéro',
+      '🧠 Sept. 2026 : Cerveau — sections « En attente de validation » et « Mémoire du Cerveau » (réponses de l\'IA mémorisées, appels évités) ; le traducteur mobile répond hors connexion depuis le dictionnaire embarqué',
     ],
     steps: [
       { title: 'Choisir votre parcours par rôle', desc: 'En haut du guide, sélectionner votre rôle (Éditeur, Expert ILA, Admin…) pour afficher un parcours de formation personnalisé avec les modules prioritaires pour votre poste.', warning: null },
