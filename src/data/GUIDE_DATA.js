@@ -890,7 +890,7 @@ export const GUIDE_MODULES = [
     color: 'orange',
     roles: ['ADMIN', 'SUPER_ADMIN'],
     description:
-      'Reçoit les messages envoyés par les visiteurs du site languesivoire.ci via « Une idée ? Écrivez-nous ». Vous pouvez répondre, puis publier l\'échange sur le site, uniquement si l\'auteur a donné son accord. Le contact de l\'auteur (e-mail ou WhatsApp) reste toujours privé.',
+      'Reçoit les messages envoyés par les visiteurs du site languesivoire.ci via « Une idée ? Écrivez-nous ». Vous pouvez répondre, puis publier l\'échange sur le site, uniquement si l\'auteur a donné son accord. Le numéro WhatsApp laissé par l\'auteur, facultatif, reste toujours privé.',
     objectifs: [
       'Écouter les idées et remarques du public',
       'Répondre aux personnes et, avec leur accord, publier les réponses utiles',

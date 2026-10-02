@@ -68,8 +68,8 @@ export default function PropositionsPage() {
           <label className="grid gap-1.5 font-semibold">Votre nom <span className="text-sm font-normal text-[#56635c]">(un prénom suffit)</span>
             <input className={champ} type="text" value={nom} onChange={(e) => setNom(e.target.value)} maxLength={80} autoComplete="given-name" />
           </label>
-          <label className="grid gap-1.5 font-semibold">Votre WhatsApp ou votre e-mail <span className="text-sm font-normal text-[#56635c]">(facultatif — pour que nous puissions vous répondre en privé ; il n’est jamais affiché)</span>
-            <input className={champ} type="text" value={contact} onChange={(e) => setContact(e.target.value)} maxLength={120} autoComplete="off" inputMode="email" />
+          <label className="grid gap-1.5 font-semibold">Votre numéro WhatsApp <span className="text-sm font-normal text-[#56635c]">(facultatif — pour que nous puissions vous répondre en privé ; il n’est jamais affiché)</span>
+            <input className={champ} type="text" value={contact} onChange={(e) => setContact(e.target.value)} maxLength={120} autoComplete="tel" inputMode="tel" placeholder="+225 …" />
           </label>
           <label className="grid gap-1.5 font-semibold">Votre message
             <textarea className={`${champ} min-h-[150px] resize-y`} value={texte} onChange={(e) => setTexte(e.target.value)} maxLength={2000}
