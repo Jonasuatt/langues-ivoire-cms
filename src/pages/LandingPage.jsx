@@ -92,6 +92,8 @@ export default function LandingPage() {
     const prev = document.title;
     document.title = 'LANGUES IVOIRE — Apprenez et préservez les langues de Côte d’Ivoire';
     document.documentElement.style.scrollBehavior = 'smooth';
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id) setTimeout(() => document.getElementById(id)?.scrollIntoView(), 150);
     return () => { document.title = prev; document.documentElement.style.scrollBehavior = ''; };
   }, []);
 
@@ -336,8 +338,8 @@ export default function LandingPage() {
           </div>
           <div className="text-sm">
             <p className="mb-2 font-bold text-white">Contact</p>
-            <a href={`mailto:${CONTACT}`} className="inline-flex items-center gap-2 hover:text-[#FFC48C]"><EnvelopeIcon className="h-4 w-4" /> {CONTACT}</a>
-            <a href={PHONE_HREF} className="mt-2 inline-flex items-center gap-2 hover:text-[#FFC48C]"><DevicePhoneMobileIcon className="h-4 w-4" /> {PHONE}</a>
+            <a href={`mailto:${CONTACT}`} className="flex w-fit items-center gap-2 hover:text-[#FFC48C]"><EnvelopeIcon className="h-4 w-4" /> {CONTACT}</a>
+            <a href={PHONE_HREF} className="mt-2 flex w-fit items-center gap-2 hover:text-[#FFC48C]"><DevicePhoneMobileIcon className="h-4 w-4" /> {PHONE}</a>
           </div>
           <div className="text-sm">
             <p className="mb-2 font-bold text-white">Liens</p>
