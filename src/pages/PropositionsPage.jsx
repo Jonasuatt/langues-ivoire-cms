@@ -94,7 +94,7 @@ export default function PropositionsPage() {
         </form>
 
         <p className="mt-8 max-w-xl text-sm text-[#56635c]">
-          Plutôt par téléphone ? Écrivez-nous sur <a className="font-semibold text-[#0B3D2E] underline" href={`https://wa.me/${WHATSAPP}`}>WhatsApp au 05 65 75 03 03</a>{' '}
+          Plutôt par <a className="font-semibold text-[#0B3D2E] underline" href={`https://wa.me/${WHATSAPP}`}>WhatsApp au 05 65 75 03 03</a>{' '}
           ou à <a className="font-semibold text-[#0B3D2E] underline" href={`mailto:${EMAIL}`}>{EMAIL}</a>. Votre message n’est lu que par l’équipe LANGUES IVOIRE.
         </p>
 
