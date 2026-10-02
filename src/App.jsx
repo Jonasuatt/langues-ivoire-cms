@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
@@ -51,6 +52,10 @@ import CerveauPage   from './pages/CerveauPage';
 import DataDeletionPage from './pages/DataDeletionPage';
 import ProgrammePage from './pages/ProgrammePage';
 import FichesPage    from './pages/FichesPage';
+import PropositionsAdminPage from './pages/PropositionsAdminPage';
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const VisionPage = lazy(() => import('./pages/VisionPage'));
+const PropositionsPage = lazy(() => import('./pages/PropositionsPage'));
 
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -60,14 +65,25 @@ function ProtectedRoute({ children, roles }) {
   return children;
 }
 
+// Page publique de presentation : seulement a la racine, pour les visiteurs non connectes.
+// Un utilisateur connecte retrouve le tableau de bord ; les autres adresses restent protegees.
+function RootGate({ children }) {
+  const { user, loading } = useAuth();
+  const { pathname } = useLocation();
+  if (pathname === '/' && !loading && !user) return <Suspense fallback={null}><LandingPage /></Suspense>;
+  return children;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/vision" element={<Suspense fallback={null}><VisionPage /></Suspense>} />
+        <Route path="/propositions" element={<Suspense fallback={null}><PropositionsPage /></Suspense>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/suppression-donnees" element={<DataDeletionPage />} />
-        <Route path="/" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'EXPERT', 'CONTRIBUTOR', 'PARTNER']}><Layout /></ProtectedRoute>}>
+        <Route path="/" element={<RootGate><ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'EXPERT', 'CONTRIBUTOR', 'PARTNER']}><Layout /></ProtectedRoute></RootGate>}>
           <Route index element={<DashboardPage />} />
           <Route path="cerveau" element={<CerveauPage />} />
           <Route path="dictionary" element={<DictionaryPage />} />
@@ -77,6 +93,7 @@ export default function App() {
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="contributions" element={<ContributionsPage />} />
           <Route path="messages" element={<MessagesPage />} />
+          <Route path="suggestions" element={<ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN']}><PropositionsAdminPage /></ProtectedRoute>} />
           <Route path="certificates" element={<CertificatesPage />} />
           <Route path="lessons" element={<LessonsPage />} />
           <Route path="cursus"    element={<CursusPage />} />

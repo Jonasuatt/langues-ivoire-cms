@@ -881,6 +881,39 @@ export const GUIDE_MODULES = [
   },
 
   {
+    id: 'propositions',
+    route: '/suggestions',
+    section: 'communaute',
+    icon: '💡',
+    title: 'Propositions du public',
+    subtitle: 'Idées et remarques reçues sur languesivoire.ci',
+    color: 'orange',
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+    description:
+      'Reçoit les messages envoyés par les visiteurs du site languesivoire.ci via « Une idée ? Écrivez-nous ». Vous pouvez répondre, puis publier l\'échange sur le site, uniquement si l\'auteur a donné son accord. Le contact de l\'auteur (e-mail ou WhatsApp) reste toujours privé.',
+    objectifs: [
+      'Écouter les idées et remarques du public',
+      'Répondre aux personnes et, avec leur accord, publier les réponses utiles',
+    ],
+    features: [
+      'Onglets Nouveaux, Répondus et Toutes',
+      'Contact de l\'auteur visible uniquement dans le CMS',
+      'Mention « Accord de publication » quand l\'auteur a coché la case',
+      'Bouton « Publier sur le site » (message + réponse, avec le prénom de l\'auteur)',
+      'Suppression d\'une proposition',
+    ],
+    steps: [
+      { title: 'Ouvrir Propositions', desc: 'Menu Communauté → Propositions. L\'onglet Nouveaux liste les messages à traiter.', warning: null },
+      { title: 'Lire et répondre', desc: 'Saisissez votre réponse sous le message, puis cliquez sur « Enregistrer la réponse ». Si l\'auteur a laissé un contact, écrivez-lui aussi en privé.', warning: 'La réponse enregistrée n\'est pas envoyée automatiquement : elle n\'apparaît sur le site que si vous la publiez.' },
+      { title: 'Publier (facultatif)', desc: 'Si la mention « Accord de publication » est présente, cliquez sur « Publier sur le site » : le message et votre réponse s\'affichent sur la page Propositions du site, avec le prénom seulement.', warning: 'Sans accord de l\'auteur, la publication est impossible.' },
+      { title: 'Retirer ou supprimer', desc: '« Retirer du site » dépublie l\'échange ; « Supprimer » efface définitivement la proposition.', warning: null },
+    ],
+    workflows: [],
+    tip: 'Relisez toujours une réponse avant de la publier : elle devient visible de tous sur languesivoire.ci.',
+    warnings: [],
+  },
+
+  {
     id: 'certificats',
     route: '/certificates',
     section: 'communaute',

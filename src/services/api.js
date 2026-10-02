@@ -339,3 +339,16 @@ export default api;
 export const whatsappAPI = {
   validerCode: (code, telephone) => api.post('/whatsapp/valider-code', { code, telephone }),
 };
+
+// Propositions du public : lecture/réponse réservées aux administrateurs (jeton), envoi et lecture publiques sans jeton
+export const suggestionsAPI = {
+  list: () => api.get('/suggestions'),
+  update: (id, data) => api.patch(`/suggestions/${id}`, data),
+  remove: (id) => api.delete(`/suggestions/${id}`),
+};
+// Instance sans jeton ni redirection vers /login : pour les visiteurs de la page publique
+const publicApi = axios.create({ baseURL: api.defaults.baseURL, headers: { 'Content-Type': 'application/json' } });
+export const publicSuggestionsAPI = {
+  send: (data) => publicApi.post('/suggestions', data),
+  published: () => publicApi.get('/suggestions/publiees'),
+};

@@ -12,7 +12,7 @@ import {
   ArrowRightOnRectangleIcon, ExclamationTriangleIcon, UserCircleIcon,
   LanguageIcon, PhotoIcon, EnvelopeIcon, QuestionMarkCircleIcon,
   BanknotesIcon, MapPinIcon, PresentationChartLineIcon,
-  CalculatorIcon, ShieldCheckIcon, CircleStackIcon,
+  CalculatorIcon, ShieldCheckIcon, CircleStackIcon, LightBulbIcon,
 } from '@heroicons/react/24/outline';
 
 export const ROLE_LABELS = {
@@ -62,6 +62,7 @@ const NAV_SECTIONS = [
     items: [
       { to: '/contributions', label: 'Contributions', icon: ChatBubbleLeftRightIcon },
       { to: '/messages', label: 'Messages', icon: EnvelopeIcon },
+      { to: '/suggestions', label: 'Propositions', icon: LightBulbIcon, adminOnly: true },
       { to: '/certificates', label: 'Certificats', icon: AcademicCapIcon },
       { to: '/ia-linguistique', label: 'IA Linguistique', icon: CpuChipIcon },
       { to: '/voix-audio', label: 'Import Audio', icon: MicrophoneIcon },
